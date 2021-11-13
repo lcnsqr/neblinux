@@ -51,13 +51,13 @@ void Monitor::show(){
 
   display->setTextSize(3);
   display->setTextColor(SSD1306_WHITE);
-  display->print((int)session->temperature);
+  display->print(session->temperature);
   display->write(248); // Sinal de grau
   display->println("C");
 
   display->setTextSize(2);
   display->setTextColor(SSD1306_WHITE);
-  display->print((int)session->tempeTarget);
+  display->print(session->tempeTarget);
   display->write(248); // Sinal de grau
   display->println("C");
 
