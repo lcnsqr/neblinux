@@ -10,7 +10,6 @@ Therm::Therm(Session* session, int pin, unsigned long wait): Task(wait), session
   bCoef = 3950.0;
   tempNominal =  25.0;
 
-  analogReference(EXTERNAL);
 }
 
 void Therm::action(){
