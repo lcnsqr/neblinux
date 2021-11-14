@@ -8,10 +8,11 @@ class Therm: public Task {
 
   public:
 
-  Therm(Session* session, int pin, unsigned long wait);
+  Therm(Session* session, int pin, unsigned long wait, unsigned int bufLen);
+  ~Therm();
 
   void action();
-  double celsius(int reading);
+  double celsius(double thermistor);
 
   private:
 
@@ -28,6 +29,9 @@ class Therm: public Task {
   double bCoef;
   double tempNominal;
 
+  unsigned int bufLen;
+  int* buf;
+  unsigned int bufCount;
 };
 
 #endif
