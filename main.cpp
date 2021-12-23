@@ -7,15 +7,17 @@
 #include <Arduino.h>
 #include "rotary.h"
 #include "sampler.h"
+#include "heater.h"
 
 Session session;
 Tasks tasks;
-Therm therm(&session, A0, 169, 1);
+Therm therm(&session, A0, 1000, 3);
 Controls controls(&session, 4, 40);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Monitor monitor(&session, &display, 25);
 Rotary rotary;
 Sampler sampler(&therm, A0, 500);
+Heater heater(&session, 5, 40);
 
 void setup() {
   monitor.begin();
@@ -24,6 +26,7 @@ void setup() {
   tasks.add(&controls);
   tasks.add(&monitor);
   tasks.add(&sampler);
+  tasks.add(&heater);
 
 }
 

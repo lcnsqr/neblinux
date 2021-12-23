@@ -12,11 +12,11 @@ Monitor::Monitor(Session* session, Adafruit_SSD1306* display, unsigned long wait
 }
 
 void Monitor::begin(){
-  Serial.begin(115200);
-  Serial.println("Start");
+  //Serial.begin(115200);
+  //Serial.println("Start");
 
   if ( ! display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS) ) {
-    Serial.println("Display error");
+    //Serial.println("Display error");
     for(;;);
   }
 
@@ -51,15 +51,16 @@ void Monitor::show(){
 
   display->setTextSize(3);
   display->setTextColor(SSD1306_WHITE);
-  display->print(session->temperature);
+  display->print((int)session->temperature);
   display->write(248); // Sinal de grau
   display->println("C");
 
   display->setTextSize(2);
   display->setTextColor(SSD1306_WHITE);
-  display->print(session->tempeTarget);
-  display->write(248); // Sinal de grau
-  display->println("C");
+  //display->print((int)session->tempeTarget);
+  //display->write(248); // Sinal de grau
+  //display->println("C");
+  display->println((int)session->tempeTarget);
 
   display->setTextSize(1);
   //display->setTextColor(SSD1306_BLACK, SSD1306_WHITE);
