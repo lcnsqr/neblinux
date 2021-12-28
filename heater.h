@@ -12,12 +12,18 @@ class Heater: public Task {
 
   void action();
 
+  double setpoint;
+  double input;
+
   private:
 
   // PWM output
   int pin;
 
   Session* session;
+
+  double y[3];
+  int yPos;
 };
 
 #endif

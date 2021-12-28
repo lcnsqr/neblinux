@@ -3,7 +3,7 @@
 Session::Session() {
   changed = true;
   temperature = 0;
-  tempeTarget = 0;
+  tempeTarget = 110;
   on = false;
 }
 

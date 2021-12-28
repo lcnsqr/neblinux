@@ -11,7 +11,7 @@
 
 Session session;
 Tasks tasks;
-Therm therm(&session, A0, 1000, 3);
+Therm therm(&session, A0, 50, 10);
 Controls controls(&session, 4, 40);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Monitor monitor(&session, &display, 25);

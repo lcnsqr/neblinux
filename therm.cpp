@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 Therm::Therm(Session* session, int pin, unsigned long wait, unsigned int bufLen): Task(wait), session(session), pin(pin), bufLen(bufLen) {
-  r1 = 100000.0;
+  r1 = 95000.0;
 
   thermNominal = 100000.0;
   bCoef = 3950.0;
