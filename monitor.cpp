@@ -52,7 +52,7 @@ void Monitor::show(){
   display->setTextSize(1);
   display->setTextColor(SSD1306_WHITE);
 
-  display->print("Atual: ");
+  display->print("Temp: ");
   display->println((int)session->temperature);
 
   //display->write(248); // Sinal de grau
@@ -61,7 +61,7 @@ void Monitor::show(){
   display->print("Alvo: ");
   display->println((int)session->tempeTarget);
 
-  display->println("PID:");
+  display->println("P I D");
   display->print(session->PID[0]);
   display->print(" ");
   display->print(session->PID[1]);

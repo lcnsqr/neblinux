@@ -10,19 +10,19 @@ Session::Session() {
   PID[1] = 0;
   PID[2] = 0;
   PID[3] = 0;
-  PID[4] = 2e-0;
+  PID[4] = 1e-0;
   PID[5] = 5e-3;
-  PID[6] = 1e-0;
+  PID[6] = 2e-0;
   PID[7] = 0;
 }
 
 void Session::cw(){
-  tempeTarget++;
+  tempeTarget += 5;
   changed = true;
 }
 
 void Session::ccw(){
-  tempeTarget--;
+  tempeTarget -= 5;
   changed = true;
 }
 
