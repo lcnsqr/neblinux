@@ -22,8 +22,15 @@ class Heater: public Task {
 
   Session* session;
 
-  double y[3];
-  int yPos;
+  double* P;
+  double* I;
+  double* D;
+  double* dif_old;
+  double* c0;
+  double* c1;
+  double* c2;
+  double* F;
+
 };
 
 #endif

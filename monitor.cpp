@@ -49,26 +49,42 @@ void Monitor::show(){
 
   display->setCursor(0,0); // Posição x,y
 
-  display->setTextSize(3);
+  display->setTextSize(1);
   display->setTextColor(SSD1306_WHITE);
-  display->print((int)session->temperature);
-  display->write(248); // Sinal de grau
-  display->println("C");
 
-  display->setTextSize(2);
-  display->setTextColor(SSD1306_WHITE);
-  //display->print((int)session->tempeTarget);
+  display->print("Atual: ");
+  display->println((int)session->temperature);
+
   //display->write(248); // Sinal de grau
   //display->println("C");
+
+  display->print("Alvo: ");
   display->println((int)session->tempeTarget);
 
-  display->setTextSize(1);
+  display->println("PID:");
+  display->print(session->PID[0]);
+  display->print(" ");
+  display->print(session->PID[1]);
+  display->print(" ");
+  display->println(session->PID[2]);
+
+  display->print("F: ");
+  display->println((int)session->PID[7]);
+
+  //display->setTextSize(1);
   //display->setTextColor(SSD1306_BLACK, SSD1306_WHITE);
   if ( session->on ){
     display->print("Ligado");
   }
   else {
     display->print("Desligado");
+
+    // Reset PID
+    session->PID[0] = 0;
+    session->PID[1] = 0;
+    session->PID[2] = 0;
+    session->PID[3] = 0;
+    session->PID[7] = 0;
   }
 
   display->display();

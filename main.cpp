@@ -17,7 +17,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Monitor monitor(&session, &display, 25);
 Rotary rotary;
 Sampler sampler(&therm, A0, 500);
-Heater heater(&session, 5, 40);
+Heater heater(&session, 5, 50);
 
 void setup() {
   monitor.begin();
