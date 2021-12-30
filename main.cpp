@@ -11,13 +11,13 @@
 
 Session session;
 Tasks tasks;
-Therm therm(&session, A0, 50, 10);
+Therm therm(&session, A0, 3*17, 17);
 Controls controls(&session, 4, 40);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Monitor monitor(&session, &display, 25);
 Rotary rotary;
 Sampler sampler(&therm, A0, 500);
-Heater heater(&session, 5, 100);
+Heater heater(&session, 5, 75);
 
 void setup() {
   monitor.begin();

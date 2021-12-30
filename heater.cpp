@@ -21,7 +21,7 @@ void Heater::action(){
     return;
   }
   
-  double dif = session->tempeTarget - session->temperature;
+  double dif = (double)wait * (session->tempeTarget - session->temperature);
 
   *P = *c0 * dif;
   *I = *I + *c1 * dif;
