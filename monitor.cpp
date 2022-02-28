@@ -21,6 +21,8 @@ void Monitor::begin(){
   }
 
   display->cp437(true);
+
+  display->setRotation(2);
 }
 
 void Monitor::action(){
