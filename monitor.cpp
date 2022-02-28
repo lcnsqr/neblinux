@@ -22,6 +22,7 @@ void Monitor::begin(){
 
   display->cp437(true);
 
+  // Orientação invertida do display
   display->setRotation(2);
 }
 
