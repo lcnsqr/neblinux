@@ -5,7 +5,7 @@
 
 extern long int encoderMove;
 
-Monitor::Monitor(Session* session, Adafruit_SSD1306* display, unsigned long wait): Task(wait), session(session), display(display) {
+Monitor::Monitor(Session* session, U8X8_SH1106_128X64_NONAME_HW_I2C* display, unsigned long wait): Task(wait), session(session), display(display) {
   
   local = *session;
 
@@ -15,20 +15,14 @@ void Monitor::begin(){
   //Serial.begin(115200);
   //Serial.println("Start");
 
-  if ( ! display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS) ) {
-    //Serial.println("Display error");
-    for(;;);
-  }
-
-  display->cp437(true);
-
-  // Orientação invertida do display
-  display->setRotation(2);
+  display->begin();
+  display->setFlipMode(1);
+  display->setFont(u8x8_font_8x13_1x2_r);
 }
 
 void Monitor::action(){
   
-  if ( session->temperature != local.temperature ){
+  if ( (int)session->temperature != (int)local.temperature ){
     local.temperature = session->temperature;
     session->changed = true;
   }
@@ -48,40 +42,30 @@ void Monitor::action(){
 }
 
 void Monitor::show(){
-  display->clearDisplay();
 
-  display->setCursor(0,0); // Posição x,y
+  // Posição da linha e conteúdo
+  int l;
+  String str;
 
-  display->setTextSize(1);
-  display->setTextColor(SSD1306_WHITE);
+  l = 0;
+  str = "Temp: " + String((int)session->temperature);
+  printLine(l, str);
 
-  display->print("Temp: ");
-  display->println((int)session->temperature);
-
-  //display->write(248); // Sinal de grau
-  //display->println("C");
-
-  display->print("Alvo: ");
-  display->println((int)session->tempeTarget);
-
-  display->println("P I D");
-  display->print(session->PID[0]);
-  display->print(" ");
-  display->print(session->PID[1]);
-  display->print(" ");
-  display->println(session->PID[2]);
-
-  display->print("F: ");
-  display->println((int)session->PID[7]);
-
-  //display->setTextSize(1);
-  //display->setTextColor(SSD1306_BLACK, SSD1306_WHITE);
+  l = 2;
+  str = "Alvo: " + String((int)session->tempeTarget);
+  printLine(l, str);
+   
+  l = 4;
+  str = "Gate: " + String((int)session->PID[7]);
+  printLine(l, str);
+ 
+  l = 6;
   if ( session->on ){
-    display->print("Ligado");
+    str = "Ligado";
   }
   else {
-    display->print("Desligado");
-
+    str = "Desligado";
+ 
     // Reset PID
     session->PID[0] = 0;
     session->PID[1] = 0;
@@ -89,7 +73,18 @@ void Monitor::show(){
     session->PID[3] = 0;
     session->PID[7] = 0;
   }
+  printLine(l, str);
 
-  display->display();
+}
 
+void Monitor::printLine(int l, String& str){
+  int c = 0;
+  display->drawString(c, l, str.c_str());
+  if ( str.length() < display->getCols() ){
+    c = str.length();
+    while ( c < display->getCols() ){
+      display->drawString(c, l, " ");
+      c++;
+    }
+  }
 }

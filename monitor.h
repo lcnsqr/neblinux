@@ -9,18 +9,19 @@ class Monitor: public Task {
 
   public:
 
-  Monitor(Session* session, Adafruit_SSD1306* display, unsigned long wait);
+  Monitor(Session* session, U8X8_SH1106_128X64_NONAME_HW_I2C* display, unsigned long wait);
 
   void begin();
   void action();
   void show();
+  void printLine(int, String&);
 
   private:
 
   Session* session;
   Session local;
 
-  Adafruit_SSD1306* display;
+  U8X8_SH1106_128X64_NONAME_HW_I2C* display;
 
 };
 

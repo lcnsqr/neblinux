@@ -1,10 +1,10 @@
+#include <Arduino.h>
 #include "task.h"
 #include "session.h"
 #include "therm.h"
 #include "controls.h"
 #include "display.h"
 #include "monitor.h"
-#include <Arduino.h>
 #include "rotary.h"
 #include "sampler.h"
 #include "fan.h"
@@ -14,7 +14,7 @@ Session session;
 Tasks tasks;
 Therm therm(&session, A0, 3*17, 17);
 Controls controls(&session, 4, 40);
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+U8X8_SH1106_128X64_NONAME_HW_I2C display(U8X8_PIN_NONE);
 Monitor monitor(&session, &display, 25);
 Rotary rotary;
 Sampler sampler(&therm, A0, 500);
@@ -34,5 +34,5 @@ void setup() {
 }
 
 void loop() {
-  tasks.run(millis());
+  tasks.run();
 }

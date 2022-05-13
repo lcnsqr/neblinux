@@ -1,8 +1,9 @@
 #include "task.h"
 #include <stdlib.h>
+#include <Arduino.h>
 
 void Task::run(unsigned long time) {
-  if ( enabled && time - last >= wait ){
+  if ( enabled && (( last < time ) ? time - last : ~ 0 - last + time) >= wait ){
     action();
     last = time;
   }
@@ -17,7 +18,7 @@ void Tasks::add(Task* task) {
   tasks[total-1] = task;
 }
 
-void Tasks::run(unsigned long time) {
-  for (int t = 0; t != total; ++t) tasks[t]->run(time);
+void Tasks::run() {
+  for (int t = 0; t != total; ++t) tasks[t]->run(millis());
 }
 

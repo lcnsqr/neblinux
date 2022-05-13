@@ -17,7 +17,7 @@ class Tasks {
   Tasks() {}
   ~Tasks();
   void add(Task* task);
-  void run(unsigned long time);
+  void run();
   private:
   Task** tasks;
   int total;
