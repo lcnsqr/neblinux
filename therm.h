@@ -12,7 +12,8 @@ class Therm: public Task {
   ~Therm();
 
   void action();
-  double celsius(double thermistor);
+  double celsiusPoly(double thermistor);
+  double celsiusSteinhart(double thermistor);
 
   private:
 
@@ -28,6 +29,10 @@ class Therm: public Task {
   double thermNominal;
   double bCoef;
   double tempNominal;
+
+  // Coeficientes do polinômio de segunda
+  // ordem que aproxima a temperatura
+  double pc[3];
 
   unsigned int bufLen;
   int* buf;

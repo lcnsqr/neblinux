@@ -9,6 +9,7 @@ class Session {
 
   double temperature;
   double tempeTarget;
+  double analogTherm;
 
   // Rotary push button causes on/off state change
   bool on;
