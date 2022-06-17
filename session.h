@@ -11,6 +11,9 @@ class Session {
   double tempeTarget;
   double analogTherm;
 
+  // Diferença entre a medição do termistor e a temperatura na saída
+  double tempeGapTherm;
+
   // Rotary push button causes on/off state change
   bool on;
 

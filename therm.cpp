@@ -11,9 +11,10 @@ Therm::Therm(Session* session, int pin, unsigned long wait, unsigned int bufLen)
   bCoef = 3950.0;
   tempNominal =  25.0;
 
-  pc[0] = 0.00031492;
-  pc[1] = -0.57933323;
-  pc[2] = 244.55643467;
+  pc[0] = -0.000000077196;
+  pc[1] = 0.000466576463;
+  pc[2] = -0.704838562779;
+  pc[3] = 275.379547614110;
 
   // Dividir o tempo de espera para
   // distribuir as amostras no intervalo
@@ -38,7 +39,7 @@ void Therm::action(){
     for (int i = 0; i < bufLen; ++i)
       bufSum += buf[i];
     session->analogTherm = (double)bufSum/(double)bufLen;
-    session->temperature = celsiusPoly(session->analogTherm);
+    session->temperature = celsiusSteinhart(session->analogTherm);
   }
   else {
     buf[bufCount++] = analogRead(pin);
@@ -46,7 +47,7 @@ void Therm::action(){
 }
 
 double Therm::celsiusPoly(double thermistor){
-  return pc[0] * pow(thermistor,2) + pc[1] * thermistor + pc[2];
+  return pc[0] * pow(thermistor,3) + pc[1] * pow(thermistor,2) + pc[2] * thermistor + pc[3];
 }
 
 double Therm::celsiusSteinhart(double thermistor){

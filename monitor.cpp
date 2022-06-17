@@ -47,12 +47,14 @@ void Monitor::show(){
   int l;
   String str;
 
+  double gapShow = ( session->on ) ? session->tempeGapTherm : 0;
+
   l = 0;
-  str = "Temp: " + String((int)session->temperature);
+  str = "Temp: " + String((int)session->temperature + (int)gapShow);
   printLine(l, str);
 
   l = 2;
-  str = "Alvo: " + String((int)session->tempeTarget);
+  str = "Alvo: " + String((int)session->tempeTarget + (int)session->tempeGapTherm);
   printLine(l, str);
    
   l = 4;
