@@ -18,7 +18,7 @@ class Session {
   // Leitura ADC do termistor
   double analogTherm;
 
-  // Rotary push button causes on/off state change
+  // On/off state change
   bool on;
 
   long int encoder;
