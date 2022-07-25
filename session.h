@@ -7,12 +7,14 @@ class Session {
 
   bool changed;
 
-  double temperature;
+  // Temperatura na base da resistência
+  double tempeCore;
+  // Temperatura no exaustor
+  double tempeEx;
+  // Temperatura alvo no exaustor
   double tempeTarget;
+  // Leitura ADC do termistor
   double analogTherm;
-
-  // Diferença entre a medição do termistor e a temperatura na saída
-  double tempeGapTherm;
 
   // Rotary push button causes on/off state change
   bool on;

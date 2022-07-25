@@ -30,9 +30,9 @@ class Therm: public Task {
   double bCoef;
   double tempNominal;
 
-  // Coeficientes do polinômio de terceira
-  // ordem que aproxima a temperatura
-  double pc[4];
+  // Coeficientes do polinômio de primeira
+  // ordem que estima a temperatura na saída
+  double pc[2];
 
   unsigned int bufLen;
   int* buf;

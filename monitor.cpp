@@ -22,8 +22,8 @@ void Monitor::begin(){
 
 void Monitor::action(){
   
-  if ( (int)session->temperature != (int)local.temperature ){
-    local.temperature = session->temperature;
+  if ( (int)session->tempeCore != (int)local.tempeCore ){
+    local.tempeCore = session->tempeCore;
     session->changed = true;
   }
 
@@ -47,14 +47,12 @@ void Monitor::show(){
   int l;
   String str;
 
-  double gapShow = ( session->on ) ? session->tempeGapTherm : 0;
-
   l = 0;
-  str = "Temp: " + String((int)session->temperature + (int)gapShow);
+  str = String((int)session->analogTherm) + " " + String((int)session->tempeCore) + " " + String((int)session->tempeEx);
   printLine(l, str);
 
   l = 2;
-  str = "Alvo: " + String((int)session->tempeTarget + (int)session->tempeGapTherm);
+  str = "Alvo: " + String((int)session->tempeTarget);
   printLine(l, str);
    
   l = 4;
