@@ -3,11 +3,11 @@
 Session::Session() {
   changed = true;
   temperature = 0;
-  tempeTarget = 50;
+  tempeTarget = 180;
 
   on = false;
 
-  tempeGapTherm = 130;
+  tempeGapTherm = 0;
 
   PID[0] = 0;
   PID[1] = 0;
