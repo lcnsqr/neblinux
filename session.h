@@ -1,6 +1,8 @@
 #ifndef Session_h
 #define Session_h
 
+#define DRYRUN 1
+
 class Session {
   public:
   Session();

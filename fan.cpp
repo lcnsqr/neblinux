@@ -9,6 +9,6 @@ Fan::Fan(Session* session, int pin, unsigned long wait): Task(wait), session(ses
 }
 
 void Fan::action(){
-  if ( session->on ) digitalWrite(pin, HIGH);
+  if ( session->on && ! DRYRUN ) digitalWrite(pin, HIGH);
   else digitalWrite(pin, LOW);
 }
