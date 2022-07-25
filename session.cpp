@@ -14,7 +14,7 @@ Session::Session() {
   PID[2] = 0;
   PID[3] = 0;
   PID[4] = 9.5e-3;
-  PID[5] = 2.25e-4;
+  PID[5] = 1e-4;
   PID[6] = 9.5e-2;
   PID[7] = 0;
 }
