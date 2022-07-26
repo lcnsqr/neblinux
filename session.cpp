@@ -1,6 +1,11 @@
 #include "session.h"
 
 Session::Session() {
+  dryrun = 0;
+
+  tempeMin = 20.0;
+  tempeMax = 240.0;
+
   changed = true;
   tempeCore = 0;
   tempeEx = 0;
@@ -19,11 +24,13 @@ Session::Session() {
 }
 
 void Session::cw(){
+  if ( tempeTarget + 10 > tempeMax ) return;
   tempeTarget += 10;
   changed = true;
 }
 
 void Session::ccw(){
+  if ( tempeTarget - 10 < tempeMin ) return;
   tempeTarget -= 10;
   changed = true;
 }

@@ -16,7 +16,7 @@ Heater::Heater(Session* session, int pin, unsigned long wait): Task(wait), sessi
 }
 
 void Heater::action(){
-  if ( ! session->on || DRYRUN ){
+  if ( ! session->on || session->dryrun ){
     analogWrite(pin, 0);
     return;
   }

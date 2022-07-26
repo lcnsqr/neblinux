@@ -9,7 +9,7 @@ class Monitor: public Task {
 
   public:
 
-  Monitor(Session* session, U8X8_SH1106_128X64_NONAME_HW_I2C* display, unsigned long wait);
+  Monitor(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display, unsigned long wait);
 
   void begin();
   void action();
@@ -21,7 +21,7 @@ class Monitor: public Task {
   Session* session;
   Session local;
 
-  U8X8_SH1106_128X64_NONAME_HW_I2C* display;
+  U8G2_SH1106_128X64_NONAME_2_HW_I2C* display;
 
 };
 

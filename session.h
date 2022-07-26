@@ -1,8 +1,6 @@
 #ifndef Session_h
 #define Session_h
 
-#define DRYRUN 1
-
 class Session {
   public:
   Session();
@@ -34,6 +32,14 @@ class Session {
   // 4,5,6: coeficientes
   // 7: Valor do atuador
   double PID[8];
+
+  // Modo teste, não aciona resistência e fan
+  bool dryrun;
+
+  // Temperatura permitida
+  double tempeMin;
+  double tempeMax;
+
 };
 
 #endif

@@ -5,7 +5,7 @@
 
 extern long int encoderMove;
 
-Monitor::Monitor(Session* session, U8X8_SH1106_128X64_NONAME_HW_I2C* display, unsigned long wait): Task(wait), session(session), display(display) {
+Monitor::Monitor(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display, unsigned long wait): Task(wait), session(session), display(display) {
   
   local = *session;
 
@@ -16,8 +16,6 @@ void Monitor::begin(){
   //Serial.println("Start");
 
   display->begin();
-  display->setFlipMode(1);
-  display->setFont(u8x8_font_8x13_1x2_r);
 }
 
 void Monitor::action(){
@@ -43,6 +41,65 @@ void Monitor::action(){
 
 void Monitor::show(){
 
+  // String para exibir labels e valores
+  String str;
+
+  // Valor na escala de temperaturas
+  u8g2_uint_t tempeDial;
+
+  display->firstPage();
+  do {
+
+    // Escala leitura
+    display->drawFrame(56, 2, 6, 31);
+    tempeDial = (u8g2_uint_t)round(31.0 * (session->tempeEx - session->tempeMin) / (session->tempeMax - session->tempeMin));
+    display->drawBox(56, 33 - tempeDial, 6, tempeDial);
+
+    // Escala objetivo
+    display->drawFrame(66, 2, 6, 31);
+    tempeDial = (u8g2_uint_t)round(31.0 * (session->tempeTarget - session->tempeMin) / (session->tempeMax - session->tempeMin));
+    display->drawBox(66, 33 - tempeDial, 6, tempeDial);
+
+    // 16 pixel height
+    display->setFont(u8g2_font_inb16_mn);
+
+    // Valores leitura e objetivo
+    str = String((int)session->tempeEx);
+    display->drawStr(52 - display->getStrWidth(str.c_str()), 33, str.c_str());
+    str = String((int)session->tempeTarget);
+    display->drawStr(76, 33, str.c_str());
+
+    // 7 pixel height
+    display->setFont(u8g2_font_6x10_mr);
+
+    // Labels
+    str = "Leitura";
+    display->drawStr(52 - display->getStrWidth(str.c_str()), 10, str.c_str());
+    str = "Objetivo";
+    display->drawStr(76, 10, str.c_str());
+
+    // 9 pixel height
+    display->setFont(u8g2_font_7x13B_mf);
+
+    str = String("°C");
+    display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 45, str.c_str());
+
+    // Status
+    if ( session->on ){
+      str = "Ativo";
+    }
+    else {
+      str = "Inativo";
+    }
+
+    // 10 pixel height
+    display->setFont(u8g2_font_9x18B_mr);
+
+    display->drawStr((int)(round((double)(128 - display->getStrWidth(str.c_str()))/2.0)), 63, str.c_str());
+
+  } while ( display->nextPage() );
+
+  /*
   // Posição da linha e conteúdo
   int l;
   String str;
@@ -74,10 +131,12 @@ void Monitor::show(){
     session->PID[7] = 0;
   }
   printLine(l, str);
+  */
 
 }
 
 void Monitor::printLine(int l, String& str){
+  /*
   int c = 0;
   display->drawString(c, l, str.c_str());
   if ( str.length() < display->getCols() ){
@@ -87,4 +146,5 @@ void Monitor::printLine(int l, String& str){
       c++;
     }
   }
+  */
 }
