@@ -20,23 +20,67 @@ void Monitor::begin(){
 
 void Monitor::action(){
   
-  if ( (int)session->tempeCore != (int)local.tempeCore ){
+  // Temperatura atual
+  if ( session->tempeCore != local.tempeCore ){
     local.tempeCore = session->tempeCore;
     session->changed = true;
   }
 
+  // Contador de tempo
+  if ( session->elapsed != local.elapsed ){
+    local.elapsed = session->elapsed;
+    session->changed = true;
+  }
+
+  // Meta de temperatura
   if ( encoderMove >= local.encoder + 4 ) {
     local.encoder = encoderMove;
     session->cw();
   }
-
   if ( encoderMove <= local.encoder - 4 ) {
     local.encoder = encoderMove;
     session->ccw();
   }
   
-  if ( session->changed ) show();
+  if ( session->changed ){
 
+    if ( millis() < 4500 ){
+      // Splash screen
+      splash();
+    }
+    else {
+      // Exibir mudanças
+      show();
+      // Mudanças exibidas
+      session->changed = false;
+    }
+
+  }
+
+}
+
+void Monitor::splash(){
+
+  String str;
+
+  // 9 pixel height
+  display->setFont(u8g2_font_7x13B_mf);
+
+  display->firstPage();
+  do {
+    display->drawBox(56, 2, 6, 31);
+    display->drawBox(66, 2, 6, 31);
+
+    if ( millis() > 1500 ){
+      str = String("Ganjolito");
+      display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 46, str.c_str());
+    }
+    if ( millis() > 2500 ){
+      str = String("Modelo II");
+      display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 61, str.c_str());
+    }
+
+  } while ( display->nextPage() );
 }
 
 void Monitor::show(){
@@ -53,6 +97,7 @@ void Monitor::show(){
     // Escala leitura
     display->drawFrame(56, 2, 6, 31);
     tempeDial = (u8g2_uint_t)round(31.0 * (session->tempeEx - session->tempeMin) / (session->tempeMax - session->tempeMin));
+    if ( tempeDial < 0 ) tempeDial = 0;
     display->drawBox(56, 33 - tempeDial, 6, tempeDial);
 
     // Escala objetivo
@@ -70,13 +115,13 @@ void Monitor::show(){
     display->drawStr(76, 33, str.c_str());
 
     // 7 pixel height
-    display->setFont(u8g2_font_6x10_mr);
+    display->setFont(u8g2_font_6x10_mf);
 
     // Labels
-    str = "Leitura";
-    display->drawStr(52 - display->getStrWidth(str.c_str()), 10, str.c_str());
-    str = "Objetivo";
-    display->drawStr(76, 10, str.c_str());
+    str = "Atual";
+    display->drawUTF8(52 - display->getUTF8Width(str.c_str()), 10, str.c_str());
+    str = "Meta";
+    display->drawUTF8(76, 10, str.c_str());
 
     // 9 pixel height
     display->setFont(u8g2_font_7x13B_mf);
@@ -85,66 +130,13 @@ void Monitor::show(){
     display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 45, str.c_str());
 
     // Status
-    if ( session->on ){
-      str = "Ativo";
-    }
-    else {
-      str = "Inativo";
+    str = String(session->elapsed / 60) + "m" + String(session->elapsed % 60) + "s";
+    if ( ! session->on ){
+      str = (session->elapsed == 0) ? "Parado" : str;
     }
 
-    // 10 pixel height
-    display->setFont(u8g2_font_9x18B_mr);
-
-    display->drawStr((int)(round((double)(128 - display->getStrWidth(str.c_str()))/2.0)), 63, str.c_str());
+    display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 61, str.c_str());
 
   } while ( display->nextPage() );
 
-  /*
-  // Posição da linha e conteúdo
-  int l;
-  String str;
-
-  l = 0;
-  str = String((int)session->analogTherm) + " " + String((int)session->tempeCore) + " " + String((int)session->tempeEx);
-  printLine(l, str);
-
-  l = 2;
-  str = "Alvo: " + String((int)session->tempeTarget);
-  printLine(l, str);
-   
-  l = 4;
-  str = "Gate: " + String((int)session->PID[7]);
-  printLine(l, str);
- 
-  l = 6;
-  if ( session->on ){
-    str = "Ligado";
-  }
-  else {
-    str = "Desligado";
- 
-    // Reset PID
-    session->PID[0] = 0;
-    session->PID[1] = 0;
-    session->PID[2] = 0;
-    session->PID[3] = 0;
-    session->PID[7] = 0;
-  }
-  printLine(l, str);
-  */
-
-}
-
-void Monitor::printLine(int l, String& str){
-  /*
-  int c = 0;
-  display->drawString(c, l, str.c_str());
-  if ( str.length() < display->getCols() ){
-    c = str.length();
-    while ( c < display->getCols() ){
-      display->drawString(c, l, " ");
-      c++;
-    }
-  }
-  */
 }

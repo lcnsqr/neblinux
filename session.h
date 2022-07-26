@@ -5,7 +5,11 @@ class Session {
   public:
   Session();
 
+  // Sinalizar mudança na sessão
   bool changed;
+
+  // Tempo em segundos em atividade
+  unsigned long elapsed;
 
   // Temperatura na base da resistência
   double tempeCore;
@@ -19,6 +23,7 @@ class Session {
   // On/off state change
   bool on;
 
+  // Rotary variável auxiliar
   long int encoder;
 
   // Rotary encoder clockwise

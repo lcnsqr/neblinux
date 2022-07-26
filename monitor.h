@@ -14,7 +14,7 @@ class Monitor: public Task {
   void begin();
   void action();
   void show();
-  void printLine(int, String&);
+  void splash();
 
   private:
 

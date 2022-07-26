@@ -9,6 +9,7 @@
 #include "sampler.h"
 #include "fan.h"
 #include "heater.h"
+#include "timer.h"
 
 Session session;
 Tasks tasks;
@@ -20,6 +21,7 @@ Rotary rotary;
 Sampler sampler(&therm, A0, 500);
 Fan fan(&session, 7, 75);
 Heater heater(&session, 5, 75);
+Timer timer(&session, 1000);
 
 void setup() {
   monitor.begin();
@@ -30,6 +32,7 @@ void setup() {
   tasks.add(&sampler);
   tasks.add(&fan);
   tasks.add(&heater);
+  tasks.add(&timer);
 
 }
 

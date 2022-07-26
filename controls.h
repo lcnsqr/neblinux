@@ -16,6 +16,9 @@ class Controls: public Task {
 
   // Digital in (push button)
   int pin;
+  
+  unsigned long changed;
+  unsigned long repeat;
 
   Session* session;
 };
