@@ -19,9 +19,9 @@ Session::Session() {
   PID[1] = 0;
   PID[2] = 0;
   PID[3] = 0;
-  PID[4] = 1e-5;
-  PID[5] = 2e-5;
-  PID[6] = 1e-1;
+  PID[4] = 3e-6;
+  PID[5] = 3e-5;
+  PID[6] = 2e-1;
   PID[7] = 0;
 }
 
