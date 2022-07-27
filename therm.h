@@ -32,7 +32,9 @@ class Therm: public Task {
 
   // Coeficientes do polinômio de primeira
   // ordem que estima a temperatura na saída
-  double pc[2];
+  // pc[0] : Coeficientes usados quando desativado
+  // pc[1] : Coeficientes usados quando ativado
+  double pc[2][2];
 
   unsigned int bufLen;
   int* buf;
