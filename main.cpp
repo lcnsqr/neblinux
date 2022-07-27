@@ -20,7 +20,7 @@ Monitor monitor(&session, &display, 25);
 Rotary rotary;
 Sampler sampler(&therm, A0, 500);
 Fan fan(&session, 7, 75);
-Heater heater(&session, 5, 75);
+Heater heater(&session, 5, 38);
 Timer timer(&session, 1000);
 
 void setup() {
