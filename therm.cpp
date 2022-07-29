@@ -51,7 +51,7 @@ void Therm::action(){
 }
 
 double Therm::celsiusPoly(double core){
-  return pc[(int)session->on][0] * core + pc[(int)session->on][1];
+  return pc[(int)session->running()][0] * core + pc[(int)session->running()][1];
 }
 
 double Therm::celsiusSteinhart(double thermistor){

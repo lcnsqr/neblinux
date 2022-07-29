@@ -13,8 +13,11 @@ class Monitor: public Task {
 
   void begin();
   void action();
+
   void show();
   void splash();
+  void screen0();
+  void screen1();
 
   private:
 

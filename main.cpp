@@ -14,7 +14,7 @@
 Session session;
 Tasks tasks;
 Therm therm(&session, A0, 3*17, 17);
-Controls controls(&session, 4, 40);
+Controls controls(&session, 4, 8, 40);
 U8G2_SH1106_128X64_NONAME_2_HW_I2C display(U8G2_R2, U8X8_PIN_NONE);
 Monitor monitor(&session, &display, 25);
 Rotary rotary;

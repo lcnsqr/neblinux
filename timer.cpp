@@ -11,8 +11,8 @@ Timer::Timer(Session* session, unsigned long wait): Task(wait), session(session)
 
 void Timer::action(){
   
-  if ( session->on != on ){
-    on = session->on;
+  if ( session->running() != on ){
+    on = session->running();
     if ( on ){
       started = millis();
       session->elapsed = 0;

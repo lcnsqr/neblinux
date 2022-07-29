@@ -8,16 +8,21 @@ class Controls: public Task {
 
   public:
 
-  Controls(Session* session, int pin, unsigned long wait);
+  Controls(Session* session, int pinA, int pinB, unsigned long wait);
 
   void action();
+  void pushTop();
+  void pushFront();
 
   private:
 
-  // Digital in (push button)
-  int pin;
+  // Botão superior
+  int pinA;
+  unsigned long changedA;
+  // Botão frontal
+  int pinB;
+  unsigned long changedB;
   
-  unsigned long changed;
   unsigned long repeat;
 
   Session* session;

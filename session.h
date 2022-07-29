@@ -5,6 +5,9 @@ class Session {
   public:
   Session();
 
+  // Tela ativa
+  int screen;
+
   // Sinalizar mudança na sessão
   bool changed;
 
@@ -20,9 +23,6 @@ class Session {
   // Leitura ADC do termistor
   double analogTherm;
 
-  // On/off state change
-  bool on;
-
   // Rotary variável auxiliar
   long int encoder;
 
@@ -31,6 +31,13 @@ class Session {
 
   // Rotary encoder counter-clockwise
   void ccw();
+
+  // Acionar / parar
+  void start();
+  void stop();
+
+  // Ativo?
+  bool running();
 
   // 0,1,2: PID
   // 3: D anterior (atual - alvo)
@@ -44,6 +51,11 @@ class Session {
   // Temperatura permitida
   double tempeMin;
   double tempeMax;
+
+  private:
+
+  // On/off state change
+  bool on;
 
 };
 

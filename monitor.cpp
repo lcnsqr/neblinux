@@ -19,9 +19,13 @@ void Monitor::begin(){
 }
 
 void Monitor::action(){
+
+  // Avaliar se informações na sessão a serem
+  // exibidas mudaram em relação à cópia local.
+  // Se sim, atualizar a tela.
   
   // Temperatura atual
-  if ( session->tempeCore != local.tempeCore ){
+  if ( (int)session->tempeCore != (int)local.tempeCore || (int)session->tempeEx != (int)local.tempeEx ){
     local.tempeCore = session->tempeCore;
     session->changed = true;
   }
@@ -33,13 +37,16 @@ void Monitor::action(){
   }
 
   // Meta de temperatura
+  // O estado está em *encoderMove* no caso do rotary encoder
   if ( encoderMove >= local.encoder + 4 ) {
     local.encoder = encoderMove;
     session->cw();
+    session->changed = true;
   }
   if ( encoderMove <= local.encoder - 4 ) {
     local.encoder = encoderMove;
     session->ccw();
+    session->changed = true;
   }
   
   if ( session->changed ){
@@ -85,6 +92,16 @@ void Monitor::splash(){
 
 void Monitor::show(){
 
+  if ( session->screen == 0 ){
+    screen0();
+  }
+  else if ( session->screen == 1 ){
+    screen1();
+  }
+
+}
+
+void Monitor::screen0(){
   // String para exibir labels e valores
   String str;
 
@@ -131,11 +148,88 @@ void Monitor::show(){
 
     // Status
     str = String(session->elapsed / 60) + "m" + String(session->elapsed % 60) + "s";
-    if ( ! session->on ){
+    if ( ! session->running() ){
       str = (session->elapsed == 0) ? "Parado" : str;
     }
 
     display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 61, str.c_str());
+
+  } while ( display->nextPage() );
+
+}
+
+void Monitor::screen1(){
+
+  String str;
+
+  u8g2_uint_t y;
+
+  // 7 pixel height
+  display->setFont(u8g2_font_6x10_mf);
+
+  display->firstPage();
+  do {
+
+    // Valor do thermistor
+    y = 10;
+    str = "Therm:";
+    display->drawUTF8(0, y, str.c_str());
+    str = String((int)session->analogTherm);
+    display->drawUTF8(62 - display->getUTF8Width(str.c_str()), y, str.c_str());
+
+    // Temperatura na base da resistência
+    y = 20;
+    str = "Core:";
+    display->drawUTF8(0, y, str.c_str());
+    str = String((int)session->tempeCore);
+    display->drawUTF8(62 - display->getUTF8Width(str.c_str()), y, str.c_str());
+
+    // Temperatura estimada no exaustor ativo
+    y = 30;
+    str = "Ex:";
+    display->drawUTF8(0, y, str.c_str());
+    str = String((int)session->tempeEx);
+    display->drawUTF8(62 - display->getUTF8Width(str.c_str()), y, str.c_str());
+
+    // Temperatura alvo no exaustor
+    y = 40;
+    str = "Alvo:";
+    display->drawUTF8(0, y, str.c_str());
+    str = String((int)session->tempeTarget);
+    display->drawUTF8(62 - display->getUTF8Width(str.c_str()), y, str.c_str());
+
+    // Tempo ativo
+    y = 50;
+    str = "Tempo:";
+    display->drawUTF8(0, y, str.c_str());
+    str = String(session->elapsed);
+    display->drawUTF8(62 - display->getUTF8Width(str.c_str()), y, str.c_str());
+
+    // Carga na resistência
+    y = 10;
+    str = "Gate:";
+    display->drawUTF8(72, y, str.c_str());
+    str = String((int)session->PID[7]);
+    display->drawUTF8(128 - display->getUTF8Width(str.c_str()), y, str.c_str());
+
+    // PID
+    y = 20;
+    str = "P:";
+    display->drawUTF8(72, y, str.c_str());
+    str = String(session->PID[0]);
+    display->drawUTF8(128 - display->getUTF8Width(str.c_str()), y, str.c_str());
+
+    y = 30;
+    str = "I:";
+    display->drawUTF8(72, y, str.c_str());
+    str = String(session->PID[1]);
+    display->drawUTF8(128 - display->getUTF8Width(str.c_str()), y, str.c_str());
+
+    y = 40;
+    str = "D:";
+    display->drawUTF8(72, y, str.c_str());
+    str = String(session->PID[2]);
+    display->drawUTF8(128 - display->getUTF8Width(str.c_str()), y, str.c_str());
 
   } while ( display->nextPage() );
 
