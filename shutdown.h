@@ -24,6 +24,9 @@ class Shutdown: public Task {
   // Coeficientes encontrados (y-intercept e slope)
   double c[2];
 
+  // Limiares de desligamento
+  double lim[2];
+
   private:
 
   Session* session;

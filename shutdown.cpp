@@ -20,6 +20,9 @@ Shutdown::Shutdown(Session* session, unsigned long wait): Task(wait), session(se
 
   c[0] = 0;
   c[1] = 0;
+
+  lim[0] = 3.0;
+  lim[1] = 2.0;
 }
 
 void Shutdown::action(){
@@ -43,7 +46,7 @@ void Shutdown::action(){
   // Desligar se detectado crescimento
   // íngreme da distância temp - alvo.
   // Se y-intercept positivo e slope superior a 5
-  if ( c[0] > 0 && c[1] > 5.0 ){
+  if ( c[0] > lim[0] && c[1] > lim[1] ){
     session->stop();
   }
 }
