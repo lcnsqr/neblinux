@@ -140,9 +140,9 @@ void Monitor::screen0(){
     display->setFont(u8g2_font_6x10_mf);
 
     // Labels
-    str = "Atual";
+    str = "Temp";
     display->drawUTF8(52 - display->getUTF8Width(str.c_str()), 10, str.c_str());
-    str = "Meta";
+    str = "Alvo";
     display->drawUTF8(76, 10, str.c_str());
 
     // 9 pixel height
