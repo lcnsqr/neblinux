@@ -23,6 +23,10 @@ class Session {
   // Leitura ADC do termistor
   double analogTherm;
 
+
+  // Indicadores de encerramento
+  double end[2];
+
   // Rotary variável auxiliar
   long int encoder;
 

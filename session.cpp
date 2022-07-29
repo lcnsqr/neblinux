@@ -25,6 +25,9 @@ Session::Session() {
   PID[5] = 2e-4;
   PID[6] = 7e-2;
   PID[7] = 0;
+
+  end[0] = 0;
+  end[1] = 0;
 }
 
 void Session::cw(){

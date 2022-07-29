@@ -36,6 +36,11 @@ void Monitor::action(){
     session->changed = true;
   }
 
+  // Detector de encerramento
+  if ( session->end[0] != local.end[0] || session->end[1] != local.end[1] ){
+    session->changed = true;
+  }
+
   // Meta de temperatura
   // O estado está em *encoderMove* no caso do rotary encoder
   if ( encoderMove >= local.encoder + 4 ) {
@@ -229,6 +234,11 @@ void Monitor::screen1(){
     str = "D:";
     display->drawUTF8(72, y, str.c_str());
     str = String(session->PID[2]);
+    display->drawUTF8(128 - display->getUTF8Width(str.c_str()), y, str.c_str());
+
+    // Indicadores de encerramento
+    y = 64;
+    str = String(session->end[0]) + "   " + String(session->end[1]);
     display->drawUTF8(128 - display->getUTF8Width(str.c_str()), y, str.c_str());
 
   } while ( display->nextPage() );
