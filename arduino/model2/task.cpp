@@ -21,4 +21,3 @@ void Tasks::add(Task* task) {
 void Tasks::run() {
   for (int t = 0; t != total; ++t) tasks[t]->run(millis());
 }
-

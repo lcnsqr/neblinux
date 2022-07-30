@@ -73,4 +73,3 @@ void Controls::action(){
   pushTop();
   pushFront();
 }
-

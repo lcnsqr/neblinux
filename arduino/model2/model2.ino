@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "task.h"
 #include "session.h"
 #include "therm.h"
