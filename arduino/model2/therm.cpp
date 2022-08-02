@@ -12,12 +12,12 @@ Therm::Therm(Session* session, int pin, unsigned long wait, unsigned int bufLen)
   tempNominal =  25.0;
 
   // Inativo
-  pc[0][0] = 1.071428571428571;
-  pc[0][1] = -7.142857142857162;
+  pc[0][0] = 1.0714;
+  pc[0][1] = -7.1429;
 
   // Ativo
-  pc[1][0] = 2.214285714285714;
-  pc[1][1] = -41.42857142857147;
+  pc[1][0] = 3.1;
+  pc[1][1] = -68;
 
   // Dividir o tempo de espera para
   // distribuir as amostras no intervalo
