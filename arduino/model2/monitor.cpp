@@ -120,6 +120,7 @@ void Monitor::screen0(){
     display->drawFrame(56, 2, 6, 31);
     tempeDial = (u8g2_uint_t)round(31.0 * (session->tempeEx - session->tempeMin) / (session->tempeMax - session->tempeMin));
     if ( tempeDial < 0 ) tempeDial = 0;
+    if ( tempeDial > 31 ) tempeDial = 31;
     display->drawBox(56, 33 - tempeDial, 6, tempeDial);
 
     // Escala objetivo
