@@ -113,15 +113,19 @@ void Monitor::screen0(){
   // Valor na escala de temperaturas
   u8g2_uint_t tempeDial;
 
+  // Desconsiderar temperaturas fora da faixa para a escala visual
+  double tempeEx;
+
   display->firstPage();
   do {
 
     // Escala leitura
     display->drawFrame(56, 2, 6, 31);
-    tempeDial = (u8g2_uint_t)round(31.0 * (session->tempeEx - session->tempeMin) / (session->tempeMax - session->tempeMin));
-    if ( tempeDial < 0 ) tempeDial = 0;
-    if ( tempeDial > 31 ) tempeDial = 31;
-    display->drawBox(56, 33 - tempeDial, 6, tempeDial);
+    tempeEx = session->tempeEx;
+    if ( session->tempeEx < session->tempeMin ) tempeEx = session->tempeMin;
+    if ( session->tempeEx > session->tempeMax ) tempeEx = session->tempeMax;
+    tempeDial = round(31.0 * (session->tempeEx - session->tempeMin) / (session->tempeMax - session->tempeMin));
+    display->drawBox(56, (u8g2_uint_t)(33 - tempeDial), 6, (u8g2_uint_t)tempeDial);
 
     // Escala objetivo
     display->drawFrame(66, 2, 6, 31);
