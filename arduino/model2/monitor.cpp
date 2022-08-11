@@ -122,9 +122,9 @@ void Monitor::screen0(){
     // Escala leitura
     display->drawFrame(56, 2, 6, 31);
     tempeEx = session->tempeEx;
-    if ( session->tempeEx < session->tempeMin ) tempeEx = session->tempeMin;
-    if ( session->tempeEx > session->tempeMax ) tempeEx = session->tempeMax;
-    tempeDial = round(31.0 * (session->tempeEx - session->tempeMin) / (session->tempeMax - session->tempeMin));
+    if ( tempeEx < session->tempeMin ) tempeEx = session->tempeMin;
+    if ( tempeEx > session->tempeMax ) tempeEx = session->tempeMax;
+    tempeDial = round(31.0 * (tempeEx - session->tempeMin) / (session->tempeMax - session->tempeMin));
     display->drawBox(56, (u8g2_uint_t)(33 - tempeDial), 6, (u8g2_uint_t)tempeDial);
 
     // Escala objetivo
