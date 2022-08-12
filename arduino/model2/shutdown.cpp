@@ -21,8 +21,8 @@ Shutdown::Shutdown(Session* session, unsigned long wait): Task(wait), session(se
   c[0] = 0;
   c[1] = 0;
 
-  lim[0] = 3.0;
-  lim[1] = 2.0;
+  lim[0] = 4.0;
+  lim[1] = 1.0;
 }
 
 void Shutdown::action(){
@@ -50,4 +50,3 @@ void Shutdown::action(){
     session->stop();
   }
 }
-
