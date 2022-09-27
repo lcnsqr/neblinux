@@ -1,0 +1,12 @@
+Com ventoinha ligada. Gate em três estágios:
+
+0
+127
+255
+
+Aferir após 30 segundos em cada estágio, ordem crescente. Registrar:
+
+Temperatura no core
+Temperatura na sonda
+
+
