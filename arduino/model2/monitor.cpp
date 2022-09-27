@@ -75,22 +75,19 @@ void Monitor::splash(){
 
   String str;
 
-  // 9 pixel height
-  display->setFont(u8g2_font_7x13B_mf);
-
   display->firstPage();
   do {
-    display->drawBox(56, 2, 6, 31);
-    display->drawBox(66, 2, 6, 31);
+    // 10 pixel height
+    display->setFont(u8g2_font_8x13B_mf);
 
-    if ( millis() > 1500 ){
-      str = String("Ganjolito");
-      display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 46, str.c_str());
-    }
-    if ( millis() > 2500 ){
-      str = String("Modelo II");
-      display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 61, str.c_str());
-    }
+    str = String("VAPOMATIC");
+    display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 32, str.c_str());
+
+    // 7 pixel height
+    display->setFont(u8g2_font_6x10_mf);
+    
+    str = String("vapomatic.com.br");
+    display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 46, str.c_str());
 
   } while ( display->nextPage() );
 }
@@ -150,8 +147,8 @@ void Monitor::screen0(){
     str = "Alvo";
     display->drawUTF8(76, 10, str.c_str());
 
-    // 9 pixel height
-    display->setFont(u8g2_font_7x13B_mf);
+    // 10 pixel height
+    display->setFont(u8g2_font_8x13B_mf);
 
     str = String("°C");
     display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 45, str.c_str());
