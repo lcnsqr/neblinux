@@ -12,8 +12,8 @@ Therm::Therm(Session* session, int pin, unsigned long wait, unsigned int bufLen)
   tempNominal =  25.0;
 
   // Inativo
-  pc[0][0] = 1.0714;
-  pc[0][1] = -7.1429;
+  pc[0][0] = 1.0;
+  pc[0][1] = 0;
 
   // Ativo
   pc[1][0] = 1.9375;
