@@ -5,9 +5,6 @@ class Session {
   public:
   Session();
 
-  // Tela ativa
-  int screen;
-
   // Sinalizar mudança na sessão
   bool changed;
 
@@ -29,12 +26,6 @@ class Session {
 
   // Rotary variável auxiliar
   long int encoder;
-
-  // Rotary encoder clockwise
-  void cw();
-
-  // Rotary encoder counter-clockwise
-  void ccw();
 
   // Acionar / parar
   void start();

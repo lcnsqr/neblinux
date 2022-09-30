@@ -1,77 +1,17 @@
-#include "task.h"
-#include "monitor.h"
+#include "screen.h"
 #include "session.h"
 #include "display.h"
 
-extern long int encoderMove;
-
-Monitor::Monitor(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display, unsigned long wait): Task(wait), session(session), display(display) {
+Screen::Screen(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display): session(session), display(display) {
   
-  local = *session;
-
 }
 
-void Monitor::begin(){
-  //Serial.begin(115200);
-  //Serial.println("Start");
+/***
+ * Tela de apresentação
+ */
+scrSplash::scrSplash(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display): Screen(session, display) { }
 
-  display->begin();
-}
-
-void Monitor::action(){
-
-  // Avaliar se informações na sessão a serem
-  // exibidas mudaram em relação à cópia local.
-  // Se sim, atualizar a tela.
-  
-  // Temperatura atual
-  if ( (int)session->tempeCore != (int)local.tempeCore || (int)session->tempeEx != (int)local.tempeEx ){
-    local.tempeCore = session->tempeCore;
-    session->changed = true;
-  }
-
-  // Contador de tempo
-  if ( session->elapsed != local.elapsed ){
-    local.elapsed = session->elapsed;
-    session->changed = true;
-  }
-
-  // Detector de encerramento
-  if ( session->end[0] != local.end[0] || session->end[1] != local.end[1] ){
-    session->changed = true;
-  }
-
-  // Meta de temperatura
-  // O estado está em *encoderMove* no caso do rotary encoder
-  if ( encoderMove >= local.encoder + 4 ) {
-    local.encoder = encoderMove;
-    session->cw();
-    session->changed = true;
-  }
-  if ( encoderMove <= local.encoder - 4 ) {
-    local.encoder = encoderMove;
-    session->ccw();
-    session->changed = true;
-  }
-  
-  if ( session->changed ){
-
-    if ( millis() < 4500 ){
-      // Splash screen
-      splash();
-    }
-    else {
-      // Exibir mudanças
-      show();
-      // Mudanças exibidas
-      session->changed = false;
-    }
-
-  }
-
-}
-
-void Monitor::splash(){
+void scrSplash::show(){
 
   String str;
 
@@ -92,18 +32,21 @@ void Monitor::splash(){
   } while ( display->nextPage() );
 }
 
-void Monitor::show(){
+void scrSplash::cw(){ }
+void scrSplash::ccw(){ }
+Screen* scrSplash::btTopDown(){return this;}
+Screen* scrSplash::btTopUp(){return this;}
+Screen* scrSplash::btFrontDown(){return this;}
+Screen* scrSplash::btFrontUp(){return this;}
 
-  if ( session->screen == 0 ){
-    screen0();
-  }
-  else if ( session->screen == 1 ){
-    screen1();
-  }
-
+/***
+ * Tela principal
+ */
+scrMain::scrMain(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display): Screen(session, display) {
+  leave = NULL;
 }
 
-void Monitor::screen0(){
+void scrMain::show(){
   // String para exibir labels e valores
   String str;
 
@@ -165,7 +108,44 @@ void Monitor::screen0(){
 
 }
 
-void Monitor::screen1(){
+void scrMain::cw(){
+  if ( session->tempeTarget + 10 > session->tempeMax ) return;
+  session->tempeTarget += 10;
+}
+
+void scrMain::ccw(){
+  if ( session->tempeTarget - 10 < session->tempeMin ) return;
+  session->tempeTarget -= 10;
+}
+
+Screen* scrMain::btTopDown(){return this;}
+
+Screen* scrMain::btTopUp(){
+  if ( ! session->running() ){
+    session->start();
+  }
+  else {
+    session->stop();
+  }
+  return this;
+}
+
+Screen* scrMain::btFrontDown(){return this;}
+
+Screen* scrMain::btFrontUp(){
+  // Chamar a tela definida em leave
+  session->changed = true;
+  return leave;
+}
+
+/***
+ * Tela debug
+ */
+scrDebug::scrDebug(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display): Screen(session, display) {
+  leave = NULL;
+}
+
+void scrDebug::show(){
 
   String str;
 
@@ -245,4 +225,19 @@ void Monitor::screen1(){
 
   } while ( display->nextPage() );
 
+}
+
+void scrDebug::cw(){ }
+void scrDebug::ccw(){ }
+
+Screen* scrDebug::btTopDown(){return this;}
+
+Screen* scrDebug::btTopUp(){return this;}
+
+Screen* scrDebug::btFrontDown(){return this;}
+
+Screen* scrDebug::btFrontUp(){
+  // Chamar a tela definida em leave
+  session->changed = true;
+  return leave;
 }
