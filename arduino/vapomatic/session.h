@@ -9,7 +9,7 @@ class Session {
   bool changed;
 
   // Tempo em segundos em atividade
-  unsigned long elapsed;
+  int elapsed;
 
   // Temperatura na base da resistência
   double tempeCore;

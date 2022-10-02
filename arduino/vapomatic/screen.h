@@ -4,6 +4,21 @@
 #include "session.h"
 #include "display.h"
 
+enum ScreenItemType { DBL, INT, BOOL };
+
+struct ScreenItem {
+  String label;
+  // Formato do valor
+  enum ScreenItemType sessionType;
+  // Formato de exibição
+  enum ScreenItemType screenType;
+  // Valor
+  union {
+    int *i;
+    double *d;
+  } value;
+};
+  
 class Screen {
   public:
   Screen(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display);
@@ -68,6 +83,11 @@ class scrDebug: public Screen {
 
   // Tela exibida ao pressionar botão central
   Screen* leave;
+
+  // Itens na tela
+  int nitems;
+  int selected;
+  ScreenItem* items;
 };
 
 #endif

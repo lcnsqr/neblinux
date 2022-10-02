@@ -2,6 +2,7 @@
 #include "session.h"
 #include "display.h"
 
+
 Screen::Screen(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display): session(session), display(display) {
   
 }
@@ -147,9 +148,8 @@ scrDebug::scrDebug(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display
 
 void scrDebug::show(){
 
-  String str;
-
-  u8g2_uint_t y;
+  // Valor formatado
+  String strVal;
 
   // 7 pixel height
   display->setFont(u8g2_font_6x10_mf);
@@ -157,82 +157,47 @@ void scrDebug::show(){
   display->firstPage();
   do {
 
-    // Valor do thermistor
-    y = 10;
-    str = "Therm:";
-    display->drawUTF8(0, y, str.c_str());
-    str = String((int)session->analogTherm);
-    display->drawUTF8(62 - display->getUTF8Width(str.c_str()), y, str.c_str());
-
-    // Temperatura na base da resistência
-    y = 20;
-    str = "Core:";
-    display->drawUTF8(0, y, str.c_str());
-    str = String((int)session->tempeCore);
-    display->drawUTF8(62 - display->getUTF8Width(str.c_str()), y, str.c_str());
-
-    // Temperatura estimada no exaustor ativo
-    y = 30;
-    str = "Ex:";
-    display->drawUTF8(0, y, str.c_str());
-    str = String((int)session->tempeEx);
-    display->drawUTF8(62 - display->getUTF8Width(str.c_str()), y, str.c_str());
-
-    // Temperatura alvo no exaustor
-    y = 40;
-    str = "Alvo:";
-    display->drawUTF8(0, y, str.c_str());
-    str = String((int)session->tempeTarget);
-    display->drawUTF8(62 - display->getUTF8Width(str.c_str()), y, str.c_str());
-
-    // Tempo ativo
-    y = 50;
-    str = "Tempo:";
-    display->drawUTF8(0, y, str.c_str());
-    str = String(session->elapsed);
-    display->drawUTF8(62 - display->getUTF8Width(str.c_str()), y, str.c_str());
-
-    // Carga na resistência
-    y = 10;
-    str = "Gate:";
-    display->drawUTF8(72, y, str.c_str());
-    str = String((int)session->PID[7]);
-    display->drawUTF8(128 - display->getUTF8Width(str.c_str()), y, str.c_str());
-
-    // PID
-    y = 20;
-    str = "P:";
-    display->drawUTF8(72, y, str.c_str());
-    str = String(session->PID[0]);
-    display->drawUTF8(128 - display->getUTF8Width(str.c_str()), y, str.c_str());
-
-    y = 30;
-    str = "I:";
-    display->drawUTF8(72, y, str.c_str());
-    str = String(session->PID[1]);
-    display->drawUTF8(128 - display->getUTF8Width(str.c_str()), y, str.c_str());
-
-    y = 40;
-    str = "D:";
-    display->drawUTF8(72, y, str.c_str());
-    str = String(session->PID[2]);
-    display->drawUTF8(128 - display->getUTF8Width(str.c_str()), y, str.c_str());
-
-    // Indicadores de encerramento
-    y = 64;
-    str = String(session->end[0]) + "   " + String(session->end[1]);
-    display->drawUTF8(128 - display->getUTF8Width(str.c_str()), y, str.c_str());
+    for(int i = 0; i < nitems; ++i){
+      display->drawUTF8(( i < 6 ) ? 0 : 72, ((i%6)+1)*10, items[i].label.c_str());
+      if ( items[i].sessionType == INT ){
+        strVal = String(*(items[i].value.i));
+      }
+      else { // Double
+        if ( items[i].screenType == INT ){
+          strVal = String((int)*(items[i].value.d));
+        }
+        else {
+          strVal = String(*(items[i].value.d));
+        }
+      }
+      display->drawUTF8(62 + (( i < 6 ) ? 0 : 66) - display->getUTF8Width(strVal.c_str()), ((i%6)+1)*10, strVal.c_str());
+    }
 
   } while ( display->nextPage() );
 
 }
 
-void scrDebug::cw(){ }
-void scrDebug::ccw(){ }
+void scrDebug::cw(){
+  if ( session->tempeTarget + 10 > session->tempeMax ) return;
+  session->tempeTarget += 10;
+}
+
+void scrDebug::ccw(){
+  if ( session->tempeTarget - 10 < session->tempeMin ) return;
+  session->tempeTarget -= 10;
+}
 
 Screen* scrDebug::btTopDown(){return this;}
 
-Screen* scrDebug::btTopUp(){return this;}
+Screen* scrDebug::btTopUp(){
+  if ( ! session->running() ){
+    session->start();
+  }
+  else {
+    session->stop();
+  }
+  return this;
+}
 
 Screen* scrDebug::btFrontDown(){return this;}
 
