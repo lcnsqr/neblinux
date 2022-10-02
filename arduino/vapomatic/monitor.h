@@ -9,7 +9,7 @@ class Monitor: public Task {
 
   public:
 
-  Monitor(Session* session, Screen* splash, Screen* screen, int btTop, int btFront, unsigned long wait);
+  Monitor(Session* session, Screen* screen, int btTop, int btFront, unsigned long wait);
 
   void action();
 
@@ -18,7 +18,6 @@ class Monitor: public Task {
   Session* session;
   Session local;
 
-  Screen* splash;
   Screen* screen;
 
   // Botão superior

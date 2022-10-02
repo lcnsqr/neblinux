@@ -5,7 +5,7 @@
 
 extern long int encoderMove;
 
-Monitor::Monitor(Session* session, Screen* splash, Screen* screen, int btTop, int btFront, unsigned long wait): Task(wait), session(session), splash(splash), screen(screen), btTop(btTop), btFront(btFront) {
+Monitor::Monitor(Session* session, Screen* screen, int btTop, int btFront, unsigned long wait): Task(wait), session(session), screen(screen), btTop(btTop), btFront(btFront) {
   
   // Cópia local da sessão
   local = *session;
@@ -74,16 +74,10 @@ void Monitor::action(){
   
   if ( session->changed ){
 
-    if ( millis() < 4500 ){
-      // Splash screen
-      splash->show();
-    }
-    else {
-      // Exibir mudanças na tela ativa
-      screen->show();
-      // Mudanças exibidas
-      session->changed = false;
-    }
+    // Exibir mudanças na tela ativa
+    screen->show();
+    // Mudanças exibidas
+    session->changed = false;
 
   }
 

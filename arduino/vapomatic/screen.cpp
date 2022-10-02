@@ -8,11 +8,13 @@ Screen::Screen(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display): s
 }
 
 /***
- * Tela de apresentação
+ * Tela principal
  */
-scrSplash::scrSplash(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display): Screen(session, display) { }
+scrMain::scrMain(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display): Screen(session, display) {
+  leave = NULL;
+}
 
-void scrSplash::show(){
+void scrMain::splash(){
 
   String str;
 
@@ -33,21 +35,13 @@ void scrSplash::show(){
   } while ( display->nextPage() );
 }
 
-void scrSplash::cw(){ }
-void scrSplash::ccw(){ }
-Screen* scrSplash::btTopDown(){return this;}
-Screen* scrSplash::btTopUp(){return this;}
-Screen* scrSplash::btFrontDown(){return this;}
-Screen* scrSplash::btFrontUp(){return this;}
-
-/***
- * Tela principal
- */
-scrMain::scrMain(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display): Screen(session, display) {
-  leave = NULL;
-}
-
 void scrMain::show(){
+
+  if ( millis() < 4500 ){
+    splash();
+    return;
+  }
+
   // String para exibir labels e valores
   String str;
 
@@ -140,13 +134,13 @@ Screen* scrMain::btFrontUp(){
 }
 
 /***
- * Tela debug
+ * Tela Calibragem
  */
-scrDebug::scrDebug(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display): Screen(session, display) {
+scrCalib::scrCalib(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display): Screen(session, display) {
   leave = NULL;
 }
 
-void scrDebug::show(){
+void scrCalib::show(){
 
   // Valor formatado
   String strVal;
@@ -158,7 +152,11 @@ void scrDebug::show(){
   do {
 
     for(int i = 0; i < nitems; ++i){
-      display->drawUTF8(( i < 6 ) ? 0 : 72, ((i%6)+1)*10, items[i].label.c_str());
+      // Mudar cor se item iluminado
+      if ( highlight == i && edit < 0 ) display->setDrawColor(0);
+      else display->setDrawColor(1);
+
+      display->drawUTF8(0, (i+1)*10, items[i].label.c_str());
       if ( items[i].sessionType == INT ){
         strVal = String(*(items[i].value.i));
       }
@@ -170,38 +168,40 @@ void scrDebug::show(){
           strVal = String(*(items[i].value.d));
         }
       }
-      display->drawUTF8(62 + (( i < 6 ) ? 0 : 66) - display->getUTF8Width(strVal.c_str()), ((i%6)+1)*10, strVal.c_str());
+      strVal = strVal + " °C";
+      if ( highlight == i && edit == i ) display->setDrawColor(0);
+      else display->setDrawColor(1);
+      display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()), (i+1)*10, strVal.c_str());
     }
 
   } while ( display->nextPage() );
 
 }
 
-void scrDebug::cw(){
-  if ( session->tempeTarget + 10 > session->tempeMax ) return;
-  session->tempeTarget += 10;
+void scrCalib::cw(){
+  if ( edit < 0 ){
+    // Nenhum item sendo editado, iluminar item posterior
+    highlight = (highlight + 1) % nitems;
+  }
 }
 
-void scrDebug::ccw(){
-  if ( session->tempeTarget - 10 < session->tempeMin ) return;
-  session->tempeTarget -= 10;
+void scrCalib::ccw(){
+  if ( edit < 0 ){
+    // Nenhum item sendo editado, iluminar item anterior
+    if ( --highlight < 0 ) highlight = nitems - 1;
+  }
 }
 
-Screen* scrDebug::btTopDown(){return this;}
+Screen* scrCalib::btTopDown(){return this;}
 
-Screen* scrDebug::btTopUp(){
-  if ( ! session->running() ){
-    session->start();
-  }
-  else {
-    session->stop();
-  }
+Screen* scrCalib::btTopUp(){
+  // Ação depende de item selecionado
   return this;
 }
 
-Screen* scrDebug::btFrontDown(){return this;}
+Screen* scrCalib::btFrontDown(){return this;}
 
-Screen* scrDebug::btFrontUp(){
+Screen* scrCalib::btFrontUp(){
   // Chamar a tela definida em leave
   session->changed = true;
   return leave;

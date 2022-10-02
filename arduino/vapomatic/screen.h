@@ -23,7 +23,7 @@ class Screen {
   public:
   Screen(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display);
 
-  // Exibir UI atual no display
+  // Exibir tela no display
   virtual void show();
 
   // Rotary encoder clockwise
@@ -43,21 +43,10 @@ class Screen {
   U8G2_SH1106_128X64_NONAME_2_HW_I2C* display;
 };
 
-class scrSplash: public Screen {
-  public:
-  scrSplash(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display);
-  void show();
-  void cw();
-  void ccw();
-  Screen* btTopDown();
-  Screen* btTopUp();
-  Screen* btFrontDown();
-  Screen* btFrontUp();
-};
-
 class scrMain: public Screen {
   public:
   scrMain(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display);
+  void splash();
   void show();
   void cw();
   void ccw();
@@ -70,9 +59,9 @@ class scrMain: public Screen {
   Screen* leave;
 };
 
-class scrDebug: public Screen {
+class scrCalib: public Screen {
   public:
-  scrDebug(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display);
+  scrCalib(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display);
   void show();
   void cw();
   void ccw();
@@ -86,8 +75,9 @@ class scrDebug: public Screen {
 
   // Itens na tela
   int nitems;
-  int selected;
   ScreenItem* items;
+  int highlight;
+  int edit;
 };
 
 #endif
