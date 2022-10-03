@@ -21,12 +21,6 @@ class Shutdown: public Task {
   // Vetor A'b da regressão linear
   double Ab[2];
 
-  // Coeficientes encontrados (y-intercept e slope)
-  double c[2];
-
-  // Limiares de desligamento
-  double lim[2];
-
   private:
 
   Session* session;

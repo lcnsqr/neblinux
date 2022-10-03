@@ -19,13 +19,33 @@ Session::Session() {
   PID[1] = 0;
   PID[2] = 0;
   PID[3] = 0;
-  PID[4] = 1e-2;
-  PID[5] = 1.5e-4;
-  PID[6] = 7e-2;
-  PID[7] = 0;
+  PID[4] = 0;
 
-  end[0] = 0;
-  end[1] = 0;
+  shut[0] = 0;
+  shut[1] = 0;
+}
+
+void Session::load(struct Settings* st){
+  settings = st;
+
+  // thCfs[0] : Coeficientes usados quando desativado
+  thCfs[0][0] = 0;
+  thCfs[0][1] = 1.0;
+  thCfs[0][2] = 0;
+
+  // thCfs[1] : Coeficientes usados quando ativado
+  thCfs[1][0] = 0;
+  thCfs[1][1] = 1.9375;
+  thCfs[1][2] = -33.125;
+
+  // Coeficientes PID
+  settings->PID[0] = 1e-2;
+  settings->PID[1] = 1.5e-4;
+  settings->PID[2] = 7e-2;
+
+  // Limiares de desligamento
+  settings->shutLim[0] = 4.0;
+  settings->shutLim[1] = 1.0;
 }
 
 void Session::start(){
@@ -41,7 +61,8 @@ void Session::stop(){
   PID[0] = 0;
   PID[1] = 0;
   PID[2] = 0;
-  PID[7] = 0;
+  PID[3] = 0;
+  PID[4] = 0;
 }
 
 bool Session::running(){

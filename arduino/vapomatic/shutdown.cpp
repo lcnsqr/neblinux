@@ -18,12 +18,6 @@ Shutdown::Shutdown(Session* session, unsigned long wait): Task(wait), session(se
   Ab[0] = 0;
   Ab[1] = 0;
 
-  c[0] = 0;
-  c[1] = 0;
-
-  // Limiares para y-intercept e slope 
-  lim[0] = 4.0;
-  lim[1] = 1.0;
 }
 
 void Shutdown::action(){
@@ -38,15 +32,12 @@ void Shutdown::action(){
   Ab[0] = b[0] + b[1] + b[2] + b[3];
   Ab[1] = b[1] + 2.0*b[2] + 3.0*b[3];
 
-  c[1] = (Ab[1]/AA[2]-Ab[0]/AA[0]) / (AA[3]/AA[2]-AA[1]/AA[0]);
-  c[0] = Ab[0]/AA[0] - c[1] * AA[1]/AA[0];
-
-  session->end[0] = c[0];
-  session->end[1] = c[1];
+  session->shut[1] = (Ab[1]/AA[2]-Ab[0]/AA[0]) / (AA[3]/AA[2]-AA[1]/AA[0]);
+  session->shut[0] = Ab[0]/AA[0] - session->shut[1] * AA[1]/AA[0];
 
   // Desligar se detectado crescimento
   // íngreme da distância temp - alvo.
-  if ( c[0] > lim[0] && c[1] > lim[1] ){
+  if ( session->shut[0] > session->settings->shutLim[0] && session->shut[1] > session->settings->shutLim[1] ){
     session->stop();
   }
 }

@@ -44,7 +44,7 @@ void Monitor::action(){
   }
 
   // Detector de encerramento
-  if ( session->end[0] != local.end[0] || session->end[1] != local.end[1] ){
+  if ( session->shut[0] != local.shut[0] || session->shut[1] != local.shut[1] ){
     session->changed = true;
   }
 

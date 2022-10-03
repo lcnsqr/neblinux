@@ -11,14 +11,6 @@ Therm::Therm(Session* session, int pin, unsigned long wait, unsigned int bufLen)
   bCoef = 3950.0;
   tempNominal =  25.0;
 
-  // Inativo
-  pc[0][0] = 1.0;
-  pc[0][1] = 0;
-
-  // Ativo
-  pc[1][0] = 1.9375;
-  pc[1][1] = -33.125;
-
   // Dividir o tempo de espera para
   // distribuir as amostras no intervalo
   wait = wait / bufLen;
@@ -51,7 +43,8 @@ void Therm::action(){
 }
 
 double Therm::celsiusPoly(double core){
-  return pc[(int)session->running()][0] * core + pc[(int)session->running()][1];
+  const int i = (int)session->running();
+  return session->thCfs[i][0] * pow(core, 2) + session->thCfs[i][1] * core + session->thCfs[i][2];
 }
 
 double Therm::celsiusSteinhart(double thermistor){

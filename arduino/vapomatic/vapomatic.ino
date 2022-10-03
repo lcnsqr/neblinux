@@ -10,6 +10,8 @@
 #include "shutdown.h"
 #include "screen.h"
 
+// Configurações
+struct Settings settings;
 // Estado do aparelho e comunicação interserviços
 Session session;
 // Loop de serviços
@@ -36,6 +38,9 @@ Timer timer(&session, 1000);
 Shutdown shutdown(&session, 500);
 
 void setup() {
+
+  // Configurar sessão
+  session.load(&settings);
 
   // Definições de UI
   setupUI();
