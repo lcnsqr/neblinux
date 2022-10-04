@@ -149,6 +149,7 @@ void scrCalib::show(){
   display->firstPage();
   do {
 
+    display->setDrawColor(1);
     strVal = String("CALIBRAGEM");
     display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(strVal.c_str()))/2.0)), 13, strVal.c_str());
 
@@ -158,18 +159,10 @@ void scrCalib::show(){
       else display->setDrawColor(1);
 
       display->drawUTF8(0, 15+(i+1)*13, items[i].label.c_str());
-      if ( items[i].sessionType == INT ){
-        strVal = String(*(items[i].value.i));
-      }
-      else { // Double
-        if ( items[i].screenType == INT ){
-          strVal = String((int)*(items[i].value.d));
-        }
-        else {
-          strVal = String(*(items[i].value.d));
-        }
-      }
+
+      strVal = String((int)*(items[i].tempEx));
       strVal = strVal + " °C";
+
       if ( highlight == i && edit == i ) display->setDrawColor(0);
       else display->setDrawColor(1);
       display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()), 15+(i+1)*13, strVal.c_str());
@@ -184,6 +177,11 @@ void scrCalib::cw(){
     // Nenhum item sendo editado, iluminar item posterior
     highlight = (highlight + 1) % nitems;
   }
+  else {
+    // Incrementar valor
+    *(items[edit].tempEx) += 1;
+    *(items[edit].tempCore) = session->tempeCore;
+  }
 }
 
 void scrCalib::ccw(){
@@ -191,18 +189,31 @@ void scrCalib::ccw(){
     // Nenhum item sendo editado, iluminar item anterior
     if ( --highlight < 0 ) highlight = nitems - 1;
   }
+  else {
+    // Decrementar valor
+    *(items[edit].tempEx) -= 1;
+    *(items[edit].tempCore) = session->tempeCore;
+  }
 }
 
 Screen* scrCalib::btTopDown(){return this;}
 
 Screen* scrCalib::btTopUp(){
-  // Ação depende de item selecionado
+  if ( edit < 0 ){
+    edit = highlight;
+  }
+  else {
+    *(items[edit].tempCore) = session->tempeCore;
+    edit = -1;
+  }
   return this;
 }
 
 Screen* scrCalib::btFrontDown(){return this;}
 
 Screen* scrCalib::btFrontUp(){
+  // Reconfigurar
+  session->leastsquares(3, 2, session->settings->tempCore, session->settings->tempEx, session->thCfs[1]);
   // Chamar a tela definida em leave
   session->changed = true;
   return leave;

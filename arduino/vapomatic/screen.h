@@ -4,19 +4,10 @@
 #include "session.h"
 #include "display.h"
 
-enum ScreenItemType { DBL, INT, BOOL };
-
-struct ScreenItem {
+struct CalibItem {
   String label;
-  // Formato do valor
-  enum ScreenItemType sessionType;
-  // Formato de exibição
-  enum ScreenItemType screenType;
-  // Valor
-  union {
-    int *i;
-    double *d;
-  } value;
+  double *tempCore;
+  double *tempEx;
 };
   
 class Screen {
@@ -75,7 +66,7 @@ class scrCalib: public Screen {
 
   // Itens na tela
   int nitems;
-  ScreenItem* items;
+  CalibItem* items;
   int highlight;
   int edit;
 };

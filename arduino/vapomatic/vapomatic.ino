@@ -23,7 +23,7 @@ U8G2_SH1106_128X64_NONAME_2_HW_I2C display(U8G2_R2, U8X8_PIN_NONE);
 // Telas da UI
 scrMain uiMain(&session, &display);
 scrCalib uiCalib(&session, &display);
-struct ScreenItem scrCalibItems[3];
+struct CalibItem scrCalibItems[3];
 // Monitoramento de eventos
 Monitor monitor(&session, &uiMain, 4, 8, 25);
 // Callback de eventos do rotary encoder
@@ -68,22 +68,19 @@ void setupUI() {
     * Itens na tela de calibragem
     */
   // Primeira leitura
-  scrCalibItems[0].label = "Leitura A";
-  scrCalibItems[0].sessionType = DBL;
-  scrCalibItems[0].screenType = INT;
-  scrCalibItems[0].value.d = &(settings.tempEx[0]);
+  scrCalibItems[0].label = "Mínimo";
+  scrCalibItems[0].tempCore = &(settings.tempCore[0]);
+  scrCalibItems[0].tempEx = &(settings.tempEx[0]);
 
   // Segunda leitura
-  scrCalibItems[1].label = "Leitura B";
-  scrCalibItems[1].sessionType = DBL;
-  scrCalibItems[1].screenType = INT;
-  scrCalibItems[1].value.d = &(settings.tempEx[1]);
+  scrCalibItems[1].label = "Meio";
+  scrCalibItems[1].tempCore = &(settings.tempCore[1]);
+  scrCalibItems[1].tempEx = &(settings.tempEx[1]);
 
   // Terceira leitura
-  scrCalibItems[2].label = "Leitura C";
-  scrCalibItems[2].sessionType = DBL;
-  scrCalibItems[2].screenType = INT;
-  scrCalibItems[2].value.d = &(settings.tempEx[2]);
+  scrCalibItems[2].label = "Máximo";
+  scrCalibItems[2].tempCore = &(settings.tempCore[2]);
+  scrCalibItems[2].tempEx = &(settings.tempEx[2]);
 
   uiCalib.nitems = 3;
   uiCalib.items = scrCalibItems;
