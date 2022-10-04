@@ -143,20 +143,21 @@ void scrCalib::show(){
   // Valor formatado
   String strVal;
 
-  // 7 pixel height
-  //display->setFont(u8g2_font_6x10_mf);
   // 9 pixel height
   display->setFont(u8g2_font_6x13_mf);
 
   display->firstPage();
   do {
 
+    strVal = String("CALIBRAGEM");
+    display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(strVal.c_str()))/2.0)), 13, strVal.c_str());
+
     for(int i = 0; i < nitems; ++i){
       // Mudar cor se item iluminado
       if ( highlight == i && edit < 0 ) display->setDrawColor(0);
       else display->setDrawColor(1);
 
-      display->drawUTF8(0, (i+1)*12, items[i].label.c_str());
+      display->drawUTF8(0, 15+(i+1)*13, items[i].label.c_str());
       if ( items[i].sessionType == INT ){
         strVal = String(*(items[i].value.i));
       }
@@ -171,7 +172,7 @@ void scrCalib::show(){
       strVal = strVal + " °C";
       if ( highlight == i && edit == i ) display->setDrawColor(0);
       else display->setDrawColor(1);
-      display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()), (i+1)*12, strVal.c_str());
+      display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()), 15+(i+1)*13, strVal.c_str());
     }
 
   } while ( display->nextPage() );
