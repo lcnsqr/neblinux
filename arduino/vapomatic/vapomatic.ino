@@ -67,23 +67,23 @@ void setupUI() {
   /**
     * Itens na tela de calibragem
     */
-  // Valor do thermistor
+  // Primeira leitura
   scrCalibItems[0].label = "Leitura A";
   scrCalibItems[0].sessionType = DBL;
   scrCalibItems[0].screenType = INT;
-  scrCalibItems[0].value.d = &(session.analogTherm);
+  scrCalibItems[0].value.d = &(settings.tempEx[0]);
 
-  // Temperatura na base da resistência
+  // Segunda leitura
   scrCalibItems[1].label = "Leitura B";
   scrCalibItems[1].sessionType = DBL;
   scrCalibItems[1].screenType = INT;
-  scrCalibItems[1].value.d = &(session.tempeCore);
+  scrCalibItems[1].value.d = &(settings.tempEx[1]);
 
-  // Temperatura estimada no exaustor quando ativo
+  // Terceira leitura
   scrCalibItems[2].label = "Leitura C";
   scrCalibItems[2].sessionType = DBL;
   scrCalibItems[2].screenType = INT;
-  scrCalibItems[2].value.d = &(session.tempeEx);
+  scrCalibItems[2].value.d = &(settings.tempEx[2]);
 
   uiCalib.nitems = 3;
   uiCalib.items = scrCalibItems;

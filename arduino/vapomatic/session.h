@@ -44,7 +44,7 @@ class Session {
   double thCfs[2][3];
 
   // Calcular coeficiente do polinômio interpolador de temperatura
-  void leastsquares(int m, int n, double x[], double y[], double c[]);
+  int leastsquares(int m, int n, double x[], double y[], double c[]);
 
   // Indicadores de encerramento
   double shut[2];

@@ -44,7 +44,7 @@ void Therm::action(){
 
 double Therm::celsiusPoly(double core){
   const int i = (int)session->running();
-  return session->thCfs[i][0] * pow(core, 2) + session->thCfs[i][1] * core + session->thCfs[i][2];
+  return session->thCfs[i][0] + session->thCfs[i][1] * core + session->thCfs[i][2] * pow(core, 2);
 }
 
 double Therm::celsiusSteinhart(double thermistor){

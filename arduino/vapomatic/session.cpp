@@ -1,5 +1,6 @@
 #include "session.h"
 #include "mat.h"
+#include <Arduino.h>
 
 Session::Session() {
   dryrun = 1;
@@ -34,18 +35,19 @@ void Session::load(struct Settings* st){
   thCfs[0][1] = 1.0;
   thCfs[0][2] = 0;
 
-  // Temperaturas da calibragem
+  // Quantidade de pontos de calibragem
   const int m = 3;
-	double x[m] = {20, 130, 180}; // Core
-	double y[m] = {20, 180, 240}; // Externo
+  // Temperaturas da calibragem
+	settings->tempCore[0] = 20;
+	settings->tempCore[1] = 130;
+	settings->tempCore[2] = 180;
+	settings->tempEx[0] = 20;
+	settings->tempEx[1] = 180;
+	settings->tempEx[2] = 240;
   // Grau do polinômio interpolador
   const int n = 2;
-
   // thCfs[1] : Coeficientes usados quando ativado
-  leastsquares(m, n, x, y, thCfs[1]);
-  //thCfs[1][0] = 0;
-  //thCfs[1][1] = 1.9375;
-  //thCfs[1][2] = -33.125;
+  leastsquares(m, n, settings->tempCore, settings->tempEx, thCfs[1]);
 
   // Coeficientes PID
   settings->PID[0] = 1e-2;
@@ -57,7 +59,7 @@ void Session::load(struct Settings* st){
   settings->shutLim[1] = 1.0;
 }
 
-void Session::leastsquares(int m, int n, double x[], double y[], double c[]){
+int Session::leastsquares(int m, int n, double x[], double y[], double c[]){
   // Número de coeficientes é o grau + 1
   n = n + 1;
 
