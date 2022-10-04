@@ -18,17 +18,15 @@ void scrMain::splash(){
 
   String str;
 
+  // 9 pixel height
+  display->setFont(u8g2_font_6x13_mf);
+
   display->firstPage();
   do {
-    // 10 pixel height
-    display->setFont(u8g2_font_8x13B_mf);
 
     str = String("VAPOMATIC");
     display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 32, str.c_str());
 
-    // 7 pixel height
-    display->setFont(u8g2_font_6x10_mf);
-    
     str = String("vapomatic.com.br");
     display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 46, str.c_str());
 
@@ -54,42 +52,42 @@ void scrMain::show(){
   display->firstPage();
   do {
 
+    // 9 pixel height
+    display->setFont(u8g2_font_6x13_mf);
+
+    // Labels
+    str = "Temp";
+    display->drawUTF8(52 - display->getUTF8Width(str.c_str()), 11, str.c_str());
+    str = "Alvo";
+    display->drawUTF8(76, 11, str.c_str());
+
     // Escala leitura
-    display->drawFrame(56, 2, 6, 31);
+    display->drawFrame(56, 2, 6, 32);
     tempeEx = session->tempeEx;
     if ( tempeEx < session->tempeMin ) tempeEx = session->tempeMin;
     if ( tempeEx > session->tempeMax ) tempeEx = session->tempeMax;
-    tempeDial = round(31.0 * (tempeEx - session->tempeMin) / (session->tempeMax - session->tempeMin));
-    display->drawBox(56, (u8g2_uint_t)(33 - tempeDial), 6, (u8g2_uint_t)tempeDial);
+    tempeDial = round(32.0 * (tempeEx - session->tempeMin) / (session->tempeMax - session->tempeMin));
+    display->drawBox(56, (u8g2_uint_t)(34 - tempeDial), 6, (u8g2_uint_t)tempeDial);
 
     // Escala objetivo
-    display->drawFrame(66, 2, 6, 31);
-    tempeDial = (u8g2_uint_t)round(31.0 * (session->tempeTarget - session->tempeMin) / (session->tempeMax - session->tempeMin));
-    display->drawBox(66, 33 - tempeDial, 6, tempeDial);
+    display->drawFrame(66, 2, 6, 32);
+    tempeDial = (u8g2_uint_t)round(32.0 * (session->tempeTarget - session->tempeMin) / (session->tempeMax - session->tempeMin));
+    display->drawBox(66, 34 - tempeDial, 6, tempeDial);
 
     // 16 pixel height
     display->setFont(u8g2_font_inb16_mn);
 
     // Valores leitura e objetivo
     str = String((int)session->tempeEx);
-    display->drawStr(52 - display->getStrWidth(str.c_str()), 33, str.c_str());
+    display->drawStr(52 - display->getStrWidth(str.c_str()), 34, str.c_str());
     str = String((int)session->tempeTarget);
-    display->drawStr(76, 33, str.c_str());
+    display->drawStr(76, 34, str.c_str());
 
-    // 7 pixel height
-    display->setFont(u8g2_font_6x10_mf);
-
-    // Labels
-    str = "Temp";
-    display->drawUTF8(52 - display->getUTF8Width(str.c_str()), 10, str.c_str());
-    str = "Alvo";
-    display->drawUTF8(76, 10, str.c_str());
-
-    // 10 pixel height
-    display->setFont(u8g2_font_8x13B_mf);
+    // 9 pixel height
+    display->setFont(u8g2_font_6x13_mf);
 
     str = String("°C");
-    display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 45, str.c_str());
+    display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 46, str.c_str());
 
     // Status
     str = String(session->elapsed / 60) + "m" + String(session->elapsed % 60) + "s";
@@ -146,7 +144,9 @@ void scrCalib::show(){
   String strVal;
 
   // 7 pixel height
-  display->setFont(u8g2_font_6x10_mf);
+  //display->setFont(u8g2_font_6x10_mf);
+  // 9 pixel height
+  display->setFont(u8g2_font_6x13_mf);
 
   display->firstPage();
   do {
@@ -156,7 +156,7 @@ void scrCalib::show(){
       if ( highlight == i && edit < 0 ) display->setDrawColor(0);
       else display->setDrawColor(1);
 
-      display->drawUTF8(0, (i+1)*10, items[i].label.c_str());
+      display->drawUTF8(0, (i+1)*12, items[i].label.c_str());
       if ( items[i].sessionType == INT ){
         strVal = String(*(items[i].value.i));
       }
@@ -171,7 +171,7 @@ void scrCalib::show(){
       strVal = strVal + " °C";
       if ( highlight == i && edit == i ) display->setDrawColor(0);
       else display->setDrawColor(1);
-      display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()), (i+1)*10, strVal.c_str());
+      display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()), (i+1)*12, strVal.c_str());
     }
 
   } while ( display->nextPage() );

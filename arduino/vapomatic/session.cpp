@@ -1,4 +1,5 @@
 #include "session.h"
+#include "mat.h"
 
 Session::Session() {
   dryrun = 1;
@@ -33,10 +34,18 @@ void Session::load(struct Settings* st){
   thCfs[0][1] = 1.0;
   thCfs[0][2] = 0;
 
+  // Temperaturas da calibragem
+  const int m = 3;
+	double x[m] = {20, 130, 180}; // Core
+	double y[m] = {20, 180, 240}; // Externo
+  // Grau do polinômio interpolador
+  const int n = 2;
+
   // thCfs[1] : Coeficientes usados quando ativado
-  thCfs[1][0] = 0;
-  thCfs[1][1] = 1.9375;
-  thCfs[1][2] = -33.125;
+  leastsquares(m, n, x, y, thCfs[1]);
+  //thCfs[1][0] = 0;
+  //thCfs[1][1] = 1.9375;
+  //thCfs[1][2] = -33.125;
 
   // Coeficientes PID
   settings->PID[0] = 1e-2;
@@ -46,6 +55,39 @@ void Session::load(struct Settings* st){
   // Limiares de desligamento
   settings->shutLim[0] = 4.0;
   settings->shutLim[1] = 1.0;
+}
+
+void Session::leastsquares(int m, int n, double x[], double y[], double c[]){
+  // Número de coeficientes é o grau + 1
+  n = n + 1;
+
+  // Matriz para mínimos quadrados
+	double A[n*n];
+  for (int j = 0; j < n; ++j){
+    for (int k = 0; k < n; ++k){
+      A[mat::elem(n,n,j,k)] = 0;
+      for (int i = 0; i < m; ++i){
+        A[mat::elem(n,n,j,k)] += pow(x[i], j+k);
+      }
+    }
+  }
+
+  // Inversa
+  double Ainv[n*n];
+  // Inverter matriz (perde A)
+  if ( mat::inv(n, A, Ainv) ) return -1;
+	
+  // RHS
+  double b[n];
+  for (int j = 0; j < n; ++j){
+    b[j] = 0;
+    for (int i = 0; i < m; ++i){
+      b[j] += pow(x[i], j) * y[i];
+    }
+  }
+
+  // Coeficientes
+	mat::mult(n,n,1,Ainv,b,c);
 }
 
 void Session::start(){

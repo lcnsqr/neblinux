@@ -3,11 +3,11 @@
 
 // Estrutura para armazenar na EEPROM
 struct Settings {
-  int tempCore[3];   // Temperaturas internas na calibragem
-  int tempEx[3];     // Temperaturas aferidas na calibragem
-  double PID[3];     // Coeficientes PID
-  double shutLim[2]; // Limiares de desligamento (y-intercept e slope da função temp - alvo)
-	char shutEnabled;  // Desligamento automático ativo/inativo
+  double tempCore[3]; // Temperaturas internas na calibragem
+  double tempEx[3];   // Temperaturas aferidas na calibragem
+  double PID[3];      // Coeficientes PID
+  double shutLim[2];  // Limiares de desligamento (y-intercept e slope da função temp - alvo)
+	char shutEnabled;   // Desligamento automático ativo/inativo
 };
 
 // Estado e IPC
@@ -42,6 +42,9 @@ class Session {
   // thCfs[0] : Coeficientes usados quando desativado
   // thCfs[1] : Coeficientes usados quando ativado
   double thCfs[2][3];
+
+  // Calcular coeficiente do polinômio interpolador de temperatura
+  void leastsquares(int m, int n, double x[], double y[], double c[]);
 
   // Indicadores de encerramento
   double shut[2];
