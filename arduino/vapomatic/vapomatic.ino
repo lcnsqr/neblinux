@@ -10,8 +10,6 @@
 #include "shutdown.h"
 #include "screen.h"
 
-// Configurações
-struct Settings settings;
 // Estado do aparelho e comunicação interserviços
 Session session;
 // Loop de serviços
@@ -40,7 +38,7 @@ Shutdown shutdown(&session, 500);
 void setup() {
 
   // Configurar sessão
-  session.load(&settings);
+  session.load();
 
   // Definições de UI
   setupUI();
@@ -69,18 +67,18 @@ void setupUI() {
     */
   // Primeira leitura
   scrCalibItems[0].label = "Mínimo";
-  scrCalibItems[0].tempCore = &(settings.tempCore[0]);
-  scrCalibItems[0].tempEx = &(settings.tempEx[0]);
+  scrCalibItems[0].tempCore = &(session.settings.tempCore[0]);
+  scrCalibItems[0].tempEx = &(session.settings.tempEx[0]);
 
   // Segunda leitura
   scrCalibItems[1].label = "Meio";
-  scrCalibItems[1].tempCore = &(settings.tempCore[1]);
-  scrCalibItems[1].tempEx = &(settings.tempEx[1]);
+  scrCalibItems[1].tempCore = &(session.settings.tempCore[1]);
+  scrCalibItems[1].tempEx = &(session.settings.tempEx[1]);
 
   // Terceira leitura
   scrCalibItems[2].label = "Máximo";
-  scrCalibItems[2].tempCore = &(settings.tempCore[2]);
-  scrCalibItems[2].tempEx = &(settings.tempEx[2]);
+  scrCalibItems[2].tempCore = &(session.settings.tempCore[2]);
+  scrCalibItems[2].tempEx = &(session.settings.tempEx[2]);
 
   uiCalib.nitems = 3;
   uiCalib.items = scrCalibItems;

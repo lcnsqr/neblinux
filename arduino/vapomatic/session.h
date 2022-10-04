@@ -15,11 +15,12 @@ class Session {
   public:
   Session();
 
-  // Carregar configurações
-  void load(struct Settings*);
+  // Carregar/salvar configurações
+  void load();
+  void save();
 
-  // Configurações básicas
-  struct Settings* settings;
+  // Configurações
+  struct Settings settings;
 
   // Sinalizar mudança na sessão
   bool changed;

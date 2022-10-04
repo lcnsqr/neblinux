@@ -213,7 +213,8 @@ Screen* scrCalib::btFrontDown(){return this;}
 
 Screen* scrCalib::btFrontUp(){
   // Reconfigurar
-  session->leastsquares(3, 2, session->settings->tempCore, session->settings->tempEx, session->thCfs[1]);
+  session->leastsquares(3, 2, session->settings.tempCore, session->settings.tempEx, session->thCfs[1]);
+  session->save();
   // Chamar a tela definida em leave
   session->changed = true;
   return leave;

@@ -1,6 +1,6 @@
 #include "session.h"
 #include "mat.h"
-#include <Arduino.h>
+#include <EEPROM.h>
 
 Session::Session() {
   dryrun = 1;
@@ -27,8 +27,10 @@ Session::Session() {
   shut[1] = 0;
 }
 
-void Session::load(struct Settings* st){
-  settings = st;
+void Session::load(){
+
+  // Carregar configurações salvas
+  EEPROM.get(0, settings);
 
   // thCfs[0] : Coeficientes usados quando desativado
   thCfs[0][0] = 0;
@@ -38,25 +40,35 @@ void Session::load(struct Settings* st){
   // Quantidade de pontos de calibragem
   const int m = 3;
   // Temperaturas da calibragem
-	settings->tempCore[0] = 20;
-	settings->tempCore[1] = 130;
-	settings->tempCore[2] = 180;
-	settings->tempEx[0] = 20;
-	settings->tempEx[1] = 180;
-	settings->tempEx[2] = 240;
+  /*
+	settings.tempCore[0] = 20;
+	settings.tempCore[1] = 130;
+	settings.tempCore[2] = 180;
+	settings.tempEx[0] = 20;
+	settings.tempEx[1] = 180;
+	settings.tempEx[2] = 240;
+  */
   // Grau do polinômio interpolador
   const int n = 2;
   // thCfs[1] : Coeficientes usados quando ativado
-  leastsquares(m, n, settings->tempCore, settings->tempEx, thCfs[1]);
+  leastsquares(m, n, settings.tempCore, settings.tempEx, thCfs[1]);
 
   // Coeficientes PID
-  settings->PID[0] = 1e-2;
-  settings->PID[1] = 1.5e-4;
-  settings->PID[2] = 7e-2;
+  /*
+  settings.PID[0] = 1e-2;
+  settings.PID[1] = 1.5e-4;
+  settings.PID[2] = 7e-2;
+  */
 
   // Limiares de desligamento
-  settings->shutLim[0] = 4.0;
-  settings->shutLim[1] = 1.0;
+  /*
+  settings.shutLim[0] = 4.0;
+  settings.shutLim[1] = 1.0;
+  */
+}
+
+void Session::save(){
+  EEPROM.put(0, settings);
 }
 
 int Session::leastsquares(int m, int n, double x[], double y[], double c[]){

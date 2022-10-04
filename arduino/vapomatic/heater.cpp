@@ -5,9 +5,9 @@
 Heater::Heater(Session* session, int pin, unsigned long wait): Task(wait), session(session), pin(pin) {
   pinMode(pin, OUTPUT);
 
-  c0 = &(session->settings->PID[0]);
-  c1 = &(session->settings->PID[1]);
-  c2 = &(session->settings->PID[2]);
+  c0 = &(session->settings.PID[0]);
+  c1 = &(session->settings.PID[1]);
+  c2 = &(session->settings.PID[2]);
   P = &(session->PID[0]);
   I = &(session->PID[1]);
   D = &(session->PID[2]);
