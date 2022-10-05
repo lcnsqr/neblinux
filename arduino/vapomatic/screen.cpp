@@ -186,6 +186,8 @@ Screen* scrSetup::btTopUp(){
   }
   else if (highlight == 3){
     // Restaurar padrão
+    session->reset();
+    return leave;
   }
   return this;
 }

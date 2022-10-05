@@ -28,9 +28,8 @@ Session::Session() {
 }
 
 void Session::load(){
-
   // Carregar configurações salvas
-  //EEPROM.get(0, settings);
+  EEPROM.get(0, settings);
 
   // thCfs[0] : Coeficientes usados quando desativado
   thCfs[0][0] = 0;
@@ -39,17 +38,24 @@ void Session::load(){
 
   // Quantidade de pontos de calibragem
   const int m = 3;
-  // Temperaturas da calibragem
-	settings.tempCore[0] = 20;
-	settings.tempCore[1] = 130;
-	settings.tempCore[2] = 180;
-	settings.tempEx[0] = 20;
-	settings.tempEx[1] = 180;
-	settings.tempEx[2] = 240;
   // Grau do polinômio interpolador
   const int n = 2;
   // thCfs[1] : Coeficientes usados quando ativado
   mat::leastsquares(m, n, settings.tempCore, settings.tempEx, thCfs[1]);
+}
+
+void Session::save(){
+  EEPROM.put(0, settings);
+}
+
+void Session::reset(){
+  // Temperaturas da calibragem
+	settings.tempCore[0] = 25;
+	settings.tempCore[1] = 130;
+	settings.tempCore[2] = 180;
+	settings.tempEx[0] = 25;
+	settings.tempEx[1] = 180;
+	settings.tempEx[2] = 240;
 
   // Coeficientes PID
   settings.PID[0] = 1e-2;
@@ -59,10 +65,10 @@ void Session::load(){
   // Limiares de desligamento
   settings.shutLim[0] = 4.0;
   settings.shutLim[1] = 1.0;
-}
+	settings.shutEnabled = 1;
 
-void Session::save(){
-  //EEPROM.put(0, settings);
+  save();
+  load();
 }
 
 void Session::start(){

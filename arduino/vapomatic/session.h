@@ -18,6 +18,7 @@ class Session {
   // Carregar/salvar configurações
   void load();
   void save();
+  void reset();
 
   // Configurações
   struct Settings settings;
