@@ -9,4 +9,14 @@ Aferir após 30 segundos em cada estágio, ordem crescente. Registrar:
 Temperatura no core
 Temperatura na sonda
 
+EEPROM tem 1024 bytes. Estrutura de dados:
 
+struct Settings {
+  int tempCore[3];   // Temperaturas internas na calibragem
+  int tempEx[3];     // Temperaturas aferidas na calibragem
+  double PID[3];     // Coeficientes PID
+  double shutLim[2]; // Limiares de desligamento (y-intercept e slope da função temp - alvo) 
+	char shutEnabled;  // Desligamento automático ativo/inativo
+};
+
+Deve ser possível gravar valores default na EEPROM. É impossível distinguir com certeza se é a primeira vez que o aparelho é ligado.

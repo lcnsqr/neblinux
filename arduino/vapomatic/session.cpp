@@ -9,8 +9,8 @@ Session::Session() {
   tempeMax = 240.0;
 
   changed = false;
-  tempeCore = 0;
-  tempeEx = 0;
+  tempCore = 0;
+  tempEx = 0;
   tempeTarget = 180;
 
   on = false;

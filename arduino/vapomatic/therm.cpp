@@ -34,8 +34,8 @@ void Therm::action(){
     for (int i = 0; i < bufLen; ++i)
       bufSum += buf[i];
     session->analogTherm = (float)bufSum/(float)bufLen;
-    session->tempeCore = celsiusSteinhart(session->analogTherm);
-    session->tempeEx = celsiusPoly(session->tempeCore);
+    session->tempCore = celsiusSteinhart(session->analogTherm);
+    session->tempEx = celsiusPoly(session->tempCore);
   }
   else {
     buf[bufCount++] = analogRead(pin);

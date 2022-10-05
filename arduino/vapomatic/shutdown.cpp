@@ -27,7 +27,7 @@ void Shutdown::action(){
   b[0] = b[1];
   b[1] = b[2];
   b[2] = b[3];
-  b[3] = session->tempeEx - session->tempeTarget;
+  b[3] = session->tempEx - session->tempeTarget;
 
   Ab[0] = b[0] + b[1] + b[2] + b[3];
   Ab[1] = b[1] + 2.0*b[2] + 3.0*b[3];

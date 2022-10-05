@@ -21,7 +21,7 @@ void Heater::action(){
     return;
   }
   
-  float dif = (float)wait * (session->tempeTarget - session->tempeEx);
+  float dif = (float)wait * (session->tempeTarget - session->tempEx);
 
   *P = *c0 * dif;
   *I = *I + *c1 * dif;

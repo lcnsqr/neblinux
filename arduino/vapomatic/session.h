@@ -30,9 +30,9 @@ class Session {
   int elapsed;
 
   // Temperatura na base da resistência
-  float tempeCore;
+  float tempCore;
   // Temperatura no exaustor
-  float tempeEx;
+  float tempEx;
   // Temperatura alvo no exaustor
   float tempeTarget;
   // Leitura ADC do termistor

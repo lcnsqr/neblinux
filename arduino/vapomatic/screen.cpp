@@ -49,7 +49,7 @@ void scrMain::show(){
   u8g2_uint_t tempeDial;
 
   // Desconsiderar temperaturas fora da faixa para a escala visual
-  float tempeEx;
+  float tempEx;
 
   display->firstPage();
   do {
@@ -66,10 +66,10 @@ void scrMain::show(){
 
     // Escala leitura
     display->drawFrame(56, 2, 6, 32);
-    tempeEx = session->tempeEx;
-    if ( tempeEx < session->tempeMin ) tempeEx = session->tempeMin;
-    if ( tempeEx > session->tempeMax ) tempeEx = session->tempeMax;
-    tempeDial = round(32.0 * (tempeEx - session->tempeMin) / (session->tempeMax - session->tempeMin));
+    tempEx = session->tempEx;
+    if ( tempEx < session->tempeMin ) tempEx = session->tempeMin;
+    if ( tempEx > session->tempeMax ) tempEx = session->tempeMax;
+    tempeDial = round(32.0 * (tempEx - session->tempeMin) / (session->tempeMax - session->tempeMin));
     display->drawBox(56, (u8g2_uint_t)(34 - tempeDial), 6, (u8g2_uint_t)tempeDial);
 
     // Escala objetivo
@@ -81,7 +81,7 @@ void scrMain::show(){
     display->setFont(u8g2_font_inb16_mn);
 
     // Valores leitura e objetivo
-    str = String((int)session->tempeEx);
+    str = String((int)session->tempEx);
     display->drawStr(52 - display->getStrWidth(str.c_str()), 34, str.c_str());
     str = String((int)session->tempeTarget);
     display->drawStr(76, 34, str.c_str());
@@ -251,7 +251,7 @@ void scrCalib::cw(){
   else {
     // Incrementar valor
     *(items[edit].tempEx) += 1;
-    *(items[edit].tempCore) = session->tempeCore;
+    *(items[edit].tempCore) = session->tempCore;
   }
 }
 
@@ -263,7 +263,7 @@ void scrCalib::ccw(){
   else {
     // Decrementar valor
     *(items[edit].tempEx) -= 1;
-    *(items[edit].tempCore) = session->tempeCore;
+    *(items[edit].tempCore) = session->tempCore;
   }
 }
 
@@ -274,7 +274,7 @@ Screen* scrCalib::btTopUp(){
     edit = highlight;
   }
   else {
-    *(items[edit].tempCore) = session->tempeCore;
+    *(items[edit].tempCore) = session->tempCore;
     edit = -1;
   }
   return this;

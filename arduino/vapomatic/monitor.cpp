@@ -32,8 +32,8 @@ void Monitor::action(){
   // Se sim, atualizar a tela.
   
   // Temperatura atual
-  if ( (int)session->tempeCore != (int)local.tempeCore || (int)session->tempeEx != (int)local.tempeEx ){
-    local.tempeCore = session->tempeCore;
+  if ( (int)session->tempCore != (int)local.tempCore || (int)session->tempEx != (int)local.tempEx ){
+    local.tempCore = session->tempCore;
     session->changed = true;
   }
 
