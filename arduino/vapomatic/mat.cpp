@@ -1,5 +1,38 @@
 #include "mat.h"
 
+int mat::leastsquares(int m, int n, float x[], float y[], float c[]){
+  // Número de coeficientes é o grau + 1
+  n = n + 1;
+
+  // Matriz para mínimos quadrados
+	float A[n*n];
+  for (int j = 0; j < n; ++j){
+    for (int k = 0; k < n; ++k){
+      A[mat::elem(n,n,j,k)] = 0;
+      for (int i = 0; i < m; ++i){
+        A[mat::elem(n,n,j,k)] += pow(x[i], j+k);
+      }
+    }
+  }
+
+  // Inversa
+  float Ainv[n*n];
+  // Inverter matriz (perde A)
+  if ( mat::inv(n, A, Ainv) ) return -1;
+	
+  // RHS
+  float b[n];
+  for (int j = 0; j < n; ++j){
+    b[j] = 0;
+    for (int i = 0; i < m; ++i){
+      b[j] += pow(x[i], j) * y[i];
+    }
+  }
+
+  // Coeficientes
+	mat::mult(n,n,1,Ainv,b,c);
+}
+
 int mat::elem(int rows,int cols,int r,int c){
   return r*cols+c;
 }

@@ -1,6 +1,7 @@
 #include "screen.h"
 #include "session.h"
 #include "display.h"
+#include "mat.h"
 
 
 Screen::Screen(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display): session(session), display(display) {
@@ -20,6 +21,7 @@ void scrMain::splash(){
 
   // 9 pixel height
   display->setFont(u8g2_font_6x13_mf);
+  display->setDrawColor(1);
 
   display->firstPage();
   do {
@@ -54,6 +56,7 @@ void scrMain::show(){
 
     // 9 pixel height
     display->setFont(u8g2_font_6x13_mf);
+    display->setDrawColor(1);
 
     // Labels
     str = "Temp";
@@ -143,15 +146,14 @@ void scrSetup::show(){
 
   // 9 pixel height
   display->setFont(u8g2_font_6x13_mf);
-  display->setDrawColor(1);
 
   display->firstPage();
   do {
-
+    display->setDrawColor(1);
     for(int i = 0; i < nitems; ++i){
       if ( highlight == i ) display->setDrawColor(0);
       else display->setDrawColor(1);
-      display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(labels[i].c_str()))/2.0)), (i+1)*13, labels[i].c_str());
+      display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(labels[i]))/2.0)), (i+1)*13, labels[i]);
     }
 
   } while ( display->nextPage() );
@@ -216,7 +218,7 @@ void scrCalib::show(){
   do {
 
     display->setDrawColor(1);
-    strVal = String("Calibrar temperatura");
+    strVal = String("Calibrar");
     display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(strVal.c_str()))/2.0)), 13, strVal.c_str());
 
     for(int i = 0; i < nitems; ++i){
@@ -224,7 +226,8 @@ void scrCalib::show(){
       if ( highlight == i && edit < 0 ) display->setDrawColor(0);
       else display->setDrawColor(1);
 
-      display->drawUTF8(0, 15+(i+1)*13, items[i].label.c_str());
+      strVal = String("Temperatura ") + String(1+i);
+      display->drawUTF8(0, 15+(i+1)*13, strVal.c_str());
 
       strVal = String((int)*(items[i].tempEx));
       strVal = strVal + " °C";
@@ -279,7 +282,7 @@ Screen* scrCalib::btFrontDown(){return this;}
 
 Screen* scrCalib::btFrontUp(){
   // Reconfigurar
-  session->leastsquares(3, 2, session->settings.tempCore, session->settings.tempEx, session->thCfs[1]);
+  mat::leastsquares(3, 2, session->settings.tempCore, session->settings.tempEx, session->thCfs[1]);
   session->save();
   // Chamar a tela definida em leave
   session->changed = true;

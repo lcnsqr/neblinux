@@ -44,9 +44,6 @@ class Session {
   // thCfs[1] : Coeficientes usados quando ativado
   float thCfs[2][3];
 
-  // Calcular coeficiente do polinômio interpolador de temperatura
-  int leastsquares(int m, int n, float x[], float y[], float c[]);
-
   // Indicadores de encerramento
   float shut[2];
 

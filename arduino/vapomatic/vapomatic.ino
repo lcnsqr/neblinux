@@ -65,35 +65,30 @@ void setupUI() {
   /**
     * Tela de setup
     */
-  uiSetup.labels[0] = String("Calibrar temperatura");
-  uiSetup.labels[1] = String("Coeficientes PID");
-  uiSetup.labels[2] = String("Parar sozinho ou Não parar sozinho");
-  uiSetup.labels[3] = String("Restaurar padrão");
 
+  uiSetup.nitems = 4;
   uiSetup.screens[0] = &uiCalib;
+  uiSetup.leave = &uiMain;
 
   /**
     * Itens na tela de calibragem
     */
   // Primeira leitura
-  uiCalib.items[0].label = "Mínimo";
   uiCalib.items[0].tempCore = &(session.settings.tempCore[0]);
   uiCalib.items[0].tempEx = &(session.settings.tempEx[0]);
 
   // Segunda leitura
-  uiCalib.items[1].label = "Meio";
   uiCalib.items[1].tempCore = &(session.settings.tempCore[1]);
   uiCalib.items[1].tempEx = &(session.settings.tempEx[1]);
 
   // Terceira leitura
-  uiCalib.items[2].label = "Máximo";
   uiCalib.items[2].tempCore = &(session.settings.tempCore[2]);
   uiCalib.items[2].tempEx = &(session.settings.tempEx[2]);
 
   uiCalib.nitems = 3;
   uiCalib.highlight = 0;
   uiCalib.edit = -1;
-  uiCalib.leave = &uiMain;
+  uiCalib.leave = &uiSetup;
 
 
   // Subir display

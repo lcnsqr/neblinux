@@ -4,6 +4,8 @@
 #include <math.h>
 
 namespace mat {
+  int leastsquares(int m, int n, float x[], float y[], float c[]);
+
   int elem(int rows,int cols,int r,int c);
 
   // https://rosettacode.org/wiki/Matrix_multiplication#C

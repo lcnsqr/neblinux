@@ -56,7 +56,7 @@ class scrSetup: public Screen {
   Screen* btFrontUp();
 
   // Texto dos itens
-  String labels[4];
+  const char* labels[4] = {" Calibrar sensor ", " Coeficientes PID ", " Parar sozinho? ", " Restaurar padrão "};
 
   // Telas para itens
   Screen* screens[2];
@@ -71,7 +71,6 @@ class scrSetup: public Screen {
 };
 
 struct CalibItem {
-  String label;
   float *tempCore;
   float *tempEx;
 };
