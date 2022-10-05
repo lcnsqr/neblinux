@@ -4,7 +4,7 @@ int mat::elem(int rows,int cols,int r,int c){
   return r*cols+c;
 }
 
-void mat::mult(const int m, const int n, const int p, double * const a, double * const b, double * const c) {
+void mat::mult(const int m, const int n, const int p, float * const a, float * const b, float * const c) {
 	for (int row=0; row<m; row++) {
 		for (int col=0; col<p; col++) {
 			c[mat::elem(m,p,row,col)] = 0;
@@ -15,9 +15,9 @@ void mat::mult(const int m, const int n, const int p, double * const a, double *
 	}
 }
 
-int mat::inv(const int n, double *a, double *b) {
+int mat::inv(const int n, float *a, float *b) {
 	int i, j, k, p;
-	double f, g, tol;
+	float f, g, tol;
 	if (n < 1) return -1;  /* Function Body */
 	f = 0.;  /* Frobenius norm of a */
 	for (i = 0; i < n; ++i) {

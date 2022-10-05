@@ -12,8 +12,8 @@ class Therm: public Task {
   ~Therm();
 
   void action();
-  double celsiusPoly(double thermistor);
-  double celsiusSteinhart(double thermistor);
+  float celsiusPoly(float thermistor);
+  float celsiusSteinhart(float thermistor);
 
   private:
 
@@ -23,12 +23,12 @@ class Therm: public Task {
   int pin;
 
   // R1 Value
-  double r1;
+  float r1;
 
   // Thermistor nominal value
-  double thermNominal;
-  double bCoef;
-  double tempNominal;
+  float thermNominal;
+  float bCoef;
+  float tempNominal;
 
   unsigned int bufLen;
   int* buf;

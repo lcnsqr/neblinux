@@ -3,10 +3,10 @@
 
 // Estrutura para armazenar na EEPROM
 struct Settings {
-  double tempCore[3]; // Temperaturas internas na calibragem
-  double tempEx[3];   // Temperaturas aferidas na calibragem
-  double PID[3];      // Coeficientes PID
-  double shutLim[2];  // Limiares de desligamento (y-intercept e slope da função temp - alvo)
+  float tempCore[3]; // Temperaturas internas na calibragem
+  float tempEx[3];   // Temperaturas aferidas na calibragem
+  float PID[3];      // Coeficientes PID
+  float shutLim[2];  // Limiares de desligamento (y-intercept e slope da função temp - alvo)
 	char shutEnabled;   // Desligamento automático ativo/inativo
 };
 
@@ -29,26 +29,26 @@ class Session {
   int elapsed;
 
   // Temperatura na base da resistência
-  double tempeCore;
+  float tempeCore;
   // Temperatura no exaustor
-  double tempeEx;
+  float tempeEx;
   // Temperatura alvo no exaustor
-  double tempeTarget;
+  float tempeTarget;
   // Leitura ADC do termistor
-  double analogTherm;
+  float analogTherm;
 
 
   // Coeficientes do polinômio de segunda
   // ordem que estima a temperatura na saída
   // thCfs[0] : Coeficientes usados quando desativado
   // thCfs[1] : Coeficientes usados quando ativado
-  double thCfs[2][3];
+  float thCfs[2][3];
 
   // Calcular coeficiente do polinômio interpolador de temperatura
-  int leastsquares(int m, int n, double x[], double y[], double c[]);
+  int leastsquares(int m, int n, float x[], float y[], float c[]);
 
   // Indicadores de encerramento
-  double shut[2];
+  float shut[2];
 
   // Rotary variável auxiliar
   long int encoder;
@@ -63,14 +63,14 @@ class Session {
   // 0,1,2: PID
   // 3: D anterior (atual - alvo)
   // 4: Valor do atuador
-  double PID[5];
+  float PID[5];
 
   // Modo teste, não aciona resistência e fan
   bool dryrun;
 
   // Temperatura permitida
-  double tempeMin;
-  double tempeMax;
+  float tempeMin;
+  float tempeMax;
 
   private:
 

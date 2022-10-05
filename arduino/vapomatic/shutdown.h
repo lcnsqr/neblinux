@@ -13,13 +13,13 @@ class Shutdown: public Task {
   void action();
 
   // Regressão linear em 4 pontos
-  double b[4];
+  float b[4];
 
   // Matriz A'A da regressão linear
-  double AA[4];
+  float AA[4];
 
   // Vetor A'b da regressão linear
-  double Ab[2];
+  float Ab[2];
 
   private:
 

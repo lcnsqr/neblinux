@@ -71,12 +71,12 @@ void Session::save(){
   EEPROM.put(0, settings);
 }
 
-int Session::leastsquares(int m, int n, double x[], double y[], double c[]){
+int Session::leastsquares(int m, int n, float x[], float y[], float c[]){
   // Número de coeficientes é o grau + 1
   n = n + 1;
 
   // Matriz para mínimos quadrados
-	double A[n*n];
+	float A[n*n];
   for (int j = 0; j < n; ++j){
     for (int k = 0; k < n; ++k){
       A[mat::elem(n,n,j,k)] = 0;
@@ -87,12 +87,12 @@ int Session::leastsquares(int m, int n, double x[], double y[], double c[]){
   }
 
   // Inversa
-  double Ainv[n*n];
+  float Ainv[n*n];
   // Inverter matriz (perde A)
   if ( mat::inv(n, A, Ainv) ) return -1;
 	
   // RHS
-  double b[n];
+  float b[n];
   for (int j = 0; j < n; ++j){
     b[j] = 0;
     for (int i = 0; i < m; ++i){

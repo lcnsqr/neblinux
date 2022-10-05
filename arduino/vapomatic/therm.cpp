@@ -33,7 +33,7 @@ void Therm::action(){
     bufCount = 0;
     for (int i = 0; i < bufLen; ++i)
       bufSum += buf[i];
-    session->analogTherm = (double)bufSum/(double)bufLen;
+    session->analogTherm = (float)bufSum/(float)bufLen;
     session->tempeCore = celsiusSteinhart(session->analogTherm);
     session->tempeEx = celsiusPoly(session->tempeCore);
   }
@@ -42,15 +42,15 @@ void Therm::action(){
   }
 }
 
-double Therm::celsiusPoly(double core){
+float Therm::celsiusPoly(float core){
   const int i = (int)session->running();
   return session->thCfs[i][0] + session->thCfs[i][1] * core + session->thCfs[i][2] * pow(core, 2);
 }
 
-double Therm::celsiusSteinhart(double thermistor){
-  double r0 = r1 / ((1023.0 / thermistor) - 1.0);
+float Therm::celsiusSteinhart(float thermistor){
+  float r0 = r1 / ((1023.0 / thermistor) - 1.0);
 
-  double steinhart;
+  float steinhart;
   steinhart = r0 / thermNominal;
   steinhart = log(steinhart);
   steinhart /= bCoef;

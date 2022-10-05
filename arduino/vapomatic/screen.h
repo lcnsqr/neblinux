@@ -72,8 +72,8 @@ class scrSetup: public Screen {
 
 struct CalibItem {
   String label;
-  double *tempCore;
-  double *tempEx;
+  float *tempCore;
+  float *tempEx;
 };
   
 class scrCalib: public Screen {

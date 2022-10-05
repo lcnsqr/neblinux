@@ -12,8 +12,8 @@ class Heater: public Task {
 
   void action();
 
-  double setpoint;
-  double input;
+  float setpoint;
+  float input;
 
   private:
 
@@ -22,14 +22,14 @@ class Heater: public Task {
 
   Session* session;
 
-  double* P;
-  double* I;
-  double* D;
-  double* dif_old;
-  double* c0;
-  double* c1;
-  double* c2;
-  double* F;
+  float* P;
+  float* I;
+  float* D;
+  float* dif_old;
+  float* c0;
+  float* c1;
+  float* c2;
+  float* F;
 
 };
 

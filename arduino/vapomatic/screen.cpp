@@ -25,10 +25,10 @@ void scrMain::splash(){
   do {
 
     str = String("VAPOMATIC");
-    display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 32, str.c_str());
+    display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(str.c_str()))/2.0)), 32, str.c_str());
 
     str = String("vapomatic.com.br");
-    display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 46, str.c_str());
+    display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(str.c_str()))/2.0)), 46, str.c_str());
 
   } while ( display->nextPage() );
 }
@@ -47,7 +47,7 @@ void scrMain::show(){
   u8g2_uint_t tempeDial;
 
   // Desconsiderar temperaturas fora da faixa para a escala visual
-  double tempeEx;
+  float tempeEx;
 
   display->firstPage();
   do {
@@ -87,7 +87,7 @@ void scrMain::show(){
     display->setFont(u8g2_font_6x13_mf);
 
     str = String("°C");
-    display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 46, str.c_str());
+    display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(str.c_str()))/2.0)), 46, str.c_str());
 
     // Status
     str = String(session->elapsed / 60) + "m" + String(session->elapsed % 60) + "s";
@@ -95,7 +95,7 @@ void scrMain::show(){
       str = (session->elapsed == 0) ? "Parado" : str;
     }
 
-    display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(str.c_str()))/2.0)), 61, str.c_str());
+    display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(str.c_str()))/2.0)), 61, str.c_str());
 
   } while ( display->nextPage() );
 
@@ -151,7 +151,7 @@ void scrSetup::show(){
     for(int i = 0; i < nitems; ++i){
       if ( highlight == i ) display->setDrawColor(0);
       else display->setDrawColor(1);
-      display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(labels[i].c_str()))/2.0)), (i+1)*13, labels[i].c_str());
+      display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(labels[i].c_str()))/2.0)), (i+1)*13, labels[i].c_str());
     }
 
   } while ( display->nextPage() );
@@ -217,7 +217,7 @@ void scrCalib::show(){
 
     display->setDrawColor(1);
     strVal = String("Calibrar temperatura");
-    display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(strVal.c_str()))/2.0)), 13, strVal.c_str());
+    display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(strVal.c_str()))/2.0)), 13, strVal.c_str());
 
     for(int i = 0; i < nitems; ++i){
       // Mudar cor se item iluminado
