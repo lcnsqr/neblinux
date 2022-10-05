@@ -20,8 +20,8 @@ Therm therm(&session, A0, 3*17, 17);
 U8G2_SH1106_128X64_NONAME_2_HW_I2C display(U8G2_R2, U8X8_PIN_NONE);
 // Telas da UI
 scrMain uiMain(&session, &display);
+scrSetup uiSetup(&session, &display);
 scrCalib uiCalib(&session, &display);
-struct CalibItem scrCalibItems[3];
 // Monitoramento de eventos
 Monitor monitor(&session, &uiMain, 4, 8, 25);
 // Callback de eventos do rotary encoder
@@ -60,28 +60,37 @@ void loop() {
 void setupUI() {
 
   // Qual tela chamar com botão frontal na tela principal
-  uiMain.leave = &uiCalib;
+  uiMain.leave = &uiSetup;
+
+  /**
+    * Tela de setup
+    */
+  uiSetup.labels[0] = String("Calibrar temperatura");
+  uiSetup.labels[1] = String("Coeficientes PID");
+  uiSetup.labels[2] = String("Parar sozinho ou Não parar sozinho");
+  uiSetup.labels[3] = String("Restaurar padrão");
+
+  uiSetup.screens[0] = &uiCalib;
 
   /**
     * Itens na tela de calibragem
     */
   // Primeira leitura
-  scrCalibItems[0].label = "Mínimo";
-  scrCalibItems[0].tempCore = &(session.settings.tempCore[0]);
-  scrCalibItems[0].tempEx = &(session.settings.tempEx[0]);
+  uiCalib.items[0].label = "Mínimo";
+  uiCalib.items[0].tempCore = &(session.settings.tempCore[0]);
+  uiCalib.items[0].tempEx = &(session.settings.tempEx[0]);
 
   // Segunda leitura
-  scrCalibItems[1].label = "Meio";
-  scrCalibItems[1].tempCore = &(session.settings.tempCore[1]);
-  scrCalibItems[1].tempEx = &(session.settings.tempEx[1]);
+  uiCalib.items[1].label = "Meio";
+  uiCalib.items[1].tempCore = &(session.settings.tempCore[1]);
+  uiCalib.items[1].tempEx = &(session.settings.tempEx[1]);
 
   // Terceira leitura
-  scrCalibItems[2].label = "Máximo";
-  scrCalibItems[2].tempCore = &(session.settings.tempCore[2]);
-  scrCalibItems[2].tempEx = &(session.settings.tempEx[2]);
+  uiCalib.items[2].label = "Máximo";
+  uiCalib.items[2].tempCore = &(session.settings.tempCore[2]);
+  uiCalib.items[2].tempEx = &(session.settings.tempEx[2]);
 
   uiCalib.nitems = 3;
-  uiCalib.items = scrCalibItems;
   uiCalib.highlight = 0;
   uiCalib.edit = -1;
   uiCalib.leave = &uiMain;

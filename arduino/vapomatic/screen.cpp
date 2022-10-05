@@ -131,6 +131,72 @@ Screen* scrMain::btFrontUp(){
   return leave;
 }
 
+
+/***
+ * Tela Setup
+ */
+scrSetup::scrSetup(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display): Screen(session, display) {
+  leave = NULL;
+}
+
+void scrSetup::show(){
+
+  // 9 pixel height
+  display->setFont(u8g2_font_6x13_mf);
+  display->setDrawColor(1);
+
+  display->firstPage();
+  do {
+
+    for(int i = 0; i < nitems; ++i){
+      if ( highlight == i ) display->setDrawColor(0);
+      else display->setDrawColor(1);
+      display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(labels[i].c_str()))/2.0)), (i+1)*13, labels[i].c_str());
+    }
+
+  } while ( display->nextPage() );
+
+}
+
+void scrSetup::cw(){
+  // Iluminar item posterior
+  highlight = (highlight + 1) % nitems;
+}
+
+void scrSetup::ccw(){
+  // Iluminar item anterior
+  if ( --highlight < 0 ) highlight = nitems - 1;
+}
+
+Screen* scrSetup::btTopDown(){return this;}
+
+Screen* scrSetup::btTopUp(){
+  // Invocar ação correspondente ao item
+  if ( highlight == 0){
+    // Calibrar temperatura
+    return screens[0];
+  }
+  else if (highlight == 1){
+    // Coeficientes PID
+  }
+  else if (highlight == 2){
+    // Parar sozinho ou Não parar sozinho
+  }
+  else if (highlight == 3){
+    // Restaurar padrão
+  }
+  return this;
+}
+
+Screen* scrSetup::btFrontDown(){return this;}
+
+Screen* scrSetup::btFrontUp(){
+  // Chamar a tela definida em leave
+  session->changed = true;
+  return leave;
+}
+
+
 /***
  * Tela Calibragem
  */
@@ -150,7 +216,7 @@ void scrCalib::show(){
   do {
 
     display->setDrawColor(1);
-    strVal = String("CALIBRAGEM");
+    strVal = String("Calibrar temperatura");
     display->drawUTF8((int)(round((double)(128 - display->getUTF8Width(strVal.c_str()))/2.0)), 13, strVal.c_str());
 
     for(int i = 0; i < nitems; ++i){
