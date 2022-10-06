@@ -70,11 +70,6 @@ class scrSetup: public Screen {
 
 };
 
-struct CalibItem {
-  float *tempCore;
-  float *tempEx;
-};
-  
 class scrCalib: public Screen {
   public:
   scrCalib(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display);
@@ -91,7 +86,6 @@ class scrCalib: public Screen {
 
   // Itens na tela
   int nitems;
-  struct CalibItem items[3];
   int highlight;
   int edit;
 };

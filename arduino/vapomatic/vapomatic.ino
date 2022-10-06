@@ -65,26 +65,14 @@ void setupUI() {
   /**
     * Tela de setup
     */
-
   uiSetup.nitems = 3;
   uiSetup.screens[0] = &uiCalib;
+  uiSetup.highlight = 0;
   uiSetup.leave = &uiMain;
 
   /**
-    * Itens na tela de calibragem
+    * Tela de calibragem
     */
-  // Primeira leitura
-  uiCalib.items[0].tempCore = &(session.settings.tempCore[0]);
-  uiCalib.items[0].tempEx = &(session.settings.tempEx[0]);
-
-  // Segunda leitura
-  uiCalib.items[1].tempCore = &(session.settings.tempCore[1]);
-  uiCalib.items[1].tempEx = &(session.settings.tempEx[1]);
-
-  // Terceira leitura
-  uiCalib.items[2].tempCore = &(session.settings.tempCore[2]);
-  uiCalib.items[2].tempEx = &(session.settings.tempEx[2]);
-
   uiCalib.nitems = 3;
   uiCalib.highlight = 0;
   uiCalib.edit = -1;

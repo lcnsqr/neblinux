@@ -231,7 +231,7 @@ void scrCalib::show(){
 
       display->drawUTF8(0, 15+(i+1)*13, labels[i].c_str());
 
-      strVal = String((int)*(items[i].tempEx));
+      strVal = String((int)session->settings.tempEx[i]);
       strVal = strVal + " °C";
 
       if ( highlight == i && edit == i ) display->setDrawColor(0);
@@ -250,8 +250,8 @@ void scrCalib::cw(){
   }
   else {
     // Incrementar valor
-    *(items[edit].tempEx) += 1;
-    *(items[edit].tempCore) = session->tempCore;
+    session->settings.tempEx[edit] += 1;
+    session->settings.tempCore[edit] = session->tempCore;
   }
 }
 
@@ -262,8 +262,8 @@ void scrCalib::ccw(){
   }
   else {
     // Decrementar valor
-    *(items[edit].tempEx) -= 1;
-    *(items[edit].tempCore) = session->tempCore;
+    session->settings.tempEx[edit] -= 1;
+    session->settings.tempCore[edit] = session->tempCore;
   }
 }
 
@@ -280,10 +280,11 @@ Screen* scrCalib::btTopUp(){
     session->calibGain = calibGain[edit];
   }
   else {
+    // Registrar qual é a temperatura interna
+    session->settings.tempCore[edit] = session->tempCore;
     // Desligar resistência
     session->calibGain = 0;
-    // Registrar qual é a temperatura interna
-    *(items[edit].tempCore) = session->tempCore;
+    // Sair da edição
     edit = -1;
   }
   return this;
