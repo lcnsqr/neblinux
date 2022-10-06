@@ -5,8 +5,6 @@
 struct Settings {
   float tempCore[3]; // Temperaturas internas na calibragem
   float tempEx[3]; // Temperaturas aferidas na calibragem
-  float tempMin; // Temperatura mínima permitida
-  float tempMax; // Temperatura mínima permitida
   float PID[3]; // Coeficientes PID
   float shutLim[2]; // Limiares de desligamento (y-intercept e slope da função temp - alvo)
 	char shutEnabled; // Desligamento automático ativo/inativo
@@ -43,7 +41,6 @@ class Session {
   float tempTarget;
   // Leitura ADC do termistor
   float analogTherm;
-
 
   // Coeficientes do polinômio de segunda
   // ordem que estima a temperatura na saída

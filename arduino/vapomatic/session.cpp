@@ -51,11 +51,7 @@ void Session::reset(){
 	settings.tempCore[2] = 180;
 	settings.tempEx[0] = 25;
 	settings.tempEx[1] = 180;
-	settings.tempEx[2] = 240;
-
-  // Temperaturas mínima e máxima
-  settings.tempMin = 10.0;
-  settings.tempMax = 300.0;
+	settings.tempEx[2] = 300;
 
   // Coeficientes PID
   settings.PID[0] = 1e-2;

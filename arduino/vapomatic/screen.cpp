@@ -67,14 +67,14 @@ void scrMain::show(){
     // Escala leitura
     display->drawFrame(56, 2, 6, 32);
     tempEx = session->tempEx;
-    if ( tempEx < session->settings.tempMin ) tempEx = session->settings.tempMin;
-    if ( tempEx > session->settings.tempMax ) tempEx = session->settings.tempMax;
-    tempDial = round(32.0 * (tempEx - session->settings.tempMin) / (session->settings.tempMax - session->settings.tempMin));
+    if ( tempEx < session->settings.tempEx[0] ) tempEx = session->settings.tempEx[0];
+    if ( tempEx > session->settings.tempEx[2] ) tempEx = session->settings.tempEx[2];
+    tempDial = round(32.0 * (tempEx - session->settings.tempEx[0]) / (session->settings.tempEx[2] - session->settings.tempEx[0]));
     display->drawBox(56, (u8g2_uint_t)(34 - tempDial), 6, (u8g2_uint_t)tempDial);
 
     // Escala objetivo
     display->drawFrame(66, 2, 6, 32);
-    tempDial = (u8g2_uint_t)round(32.0 * (session->tempTarget - session->settings.tempMin) / (session->settings.tempMax - session->settings.tempMin));
+    tempDial = (u8g2_uint_t)round(32.0 * (session->tempTarget - session->settings.tempEx[0]) / (session->settings.tempEx[2] - session->settings.tempEx[0]));
     display->drawBox(66, 34 - tempDial, 6, tempDial);
 
     // 16 pixel height
@@ -105,12 +105,12 @@ void scrMain::show(){
 }
 
 void scrMain::cw(){
-  if ( session->tempTarget + 10 > session->settings.tempMax ) return;
+  if ( session->tempTarget + 10 > session->settings.tempEx[2] ) return;
   session->tempTarget += 10;
 }
 
 void scrMain::ccw(){
-  if ( session->tempTarget - 10 < session->settings.tempMin ) return;
+  if ( session->tempTarget - 10 < session->settings.tempEx[0] ) return;
   session->tempTarget -= 10;
 }
 
