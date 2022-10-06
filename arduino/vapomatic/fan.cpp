@@ -9,6 +9,11 @@ Fan::Fan(Session* session, unsigned long wait): Task(wait), session(session) {
 }
 
 void Fan::action(){
-  if ( session->running() && ! session->dryrun ) digitalWrite(session->settings.pFan, HIGH);
+  if ( 
+    // Ativado
+    (session->running() && ! session->dryrun) 
+    // ou calibragem
+    || session->calib ) digitalWrite(session->settings.pFan, HIGH);
   else digitalWrite(session->settings.pFan, LOW);
+
 }

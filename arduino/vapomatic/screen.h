@@ -56,10 +56,10 @@ class scrSetup: public Screen {
   Screen* btFrontUp();
 
   // Texto dos itens
-  const char* labels[4] = {" Calibrar sensor ", " Coeficientes PID ", " Parar sozinho? ", " Restaurar padrão "};
+  const char* labels[3] = {" Calibrar sensor ", " Parar sozinho? ", " Restaurar padrão "};
 
   // Telas para itens
-  Screen* screens[2];
+  Screen* screens[1];
 
   // Itens na tela
   int nitems;

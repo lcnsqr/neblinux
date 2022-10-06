@@ -66,7 +66,7 @@ void setupUI() {
     * Tela de setup
     */
 
-  uiSetup.nitems = 4;
+  uiSetup.nitems = 3;
   uiSetup.screens[0] = &uiCalib;
   uiSetup.leave = &uiMain;
 

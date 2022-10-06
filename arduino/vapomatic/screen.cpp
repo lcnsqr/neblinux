@@ -179,12 +179,9 @@ Screen* scrSetup::btTopUp(){
     return screens[0];
   }
   else if (highlight == 1){
-    // Coeficientes PID
-  }
-  else if (highlight == 2){
     // Parar sozinho ou Não parar sozinho
   }
-  else if (highlight == 3){
+  else if (highlight == 2){
     // Restaurar padrão
     session->reset();
     return leave;
@@ -209,6 +206,9 @@ scrCalib::scrCalib(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display
 }
 
 void scrCalib::show(){
+
+  // Calibrando
+  session->calib = true;
 
   // Valor formatado
   String strVal;
@@ -241,8 +241,6 @@ void scrCalib::show(){
 
   } while ( display->nextPage() );
 
-  // Ligar fan
-  digitalWrite(session->settings.pFan, HIGH);
 }
 
 void scrCalib::cw(){
@@ -294,8 +292,8 @@ Screen* scrCalib::btTopUp(){
 Screen* scrCalib::btFrontDown(){return this;}
 
 Screen* scrCalib::btFrontUp(){
-  // Desligar fan
-  digitalWrite(session->settings.pFan, LOW);
+  // Encerrar calibragem
+  session->calib = false;
   // Reconfigurar
   mat::leastsquares(3, 2, session->settings.tempCore, session->settings.tempEx, session->thCfs[1]);
   session->save();

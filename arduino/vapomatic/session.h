@@ -27,6 +27,9 @@ class Session {
   // Configurações
   struct Settings settings;
 
+  // Sinalizar calibragem da temperatura
+  bool calib;
+
   // Sinalizar mudança na sessão
   bool changed;
 

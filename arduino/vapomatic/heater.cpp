@@ -5,6 +5,7 @@
 Heater::Heater(Session* session, unsigned long wait): Task(wait), session(session) {
   pinMode(session->settings.pHeater, OUTPUT);
 
+  /*
   c0 = &(session->settings.PID[0]);
   c1 = &(session->settings.PID[1]);
   c2 = &(session->settings.PID[2]);
@@ -13,6 +14,7 @@ Heater::Heater(Session* session, unsigned long wait): Task(wait), session(sessio
   D = &(session->PID[2]);
   dif_old = &(session->PID[3]);
   F = &(session->PID[4]);
+  */
 }
 
 void Heater::action(){
@@ -23,17 +25,17 @@ void Heater::action(){
   
   float dif = (float)wait * (session->tempTarget - session->tempEx);
 
-  *P = *c0 * dif;
-  *I = *I + *c1 * dif;
+  session->PID[0] = session->settings.PID[0] * dif;
+  session->PID[1] = session->PID[1] + session->settings.PID[1] * dif;
   // Resfriamento passivo
-  if ( *I < 0 ) *I = 0;
-  *D = *c2 * (dif - *dif_old);
+  if ( session->PID[1] < 0 ) session->PID[1] = 0;
+  session->PID[2] = session->settings.PID[2] * (dif - session->PID[3]);
 
-  *F = *P + *I + *D;
-  if ( *F < 0 ) *F = 0;
-  if ( *F > 255 ) *F = 255;
+  session->PID[4] = session->PID[0] + session->PID[1] + session->PID[2];
+  if ( session->PID[4] < 0 ) session->PID[4] = 0;
+  if ( session->PID[4] > 255 ) session->PID[4] = 255;
 
-  analogWrite(session->settings.pHeater, (int)*F);
+  analogWrite(session->settings.pHeater, (int)session->PID[4]);
 
-  *dif_old = dif;
+  session->PID[3] = dif;
 }
