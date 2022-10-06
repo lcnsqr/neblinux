@@ -280,7 +280,7 @@ Screen* scrCalib::btTopDown(){return this;}
 Screen* scrCalib::btTopUp(){
 
   // Valores de gain para cada estágio da calibragem
-  const char calibGain[3] = {24, 127, 255};
+  const int calibGain[3] = {0, 127, 255};
 
   if ( edit < 0 ){
     edit = highlight;

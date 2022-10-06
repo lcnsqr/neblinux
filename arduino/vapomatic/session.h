@@ -25,7 +25,7 @@ class Session {
 
   // Sinalizar calibragem da temperatura
   bool calib;
-  char calibGain;
+  int calibGain;
 
   // Sinalizar mudança na sessão
   bool changed;
