@@ -8,11 +8,12 @@ class Heater: public Task {
 
   public:
 
-  Heater(Session* session, unsigned long wait);
+  Heater(int port, Session* session, unsigned long wait);
 
   void action();
 
   private:
+  int port;
 
   Session* session;
 

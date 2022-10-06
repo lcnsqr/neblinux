@@ -2,8 +2,8 @@
 #include "heater.h"
 #include <Arduino.h>
 
-Heater::Heater(Session* session, unsigned long wait): Task(wait), session(session) {
-  pinMode(session->settings.pHeater, OUTPUT);
+Heater::Heater(int port, Session* session, unsigned long wait): port(port), Task(wait), session(session) {
+  pinMode(port, OUTPUT);
 
   /*
   c0 = &(session->settings.PID[0]);
@@ -18,8 +18,8 @@ Heater::Heater(Session* session, unsigned long wait): Task(wait), session(sessio
 }
 
 void Heater::action(){
-  if ( ! session->running() || session->dryrun ){
-    analogWrite(session->settings.pHeater, 0);
+  if ( ! session->running() ){
+    analogWrite(port, 0);
     return;
   }
   
@@ -35,7 +35,7 @@ void Heater::action(){
   if ( session->PID[4] < 0 ) session->PID[4] = 0;
   if ( session->PID[4] > 255 ) session->PID[4] = 255;
 
-  analogWrite(session->settings.pHeater, (int)session->PID[4]);
+  analogWrite(port, (int)session->PID[4]);
 
   session->PID[3] = dif;
 }

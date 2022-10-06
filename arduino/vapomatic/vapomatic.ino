@@ -27,9 +27,9 @@ Monitor monitor(&session, &uiMain, 4, 8, 25);
 // Callback de eventos do rotary encoder
 Rotary rotary;
 // Controle da ventoinha
-Fan fan(&session, 75);
+Fan fan(7, &session, 75);
 // Controle do aquecedor
-Heater heater(&session, 38);
+Heater heater(5, &session, 38);
 // Contador de tempo
 Timer timer(&session, 1000);
 // Para de encher automaticamente

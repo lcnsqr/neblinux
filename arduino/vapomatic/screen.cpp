@@ -272,16 +272,16 @@ Screen* scrCalib::btTopDown(){return this;}
 Screen* scrCalib::btTopUp(){
 
   // Valores de gain para cada estágio da calibragem
-  const char gainCalib[3] = {24, 127, 255};
+  const char calibGain[3] = {24, 127, 255};
 
   if ( edit < 0 ){
     edit = highlight;
     // Aquecer e aferir para o nível correspondente
-    analogWrite(session->settings.pHeater, gainCalib[edit]);
+    session->calibGain = calibGain[edit];
   }
   else {
     // Desligar resistência
-    analogWrite(session->settings.pHeater, 0);
+    session->calibGain = 0;
     // Registrar qual é a temperatura interna
     *(items[edit].tempCore) = session->tempCore;
     edit = -1;

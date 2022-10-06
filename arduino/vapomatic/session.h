@@ -10,8 +10,6 @@ struct Settings {
   float PID[3]; // Coeficientes PID
   float shutLim[2]; // Limiares de desligamento (y-intercept e slope da função temp - alvo)
 	char shutEnabled; // Desligamento automático ativo/inativo
-  int pHeater; // Porta PWM usada para regular a resistência
-  int pFan; // Porta ventoinha
 };
 
 // Estado e IPC
@@ -29,6 +27,7 @@ class Session {
 
   // Sinalizar calibragem da temperatura
   bool calib;
+  char calibGain;
 
   // Sinalizar mudança na sessão
   bool changed;
@@ -69,9 +68,6 @@ class Session {
   // 3: D anterior (atual - alvo)
   // 4: Valor do atuador
   float PID[5];
-
-  // Modo teste, não aciona resistência e fan
-  bool dryrun;
 
   private:
 

@@ -8,12 +8,12 @@ class Fan: public Task {
 
   public:
 
-  Fan(Session* session, unsigned long wait);
+  Fan(int port, Session* session, unsigned long wait);
 
   void action();
 
   private:
-
+  int port;
   Session* session;
 
 };
