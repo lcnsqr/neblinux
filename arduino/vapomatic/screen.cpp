@@ -153,7 +153,13 @@ void scrSetup::show(){
     for(int i = 0; i < nitems; ++i){
       if ( highlight == i ) display->setDrawColor(0);
       else display->setDrawColor(1);
-      display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(labels[i]))/2.0)), (i+1)*13, labels[i]);
+      if ( i == 1 ){
+        // Auto shutdown
+        String label = String(labels[i]) + String( (session->settings.shutEnabled) ? "Sim " : "Não ");
+        display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(label.c_str()))/2.0)), (i+1)*13, label.c_str());
+      }
+      else
+        display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(labels[i]))/2.0)), (i+1)*13, labels[i]);
     }
 
   } while ( display->nextPage() );
@@ -179,7 +185,9 @@ Screen* scrSetup::btTopUp(){
     return screens[0];
   }
   else if (highlight == 1){
-    // Parar sozinho ou Não parar sozinho
+    session->settings.shutEnabled = ! session->settings.shutEnabled;
+    session->save();
+    session->changed = true;
   }
   else if (highlight == 2){
     // Restaurar padrão

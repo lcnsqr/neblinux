@@ -22,7 +22,7 @@ Shutdown::Shutdown(Session* session, unsigned long wait): Task(wait), session(se
 
 void Shutdown::action(){
   
-  if ( ! session->running() ) return;
+  if ( ! (session->running() && session->settings.shutEnabled) ) return;
 
   b[0] = b[1];
   b[1] = b[2];

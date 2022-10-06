@@ -7,7 +7,7 @@ struct Settings {
   float tempEx[3]; // Temperaturas aferidas na calibragem
   float PID[3]; // Coeficientes PID
   float shutLim[2]; // Limiares de desligamento (y-intercept e slope da função temp - alvo)
-	char shutEnabled; // Desligamento automático ativo/inativo
+	bool shutEnabled; // Desligamento automático ativo/inativo
 };
 
 // Estado e IPC
