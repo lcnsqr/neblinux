@@ -8,7 +8,7 @@ class Heater: public Task {
 
   public:
 
-  Heater(Session* session, int pin, unsigned long wait);
+  Heater(Session* session, unsigned long wait);
 
   void action();
 
@@ -16,9 +16,6 @@ class Heater: public Task {
   float input;
 
   private:
-
-  // PWM output
-  int pin;
 
   Session* session;
 

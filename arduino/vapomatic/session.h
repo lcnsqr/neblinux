@@ -4,10 +4,14 @@
 // Estrutura para armazenar na EEPROM
 struct Settings {
   float tempCore[3]; // Temperaturas internas na calibragem
-  float tempEx[3];   // Temperaturas aferidas na calibragem
-  float PID[3];      // Coeficientes PID
-  float shutLim[2];  // Limiares de desligamento (y-intercept e slope da função temp - alvo)
-	char shutEnabled;   // Desligamento automático ativo/inativo
+  float tempEx[3]; // Temperaturas aferidas na calibragem
+  float tempMin; // Temperatura mínima permitida
+  float tempMax; // Temperatura mínima permitida
+  float PID[3]; // Coeficientes PID
+  float shutLim[2]; // Limiares de desligamento (y-intercept e slope da função temp - alvo)
+	char shutEnabled; // Desligamento automático ativo/inativo
+  int pHeater; // Porta PWM usada para regular a resistência
+  int pFan; // Porta ventoinha
 };
 
 // Estado e IPC
@@ -34,7 +38,7 @@ class Session {
   // Temperatura no exaustor
   float tempEx;
   // Temperatura alvo no exaustor
-  float tempeTarget;
+  float tempTarget;
   // Leitura ADC do termistor
   float analogTherm;
 
@@ -65,10 +69,6 @@ class Session {
 
   // Modo teste, não aciona resistência e fan
   bool dryrun;
-
-  // Temperatura permitida
-  float tempeMin;
-  float tempeMax;
 
   private:
 

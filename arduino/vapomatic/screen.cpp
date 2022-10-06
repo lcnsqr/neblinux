@@ -46,7 +46,7 @@ void scrMain::show(){
   String str;
 
   // Valor na escala de temperaturas
-  u8g2_uint_t tempeDial;
+  u8g2_uint_t tempDial;
 
   // Desconsiderar temperaturas fora da faixa para a escala visual
   float tempEx;
@@ -67,15 +67,15 @@ void scrMain::show(){
     // Escala leitura
     display->drawFrame(56, 2, 6, 32);
     tempEx = session->tempEx;
-    if ( tempEx < session->tempeMin ) tempEx = session->tempeMin;
-    if ( tempEx > session->tempeMax ) tempEx = session->tempeMax;
-    tempeDial = round(32.0 * (tempEx - session->tempeMin) / (session->tempeMax - session->tempeMin));
-    display->drawBox(56, (u8g2_uint_t)(34 - tempeDial), 6, (u8g2_uint_t)tempeDial);
+    if ( tempEx < session->settings.tempMin ) tempEx = session->settings.tempMin;
+    if ( tempEx > session->settings.tempMax ) tempEx = session->settings.tempMax;
+    tempDial = round(32.0 * (tempEx - session->settings.tempMin) / (session->settings.tempMax - session->settings.tempMin));
+    display->drawBox(56, (u8g2_uint_t)(34 - tempDial), 6, (u8g2_uint_t)tempDial);
 
     // Escala objetivo
     display->drawFrame(66, 2, 6, 32);
-    tempeDial = (u8g2_uint_t)round(32.0 * (session->tempeTarget - session->tempeMin) / (session->tempeMax - session->tempeMin));
-    display->drawBox(66, 34 - tempeDial, 6, tempeDial);
+    tempDial = (u8g2_uint_t)round(32.0 * (session->tempTarget - session->settings.tempMin) / (session->settings.tempMax - session->settings.tempMin));
+    display->drawBox(66, 34 - tempDial, 6, tempDial);
 
     // 16 pixel height
     display->setFont(u8g2_font_inb16_mn);
@@ -83,7 +83,7 @@ void scrMain::show(){
     // Valores leitura e objetivo
     str = String((int)session->tempEx);
     display->drawStr(52 - display->getStrWidth(str.c_str()), 34, str.c_str());
-    str = String((int)session->tempeTarget);
+    str = String((int)session->tempTarget);
     display->drawStr(76, 34, str.c_str());
 
     // 9 pixel height
@@ -105,13 +105,13 @@ void scrMain::show(){
 }
 
 void scrMain::cw(){
-  if ( session->tempeTarget + 10 > session->tempeMax ) return;
-  session->tempeTarget += 10;
+  if ( session->tempTarget + 10 > session->settings.tempMax ) return;
+  session->tempTarget += 10;
 }
 
 void scrMain::ccw(){
-  if ( session->tempeTarget - 10 < session->tempeMin ) return;
-  session->tempeTarget -= 10;
+  if ( session->tempTarget - 10 < session->settings.tempMin ) return;
+  session->tempTarget -= 10;
 }
 
 Screen* scrMain::btTopDown(){return this;}
@@ -212,6 +212,7 @@ void scrCalib::show(){
 
   // Valor formatado
   String strVal;
+  const String labels[3] = {"Mínima", "Meio", "Máxima"};
 
   // 9 pixel height
   display->setFont(u8g2_font_6x13_mf);
@@ -228,8 +229,7 @@ void scrCalib::show(){
       if ( highlight == i && edit < 0 ) display->setDrawColor(0);
       else display->setDrawColor(1);
 
-      strVal = String("Temperatura ") + String(1+i);
-      display->drawUTF8(0, 15+(i+1)*13, strVal.c_str());
+      display->drawUTF8(0, 15+(i+1)*13, labels[i].c_str());
 
       strVal = String((int)*(items[i].tempEx));
       strVal = strVal + " °C";
@@ -241,6 +241,8 @@ void scrCalib::show(){
 
   } while ( display->nextPage() );
 
+  // Ligar fan
+  digitalWrite(session->settings.pFan, HIGH);
 }
 
 void scrCalib::cw(){
@@ -270,10 +272,19 @@ void scrCalib::ccw(){
 Screen* scrCalib::btTopDown(){return this;}
 
 Screen* scrCalib::btTopUp(){
+
+  // Valores de gain para cada estágio da calibragem
+  const char gainCalib[3] = {24, 127, 255};
+
   if ( edit < 0 ){
     edit = highlight;
+    // Aquecer e aferir para o nível correspondente
+    analogWrite(session->settings.pHeater, gainCalib[edit]);
   }
   else {
+    // Desligar resistência
+    analogWrite(session->settings.pHeater, 0);
+    // Registrar qual é a temperatura interna
     *(items[edit].tempCore) = session->tempCore;
     edit = -1;
   }
@@ -283,6 +294,8 @@ Screen* scrCalib::btTopUp(){
 Screen* scrCalib::btFrontDown(){return this;}
 
 Screen* scrCalib::btFrontUp(){
+  // Desligar fan
+  digitalWrite(session->settings.pFan, LOW);
   // Reconfigurar
   mat::leastsquares(3, 2, session->settings.tempCore, session->settings.tempEx, session->thCfs[1]);
   session->save();

@@ -3,15 +3,12 @@
 #include <EEPROM.h>
 
 Session::Session() {
-  dryrun = 1;
-
-  tempeMin = 20.0;
-  tempeMax = 240.0;
+  dryrun = 0;
 
   changed = false;
   tempCore = 0;
   tempEx = 0;
-  tempeTarget = 180;
+  tempTarget = 180;
 
   on = false;
 
@@ -57,6 +54,10 @@ void Session::reset(){
 	settings.tempEx[1] = 180;
 	settings.tempEx[2] = 240;
 
+  // Temperaturas mínima e máxima
+  settings.tempMin = 10.0;
+  settings.tempMax = 300.0;
+
   // Coeficientes PID
   settings.PID[0] = 1e-2;
   settings.PID[1] = 1.5e-4;
@@ -66,6 +67,12 @@ void Session::reset(){
   settings.shutLim[0] = 4.0;
   settings.shutLim[1] = 1.0;
 	settings.shutEnabled = 1;
+
+  // Porta PWM usada para regular a resistência
+  settings.pHeater = 5;
+
+  // Porta ventoinha
+  settings.pFan = 7;
 
   save();
   load();

@@ -2,13 +2,13 @@
 #include "fan.h"
 #include <Arduino.h>
 
-Fan::Fan(Session* session, int pin, unsigned long wait): Task(wait), session(session), pin(pin) {
-  pinMode(pin, OUTPUT);
+Fan::Fan(Session* session, unsigned long wait): Task(wait), session(session) {
+  pinMode(session->settings.pFan, OUTPUT);
 
-  digitalWrite(pin, LOW);
+  digitalWrite(session->settings.pFan, LOW);
 }
 
 void Fan::action(){
-  if ( session->running() && ! session->dryrun ) digitalWrite(pin, HIGH);
-  else digitalWrite(pin, LOW);
+  if ( session->running() && ! session->dryrun ) digitalWrite(session->settings.pFan, HIGH);
+  else digitalWrite(session->settings.pFan, LOW);
 }

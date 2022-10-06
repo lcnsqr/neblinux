@@ -8,14 +8,11 @@ class Fan: public Task {
 
   public:
 
-  Fan(Session* session, int pin, unsigned long wait);
+  Fan(Session* session, unsigned long wait);
 
   void action();
 
   private:
-
-  // Relay pin
-  int pin;
 
   Session* session;
 
