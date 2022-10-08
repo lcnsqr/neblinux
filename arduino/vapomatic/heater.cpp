@@ -18,15 +18,8 @@ Heater::Heater(int port, Session* session, unsigned long wait): port(port), Task
 }
 
 void Heater::action(){
-  // Calibrar
-  if ( session->calib && session->calibGain > 0 ){
-    analogWrite(port, session->calibGain);
-    return;
-  }
-
-  // Ativo
   if ( session->running() ){
-  
+    // Aquecer
     float dif = (float)wait * (session->tempTarget - session->tempEx);
 
     session->PID[0] = session->settings.PID[0] * dif;

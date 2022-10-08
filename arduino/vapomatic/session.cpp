@@ -7,7 +7,7 @@ Session::Session() {
   changed = false;
   tempCore = 0;
   tempEx = 0;
-  tempTarget = 180;
+  tempTarget = 0;
 
   on = false;
 
@@ -27,17 +27,20 @@ void Session::load(){
   // Carregar configurações salvas
   EEPROM.get(0, settings);
 
+  // Temperatura alvo
+  tempTarget = settings.tempTarget;
+
   // thCfs[0] : Coeficientes usados quando desativado
   thCfs[0][0] = 0;
   thCfs[0][1] = 1.0;
   thCfs[0][2] = 0;
 
   // Quantidade de pontos de calibragem
-  const int m = 3;
+  // const int m = 3;
   // Grau do polinômio interpolador
-  const int n = 2;
+  // const int n = 2;
   // thCfs[1] : Coeficientes usados quando ativado
-  mat::leastsquares(m, n, settings.tempCore, settings.tempEx, thCfs[1]);
+  mat::leastsquares(3, 2, settings.tempCore, settings.tempEx, thCfs[1]);
 }
 
 void Session::save(){
@@ -45,13 +48,15 @@ void Session::save(){
 }
 
 void Session::reset(){
-  // Temperaturas da calibragem
-	settings.tempCore[0] = 25;
-	settings.tempCore[1] = 130;
-	settings.tempCore[2] = 180;
-	settings.tempEx[0] = 25;
-	settings.tempEx[1] = 180;
-	settings.tempEx[2] = 300;
+  // Temperaturas antes de calibrar
+	settings.tempCore[0] = 30.10;
+	settings.tempCore[1] = 92.14;
+	settings.tempCore[2] = 230.37;
+	settings.tempEx[0] = 50;
+	settings.tempEx[1] = 150;
+	settings.tempEx[2] = 230;
+
+  settings.tempTarget = 180;
 
   // Coeficientes PID
   settings.PID[0] = 1e-2;

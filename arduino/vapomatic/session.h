@@ -1,6 +1,9 @@
 #ifndef Session_h
 #define Session_h
 
+#define TEMPMIN 100.0
+#define TEMPMAX 250.0
+
 // Estrutura para armazenar na EEPROM
 struct Settings {
   float tempCore[3]; // Temperaturas internas na calibragem
@@ -8,6 +11,7 @@ struct Settings {
   float PID[3]; // Coeficientes PID
   float shutLim[2]; // Limiares de desligamento (y-intercept e slope da função temp - alvo)
 	bool shutEnabled; // Desligamento automático ativo/inativo
+  float tempTarget; // Temperatura alvo padrão
 };
 
 // Estado e IPC
@@ -22,10 +26,6 @@ class Session {
 
   // Configurações
   struct Settings settings;
-
-  // Sinalizar calibragem da temperatura
-  bool calib;
-  int calibGain;
 
   // Sinalizar mudança na sessão
   bool changed;

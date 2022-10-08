@@ -15,12 +15,6 @@ void Fan::action(){
     return;
   }
 
-  // Calibrando
-  if ( session->calib ){
-    digitalWrite(port, HIGH);
-    return;
-  }
-
   digitalWrite(port, LOW);
 
 }

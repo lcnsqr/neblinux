@@ -67,14 +67,14 @@ void scrMain::show(){
     // Escala leitura
     display->drawFrame(56, 2, 6, 32);
     tempEx = session->tempEx;
-    if ( tempEx < session->settings.tempEx[0] ) tempEx = session->settings.tempEx[0];
-    if ( tempEx > session->settings.tempEx[2] ) tempEx = session->settings.tempEx[2];
-    tempDial = round(32.0 * (tempEx - session->settings.tempEx[0]) / (session->settings.tempEx[2] - session->settings.tempEx[0]));
+    if ( tempEx < TEMPMIN ) tempEx = TEMPMIN;
+    if ( tempEx > TEMPMAX ) tempEx = TEMPMAX;
+    tempDial = round(32.0 * (tempEx - TEMPMIN) / (TEMPMAX - TEMPMIN));
     display->drawBox(56, (u8g2_uint_t)(34 - tempDial), 6, (u8g2_uint_t)tempDial);
 
     // Escala objetivo
     display->drawFrame(66, 2, 6, 32);
-    tempDial = (u8g2_uint_t)round(32.0 * (session->tempTarget - session->settings.tempEx[0]) / (session->settings.tempEx[2] - session->settings.tempEx[0]));
+    tempDial = (u8g2_uint_t)round(32.0 * (session->tempTarget - TEMPMIN) / (TEMPMAX - TEMPMIN));
     display->drawBox(66, 34 - tempDial, 6, tempDial);
 
     // 16 pixel height
@@ -105,12 +105,12 @@ void scrMain::show(){
 }
 
 void scrMain::cw(){
-  if ( session->tempTarget + 10 > session->settings.tempEx[2] ) return;
+  if ( session->tempTarget + 10 > TEMPMAX ) return;
   session->tempTarget += 10;
 }
 
 void scrMain::ccw(){
-  if ( session->tempTarget - 10 < session->settings.tempEx[0] ) return;
+  if ( session->tempTarget - 10 < TEMPMIN ) return;
   session->tempTarget -= 10;
 }
 
@@ -215,9 +215,6 @@ scrCalib::scrCalib(Session* session, U8G2_SH1106_128X64_NONAME_2_HW_I2C* display
 
 void scrCalib::show(){
 
-  // Calibrando
-  session->calib = true;
-
   // Valor formatado
   String strVal;
   const String labels[3] = {"Mínima", "Meio", "Máxima"};
@@ -229,7 +226,7 @@ void scrCalib::show(){
   do {
 
     display->setDrawColor(1);
-    strVal = String("Calibrar");
+    strVal = String((int)session->tempEx) + " °C";
     display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(strVal.c_str()))/2.0)), 13, strVal.c_str());
 
     for(int i = 0; i < nitems; ++i){
@@ -237,10 +234,13 @@ void scrCalib::show(){
       if ( highlight == i && edit < 0 ) display->setDrawColor(0);
       else display->setDrawColor(1);
 
-      display->drawUTF8(0, 15+(i+1)*13, labels[i].c_str());
+      strVal = String((int)calibTarget[i]) + " °C";
+      display->drawUTF8(0, 15+(i+1)*13, strVal.c_str());
 
-      strVal = String((int)session->settings.tempEx[i]);
-      strVal = strVal + " °C";
+      display->setDrawColor(1);
+      display->drawUTF8((int)(round((float)(128 - display->getUTF8Width("="))/2.0)), 15+(i+1)*13, "=");
+
+      strVal = String((int)session->settings.tempEx[i]) + " °C";
 
       if ( highlight == i && edit == i ) display->setDrawColor(0);
       else display->setDrawColor(1);
@@ -257,9 +257,12 @@ void scrCalib::cw(){
     highlight = (highlight + 1) % nitems;
   }
   else {
-    // Incrementar valor
-    session->settings.tempEx[edit] += 1;
+    // Ajustar temperatura estimada conforme probe externo
+    session->settings.tempEx[edit] += 5;
+    // Registrar qual é a temperatura interna ao final da aferição
     session->settings.tempCore[edit] = session->tempCore;
+    // Reconfigurar
+    mat::leastsquares(3, 2, session->settings.tempCore, session->settings.tempEx, session->thCfs[1]);
   }
 }
 
@@ -269,9 +272,12 @@ void scrCalib::ccw(){
     if ( --highlight < 0 ) highlight = nitems - 1;
   }
   else {
-    // Decrementar valor
-    session->settings.tempEx[edit] -= 1;
+    // Ajustar temperatura estimada conforme probe externo
+    session->settings.tempEx[edit] -= 5;
+    // Registrar qual é a temperatura interna ao final da aferição
     session->settings.tempCore[edit] = session->tempCore;
+    // Reconfigurar
+    mat::leastsquares(3, 2, session->settings.tempCore, session->settings.tempEx, session->thCfs[1]);
   }
 }
 
@@ -279,19 +285,17 @@ Screen* scrCalib::btTopDown(){return this;}
 
 Screen* scrCalib::btTopUp(){
 
-  // Valores de gain para cada estágio da calibragem
-  const int calibGain[3] = {0, 127, 255};
-
   if ( edit < 0 ){
     edit = highlight;
+    // Qual temperatura aferir
+    session->tempTarget = calibTarget[edit];
     // Aquecer e aferir para o nível correspondente
-    session->calibGain = calibGain[edit];
+    session->start();
   }
   else {
-    // Registrar qual é a temperatura interna
     session->settings.tempCore[edit] = session->tempCore;
-    // Desligar resistência
-    session->calibGain = 0;
+    // Desligar
+    session->stop();
     // Sair da edição
     edit = -1;
   }
@@ -301,10 +305,6 @@ Screen* scrCalib::btTopUp(){
 Screen* scrCalib::btFrontDown(){return this;}
 
 Screen* scrCalib::btFrontUp(){
-  // Encerrar calibragem
-  session->calib = false;
-  // Reconfigurar
-  mat::leastsquares(3, 2, session->settings.tempCore, session->settings.tempEx, session->thCfs[1]);
   session->save();
   // Chamar a tela definida em leave
   session->changed = true;

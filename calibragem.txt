@@ -11,12 +11,20 @@ Temperatura na sonda
 
 EEPROM tem 1024 bytes. Estrutura de dados:
 
+// Estrutura para armazenar na EEPROM
 struct Settings {
-  int tempCore[3];   // Temperaturas internas na calibragem
-  int tempEx[3];     // Temperaturas aferidas na calibragem
-  double PID[3];     // Coeficientes PID
-  double shutLim[2]; // Limiares de desligamento (y-intercept e slope da função temp - alvo) 
-	char shutEnabled;  // Desligamento automático ativo/inativo
+  float tempCore[3]; // Temperaturas internas na calibragem
+  float tempEx[3]; // Temperaturas aferidas na calibragem
+  float PID[3]; // Coeficientes PID
+  float shutLim[2]; // Limiares de desligamento (y-intercept e slope da função temp - alvo)
+	bool shutEnabled; // Desligamento automático ativo/inativo
+  float tempTarget; // Temperatura alvo padrão
 };
 
 Deve ser possível gravar valores default na EEPROM. É impossível distinguir com certeza se é a primeira vez que o aparelho é ligado.
+
+Valores padrão para tempCore e tempEx
+
+30.10 -> 50.00
+92.14 -> 150.00
+230.37 -> 230.00
