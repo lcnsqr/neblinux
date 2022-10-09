@@ -90,7 +90,7 @@ class scrCalib: public Screen {
   int edit;
 
   // Valores de tempTarget para cada estágio da calibragem
-  const int calibTarget[3] = {25, 150, 210};
+  const int calibTarget[3] = {100, 150, 200};
 
 };
 
