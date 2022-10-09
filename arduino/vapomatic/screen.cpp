@@ -242,7 +242,6 @@ void scrCalib::show(){
 
   // Valor formatado
   String strVal;
-  const String labels[3] = {"Mínima", "Meio", "Máxima"};
 
   // 9 pixel height
   display->setFont(u8g2_font_6x13_mf);
@@ -251,7 +250,7 @@ void scrCalib::show(){
   do {
 
     display->setDrawColor(1);
-    strVal = String((int)session->tempEx) + " °C";
+    strVal = String((int)session->PID[4]) + " / "  + String((int)session->tempCore) + " °C / " + String((int)session->tempEx) + " °C";
     display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(strVal.c_str()))/2.0)), 13, strVal.c_str());
 
     for(int i = 0; i < nitems; ++i){
