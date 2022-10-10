@@ -87,6 +87,10 @@ void Session::stop(){
   PID[2] = 0;
   PID[3] = 0;
   PID[4] = 0;
+
+  // Lembrar da temperatura
+  settings.tempTarget = tempTarget;
+  save();
 }
 
 bool Session::running(){
