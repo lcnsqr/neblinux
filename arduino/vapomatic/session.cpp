@@ -50,11 +50,11 @@ void Session::save(){
 void Session::reset(){
   // Temperaturas antes de calibrar
 	settings.tempCore[0] = 30.10;
-	settings.tempCore[1] = 92.14;
-	settings.tempCore[2] = 230.37;
+	settings.tempCore[1] = 62.37;
+	settings.tempCore[2] = 96.29;
 	settings.tempEx[0] = 50;
 	settings.tempEx[1] = 150;
-	settings.tempEx[2] = 230;
+	settings.tempEx[2] = 210;
 
   settings.tempTarget = 180;
 
