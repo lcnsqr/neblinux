@@ -54,7 +54,7 @@ void scrMain::splash(){
 
 		display->drawXBMP(40, 0, 48, 48, logo_bits);
 
-    str = String("@vapomatic420");
+    str = String("VAPOMATIC");
     display->drawUTF8((int)(round((float)(128 - display->getUTF8Width(str.c_str()))/2.0)), 62, str.c_str());
 
   } while ( display->nextPage() );
