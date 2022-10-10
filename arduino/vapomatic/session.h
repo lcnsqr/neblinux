@@ -2,7 +2,7 @@
 #define Session_h
 
 #define TEMPMIN 100.0
-#define TEMPMAX 250.0
+#define TEMPMAX 220.0
 
 // Estrutura para armazenar na EEPROM
 struct Settings {
