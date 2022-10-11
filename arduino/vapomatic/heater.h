@@ -1,21 +1,20 @@
 #ifndef Heater_h
 #define Heater_h
 
-#include "task.h"
 #include "session.h"
+#include "task.h"
 
-class Heater: public Task {
+class Heater : public Task {
 
-  public:
-
-  Heater(int port, Session* session, unsigned long wait);
+public:
+  Heater(int port, Session *session, unsigned long wait);
 
   void action();
 
-  private:
+private:
   int port;
 
-  Session* session;
+  Session *session;
 
   /*
   float* P;
@@ -27,7 +26,6 @@ class Heater: public Task {
   float* c2;
   float* F;
   */
-
 };
 
 #endif

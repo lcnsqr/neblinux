@@ -1,24 +1,23 @@
 #ifndef Monitor_h
 #define Monitor_h
 
-#include "task.h"
-#include "session.h"
 #include "screen.h"
+#include "session.h"
+#include "task.h"
 
-class Monitor: public Task {
+class Monitor : public Task {
 
-  public:
-
-  Monitor(Session* session, Screen* screen, int btTop, int btFront, unsigned long wait);
+public:
+  Monitor(Session *session, Screen *screen, int btTop, int btFront,
+          unsigned long wait);
 
   void action();
 
-  private:
-
-  Session* session;
+private:
+  Session *session;
   Session local;
 
-  Screen* screen;
+  Screen *screen;
 
   // Botão superior
   int btTop;
@@ -27,7 +26,6 @@ class Monitor: public Task {
   // Botão frontal
   int btFront;
   int btFrontSt[2];
-  
 };
 
 #endif

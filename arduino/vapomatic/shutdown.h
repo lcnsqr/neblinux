@@ -1,14 +1,13 @@
 #ifndef Shutdown_h
 #define Shutdown_h
 
-#include "task.h"
 #include "session.h"
+#include "task.h"
 
-class Shutdown: public Task {
+class Shutdown : public Task {
 
-  public:
-
-  Shutdown(Session* session, unsigned long wait);
+public:
+  Shutdown(Session *session, unsigned long wait);
 
   void action();
 
@@ -21,11 +20,8 @@ class Shutdown: public Task {
   // Vetor A'b da regressão linear
   float Ab[2];
 
-  private:
-
-  Session* session;
-
+private:
+  Session *session;
 };
 
 #endif
-

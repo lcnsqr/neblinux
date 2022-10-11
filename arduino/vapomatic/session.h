@@ -7,16 +7,17 @@
 // Estrutura para armazenar na EEPROM
 struct Settings {
   float tempCore[3]; // Temperaturas internas na calibragem
-  float tempEx[3]; // Temperaturas aferidas na calibragem
-  float PID[3]; // Coeficientes PID
-  float shutLim[2]; // Limiares de desligamento (y-intercept e slope da função temp - alvo)
-	bool shutEnabled; // Desligamento automático ativo/inativo
+  float tempEx[3];   // Temperaturas aferidas na calibragem
+  float PID[3];      // Coeficientes PID
+  float shutLim[2]; // Limiares de desligamento (y-intercept e slope da função
+                    // temp - alvo)
+  bool shutEnabled; // Desligamento automático ativo/inativo
   float tempTarget; // Temperatura alvo padrão
 };
 
 // Estado e IPC
 class Session {
-  public:
+public:
   Session();
 
   // Carregar/salvar configurações
@@ -66,11 +67,9 @@ class Session {
   // 4: Valor do atuador
   float PID[5];
 
-  private:
-
+private:
   // On/off state change
   bool on;
-
 };
 
 #endif

@@ -1,21 +1,21 @@
-#include "task.h"
-#include "session.h"
-#include "therm.h"
 #include "display.h"
-#include "monitor.h"
-#include "rotary.h"
 #include "fan.h"
 #include "heater.h"
-#include "timer.h"
-#include "shutdown.h"
+#include "monitor.h"
+#include "rotary.h"
 #include "screen.h"
+#include "session.h"
+#include "shutdown.h"
+#include "task.h"
+#include "therm.h"
+#include "timer.h"
 
 // Estado do aparelho e comunicação interserviços
 Session session;
 // Loop de serviços
 Tasks tasks;
 // Leitura da temperatura
-Therm therm(&session, A0, 3*17, 17);
+Therm therm(&session, A0, 3 * 17, 17);
 // Display helper library
 U8G2_SH1106_128X64_NONAME_2_HW_I2C display(U8G2_R2, U8X8_PIN_NONE);
 // Telas da UI
@@ -50,12 +50,9 @@ void setup() {
   tasks.add(&heater);
   tasks.add(&timer);
   tasks.add(&shutdown);
-
 }
 
-void loop() {
-  tasks.run();
-}
+void loop() { tasks.run(); }
 
 void setupUI() {
 
@@ -63,23 +60,21 @@ void setupUI() {
   uiMain.leave = &uiSetup;
 
   /**
-    * Tela de setup
-    */
+   * Tela de setup
+   */
   uiSetup.nitems = 3;
   uiSetup.screens[0] = &uiCalib;
   uiSetup.highlight = 0;
   uiSetup.leave = &uiMain;
 
   /**
-    * Tela de calibragem
-    */
+   * Tela de calibragem
+   */
   uiCalib.nitems = 3;
   uiCalib.highlight = 0;
   uiCalib.edit = -1;
   uiCalib.leave = &uiSetup;
 
-
   // Subir display
   display.begin();
-
 }

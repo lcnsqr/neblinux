@@ -1,21 +1,19 @@
 #ifndef Fan_h
 #define Fan_h
 
-#include "task.h"
 #include "session.h"
+#include "task.h"
 
-class Fan: public Task {
+class Fan : public Task {
 
-  public:
-
-  Fan(int port, Session* session, unsigned long wait);
+public:
+  Fan(int port, Session *session, unsigned long wait);
 
   void action();
 
-  private:
+private:
   int port;
-  Session* session;
-
+  Session *session;
 };
 
 #endif

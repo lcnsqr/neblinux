@@ -23,7 +23,7 @@ Session::Session() {
   shut[1] = 0;
 }
 
-void Session::load(){
+void Session::load() {
   // Carregar configurações salvas
   EEPROM.get(0, settings);
 
@@ -43,18 +43,16 @@ void Session::load(){
   mat::leastsquares(3, 2, settings.tempCore, settings.tempEx, thCfs[1]);
 }
 
-void Session::save(){
-  EEPROM.put(0, settings);
-}
+void Session::save() { EEPROM.put(0, settings); }
 
-void Session::reset(){
+void Session::reset() {
   // Temperaturas antes de calibrar
-	settings.tempCore[0] = 34.11;
-	settings.tempCore[1] = 89.23;
-	settings.tempCore[2] = 154.96;
-	settings.tempEx[0] = 50;
-	settings.tempEx[1] = 150;
-	settings.tempEx[2] = 210;
+  settings.tempCore[0] = 34.11;
+  settings.tempCore[1] = 89.23;
+  settings.tempCore[2] = 154.96;
+  settings.tempEx[0] = 50;
+  settings.tempEx[1] = 150;
+  settings.tempEx[2] = 210;
 
   settings.tempTarget = 180;
 
@@ -66,18 +64,18 @@ void Session::reset(){
   // Limiares de desligamento
   settings.shutLim[0] = 4.0;
   settings.shutLim[1] = 1.0;
-	settings.shutEnabled = 1;
+  settings.shutEnabled = 1;
 
   save();
   load();
 }
 
-void Session::start(){
+void Session::start() {
   on = true;
   changed = true;
 }
 
-void Session::stop(){
+void Session::stop() {
   on = false;
   changed = true;
 
@@ -93,6 +91,4 @@ void Session::stop(){
   save();
 }
 
-bool Session::running(){
-  return on;
-}
+bool Session::running() { return on; }

@@ -1,23 +1,21 @@
 #ifndef Therm_h
 #define Therm_h
 
-#include "task.h"
 #include "session.h"
+#include "task.h"
 
-class Therm: public Task {
+class Therm : public Task {
 
-  public:
-
-  Therm(Session* session, int pin, unsigned long wait, unsigned int bufLen);
+public:
+  Therm(Session *session, int pin, unsigned long wait, unsigned int bufLen);
   ~Therm();
 
   void action();
   float celsiusPoly(float thermistor);
   float celsiusSteinhart(float thermistor);
 
-  private:
-
-  Session* session;
+private:
+  Session *session;
 
   // Analog in
   int pin;
@@ -31,7 +29,7 @@ class Therm: public Task {
   float tempNominal;
 
   unsigned int bufLen;
-  int* buf;
+  int *buf;
   unsigned int bufCount;
 };
 
