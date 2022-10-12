@@ -21,7 +21,7 @@ public:
   static const float bCoef = 3950.0;
   static const float tempNominal = 25.0;
 
-  static const int bufLen = 4;
+  static const int bufLen = 5;
   int buf[bufLen];
   unsigned int bufCount;
 
