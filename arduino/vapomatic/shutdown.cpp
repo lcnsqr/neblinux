@@ -2,22 +2,16 @@
 #include "session.h"
 #include "task.h"
 #include <Arduino.h>
+#include "mat.h"
 
 Shutdown::Shutdown(Session *session, unsigned long wait)
     : Task(wait), session(session) {
 
-  b[0] = 0;
-  b[1] = 0;
-  b[2] = 0;
-  b[3] = 0;
+  for ( int i = 0; i < pts; ++i ) {
+    x[i] = (float)i;
+    y[i] = 0;
+  }
 
-  AA[0] = 4.0;
-  AA[1] = 6.0;
-  AA[2] = 6.0;
-  AA[3] = 14.0;
-
-  Ab[0] = 0;
-  Ab[1] = 0;
 }
 
 void Shutdown::action() {
@@ -25,17 +19,14 @@ void Shutdown::action() {
   if (!(session->running() && session->settings.shutEnabled))
     return;
 
-  b[0] = b[1];
-  b[1] = b[2];
-  b[2] = b[3];
-  b[3] = session->tempEx - session->tempTarget;
+  for ( int i = 1; i < pts; ++i )
+    y[i - 1] = y[i];
 
-  Ab[0] = b[0] + b[1] + b[2] + b[3];
-  Ab[1] = b[1] + 2.0 * b[2] + 3.0 * b[3];
+  y[pts - 1] = session->tempEx - session->tempTarget;
 
-  session->shut[1] =
-      (Ab[1] / AA[2] - Ab[0] / AA[0]) / (AA[3] / AA[2] - AA[1] / AA[0]);
-  session->shut[0] = Ab[0] / AA[0] - session->shut[1] * AA[1] / AA[0];
+  // Pontos correspondem às últimas leituras de temperatura.
+  // Polinômio interpolador de segunda ordem para regressão linear.
+  mat::leastsquares(pts, 2, x, y, session->shut);
 
   // Desligar se detectado crescimento
   // íngreme da distância temp - alvo.

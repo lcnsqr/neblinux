@@ -12,13 +12,9 @@ public:
   void action();
 
   // Regressão linear em 4 pontos
-  float b[4];
-
-  // Matriz A'A da regressão linear
-  float AA[4];
-
-  // Vetor A'b da regressão linear
-  float Ab[2];
+  static const int pts = 4;
+  float x[pts];
+  float y[pts];
 
 private:
   Session *session;
