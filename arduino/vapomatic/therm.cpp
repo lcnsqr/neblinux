@@ -4,29 +4,8 @@
 #include <math.h>
 #include <stdlib.h>
 
-Therm::Therm(Session *session, int pin, unsigned long wait, unsigned int bufLen)
-    : Task(wait), session(session), pin(pin), bufLen(bufLen) {
-  r1 = 95000.0;
-
-  thermNominal = 100000.0;
-  bCoef = 3950.0;
-  tempNominal = 25.0;
-
-  // Dividir o tempo de espera para
-  // distribuir as amostras no intervalo
-  wait = wait / bufLen;
-
-  buf = (int *)malloc(bufLen * sizeof(int));
-
-  bufCount = 0;
-  while (bufCount < bufLen)
-    buf[bufCount++] = analogRead(pin);
-}
-
-Therm::~Therm() {
-  if (bufLen > 0)
-    free(buf);
-}
+Therm::Therm(Session *session, int port, unsigned long wait)
+    : Task(wait), session(session), port(port) { }
 
 void Therm::action() {
   int bufSum = 0;
@@ -38,7 +17,7 @@ void Therm::action() {
     session->tempCore = celsiusSteinhart(session->analogTherm);
     session->tempEx = celsiusPoly(session->tempCore);
   } else {
-    buf[bufCount++] = analogRead(pin);
+    buf[bufCount++] = analogRead(port);
   }
 }
 
