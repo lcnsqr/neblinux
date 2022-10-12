@@ -1,9 +1,6 @@
 #ifndef Session_h
 #define Session_h
 
-#define TEMPMIN 100.0
-#define TEMPMAX 220.0
-
 // Estrutura para armazenar na EEPROM
 struct Settings {
   float tempCore[3]; // Temperaturas internas na calibragem
@@ -24,6 +21,10 @@ public:
   void load();
   void save();
   void reset();
+
+  // Mínimo e máximo aquecimento
+  static const float tempMin = 100.0;
+  static const float tempMax = 220.0;
 
   // Configurações
   struct Settings settings;
