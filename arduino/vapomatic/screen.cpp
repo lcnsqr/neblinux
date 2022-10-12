@@ -14,6 +14,7 @@ scrMain::scrMain(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
   leave = NULL;
 }
 
+/*
 void scrMain::splash() {
 
   static const unsigned char logo_bits[] U8X8_PROGMEM = {
@@ -60,13 +61,16 @@ void scrMain::splash() {
 
   } while (display->nextPage());
 }
+*/
 
 void scrMain::show() {
 
+  /*
   if (millis() < 4500) {
     splash();
     return;
   }
+  */
 
   // String para exibir labels e valores
   String str;
@@ -232,6 +236,9 @@ Screen *scrSetup::btTopUp() {
     session->save();
     session->changed = true;
   } else if (highlight == 2) {
+    // Depuração
+    return screens[1];
+  } else if (highlight == 3) {
     // Restaurar padrão
     session->reset();
     return leave;
@@ -359,6 +366,91 @@ Screen *scrCalib::btFrontDown() { return this; }
 
 Screen *scrCalib::btFrontUp() {
   session->save();
+  // Chamar a tela definida em leave
+  session->changed = true;
+  return leave;
+}
+
+/***
+ * Tela depuração
+ */
+scrDebug::scrDebug(Session *session,
+                   U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
+    : Screen(session, display) {
+  leave = NULL;
+}
+
+void scrDebug::show() {
+
+  const int rows = 5;
+  const int nfields = 10;
+  const struct {
+    char* label;
+    float* value;
+  } field[nfields] = {
+    {"Th", &session->analogTherm},
+    {"P", &session->PID[0]},
+    {"I", &session->PID[1]},
+    {"D", &session->PID[2]},
+    {"Ga", &session->PID[4]},
+    {"Ta", &session->tempTarget},
+    {"Co", &session->tempCore},
+    {"Ex", &session->tempEx},
+    {"s0", &session->shut[0]},
+    {"s1", &session->shut[1]}
+  };
+
+  // Valor formatado
+  String strVal;
+
+  // 9 pixel height
+  display->setFont(u8g2_font_6x13_mf);
+  display->setDrawColor(1);
+
+  display->firstPage();
+  do {
+
+
+    for (int i = 0; i < nfields; ++i) {
+
+      display->drawUTF8((i / rows) * 64, (i % rows + 1) * 12, field[i].label);
+
+      strVal = String(*field[i].value);
+      display->drawUTF8(
+          (int)round((i / rows) * 64 + (float)(62 - display->getUTF8Width(strVal.c_str()))),
+          (i % rows + 1) * 12, strVal.c_str());
+
+    }
+
+  } while (display->nextPage());
+}
+
+void scrDebug::cw() {
+  if (session->tempTarget + 10 > session->tempMax)
+    return;
+  session->tempTarget += 10;
+}
+
+void scrDebug::ccw() {
+  if (session->tempTarget - 10 < session->tempMin)
+    return;
+  session->tempTarget -= 10;
+}
+
+Screen *scrDebug::btTopDown() { return this; }
+
+Screen *scrDebug::btTopUp() {
+  if (!session->running()) {
+    session->start();
+  } else {
+    session->stop();
+  }
+  return this;
+}
+
+Screen *scrDebug::btFrontDown() { return this; }
+
+Screen *scrDebug::btFrontUp() {
   // Chamar a tela definida em leave
   session->changed = true;
   return leave;

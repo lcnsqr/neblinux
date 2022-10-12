@@ -22,6 +22,7 @@ U8G2_SH1106_128X64_NONAME_2_HW_I2C display(U8G2_R2, U8X8_PIN_NONE);
 scrMain uiMain(&session, &display);
 scrSetup uiSetup(&session, &display);
 scrCalib uiCalib(&session, &display);
+scrDebug uiDebug(&session, &display);
 // Monitoramento de eventos
 Monitor monitor(&session, &uiMain, 4, 8, 25);
 // Callback de eventos do rotary encoder
@@ -62,8 +63,9 @@ void setupUI() {
   /**
    * Tela de setup
    */
-  uiSetup.nitems = 3;
+  uiSetup.nitems = 4;
   uiSetup.screens[0] = &uiCalib;
+  uiSetup.screens[1] = &uiDebug;
   uiSetup.highlight = 0;
   uiSetup.leave = &uiMain;
 
@@ -74,6 +76,11 @@ void setupUI() {
   uiCalib.highlight = 0;
   uiCalib.edit = -1;
   uiCalib.leave = &uiSetup;
+
+  /**
+   * Tela de depuração
+   */
+  uiDebug.leave = &uiSetup;
 
   // Subir display
   display.begin();

@@ -31,7 +31,7 @@ protected:
 class scrMain : public Screen {
 public:
   scrMain(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display);
-  void splash();
+  //void splash();
   void show();
   void cw();
   void ccw();
@@ -56,11 +56,11 @@ public:
   Screen *btFrontUp();
 
   // Texto dos itens
-  const char *labels[3] = {" Calibrar sensor ", " Parar sozinho? ",
-                           " Restaurar padrão "};
+  const char *labels[4] = {" Calibrar sensor ", " Parar sozinho? ",
+                           " Depuração ", " Restaurar padrão "};
 
   // Telas para itens
-  Screen *screens[1];
+  Screen *screens[2];
 
   // Itens na tela
   int nitems;
@@ -91,6 +91,22 @@ public:
 
   // Valores de tempTarget para cada estágio da calibragem
   const int calibTarget[3] = {50, 150, 210};
+};
+
+class scrDebug : public Screen {
+public:
+  scrDebug(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display);
+  void show();
+  void cw();
+  void ccw();
+  Screen *btTopDown();
+  Screen *btTopUp();
+  Screen *btFrontDown();
+  Screen *btFrontUp();
+
+  // Tela exibida ao pressionar botão central
+  Screen *leave;
+
 };
 
 #endif

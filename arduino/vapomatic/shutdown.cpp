@@ -25,7 +25,7 @@ void Shutdown::action() {
   y[pts - 1] = session->tempEx - session->tempTarget;
 
   // Pontos correspondem às últimas leituras de temperatura.
-  // Polinômio interpolador de segunda ordem para regressão linear.
+  // Polinômio interpolador para regressão de segunda ordem.
   mat::leastsquares(pts, 2, x, y, session->shut);
 
   // Desligar se detectado crescimento
