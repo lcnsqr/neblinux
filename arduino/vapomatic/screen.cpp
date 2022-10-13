@@ -8,6 +8,16 @@ Screen::Screen(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
   leave = NULL;
 }
 
+void Screen::h1Setup(String &str){
+  str = String((int)session->PID[4]) + " / " +
+           String((int)session->tempCore) + " °C / " +
+           String((int)session->tempEx) + " °C";
+  display->drawUTF8(
+      (int)(round((float)(128 - display->getUTF8Width(str.c_str())) /
+                  2.0)),
+      13, str.c_str());
+}
+
 /***
  * Tela principal
  */
@@ -277,13 +287,7 @@ void scrCalib::show() {
   do {
 
     display->setDrawColor(1);
-    strVal = String((int)session->PID[4]) + " / " +
-             String((int)session->tempCore) + " °C / " +
-             String((int)session->tempEx) + " °C";
-    display->drawUTF8(
-        (int)(round((float)(128 - display->getUTF8Width(strVal.c_str())) /
-                    2.0)),
-        13, strVal.c_str());
+    h1Setup(strVal);
 
     for (int i = 0; i < nitems; ++i) {
       // Mudar cor se item iluminado
@@ -394,13 +398,7 @@ void scrPID::show() {
   do {
 
     display->setDrawColor(1);
-    strVal = String((int)session->PID[4]) + " / " +
-             String((int)session->tempCore) + " °C / " +
-             String((int)session->tempEx) + " °C";
-    display->drawUTF8(
-        (int)(round((float)(128 - display->getUTF8Width(strVal.c_str())) /
-                    2.0)),
-        13, strVal.c_str());
+    h1Setup(strVal);
 
     for (int i = 0; i < nitems; ++i) {
       display->setDrawColor(1);
