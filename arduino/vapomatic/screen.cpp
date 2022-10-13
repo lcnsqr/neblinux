@@ -186,6 +186,10 @@ scrSetup::scrSetup(Session *session,
 
 void scrSetup::show() {
 
+  // Texto dos itens
+  const char *labels[4] = {" Calibrar sensor ", " Coeficientes PID ",
+                           " Parar sozinho? ", " Restaurar padrão "};
+
   // 9 pixel height
   display->setFont(u8g2_font_6x13_mf);
 
@@ -197,7 +201,7 @@ void scrSetup::show() {
         display->setDrawColor(0);
       else
         display->setDrawColor(1);
-      if (i == 1) {
+      if (i == 2) {
         // Auto shutdown
         String label =
             String(labels[i]) +
@@ -234,12 +238,12 @@ Screen *scrSetup::btTopUp() {
     // Calibrar temperatura
     return screens[0];
   } else if (highlight == 1) {
+    // Ajustar PID
+    return screens[1];
+  } else if (highlight == 2) {
     session->settings.shutEnabled = !session->settings.shutEnabled;
     session->save();
     session->changed = true;
-  } else if (highlight == 2) {
-    // Depuração
-    return screens[1];
   } else if (highlight == 3) {
     // Restaurar padrão
     session->reset();
@@ -292,7 +296,7 @@ void scrCalib::show() {
       else
         display->setDrawColor(1);
 
-      strVal = String((int)calibTarget[i]) + " °C";
+      strVal = String(calibTarget[i]) + " °C";
       display->drawUTF8(0, 15 + (i + 1) * 13, strVal.c_str());
 
       display->setDrawColor(1);
@@ -374,79 +378,105 @@ Screen *scrCalib::btFrontUp() {
 }
 
 /***
- * Tela depuração
+ * Tela para alterar coeficientes do PID
  */
-scrDebug::scrDebug(Session *session,
+scrPID::scrPID(Session *session,
                    U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
     : Screen(session, display) {
   leave = NULL;
 }
 
-void scrDebug::show() {
+void scrPID::show() {
 
-  const int rows = 5;
-  const int nfields = 10;
-  const struct {
-    char *label;
-    float *value;
-  } field[nfields] = {
-      {"Th", &session->analogTherm}, {"P", &session->PID[0]},
-      {"I", &session->PID[1]},       {"D", &session->PID[2]},
-      {"Ga", &session->PID[4]},      {"Ta", &session->tempTarget},
-      {"Co", &session->tempCore},    {"Ex", &session->tempEx},
-      {"s0", &session->shut[0]},     {"s1", &session->shut[1]}};
+  // Texto dos itens
+  const char *labels[3] = {"P", "I", "D"};
 
   // Valor formatado
   String strVal;
 
   // 9 pixel height
   display->setFont(u8g2_font_6x13_mf);
-  display->setDrawColor(1);
 
   display->firstPage();
   do {
 
-    for (int i = 0; i < nfields; ++i) {
+    display->setDrawColor(1);
+    strVal = String((int)session->PID[4]) + " / " +
+             String((int)session->tempCore) + " °C / " +
+             String((int)session->tempEx) + " °C";
+    display->drawUTF8(
+        (int)(round((float)(128 - display->getUTF8Width(strVal.c_str())) /
+                    2.0)),
+        13, strVal.c_str());
 
-      display->drawUTF8((i / rows) * 64, (i % rows + 1) * 12, field[i].label);
+    for (int i = 0; i < nitems; ++i) {
+      // Mudar cor se item iluminado
+      if (highlight == i && edit < 0)
+        display->setDrawColor(0);
+      else
+        display->setDrawColor(1);
 
-      strVal = String(*field[i].value);
+      strVal = String(session->PID[i]);
+      display->drawUTF8(0, 15 + (i + 1) * 13, strVal.c_str());
+
+      display->setDrawColor(1);
       display->drawUTF8(
-          (int)round((i / rows) * 64 +
-                     (float)(62 - display->getUTF8Width(strVal.c_str()))),
-          (i % rows + 1) * 12, strVal.c_str());
+          (int)(round((float)(128 - display->getUTF8Width(labels[i])) / 2.0)),
+          15 + (i + 1) * 13, labels[i]);
+
+      strVal = String(session->settings.PID[i], 4);
+
+      if (highlight == i && edit == i)
+        display->setDrawColor(0);
+      else
+        display->setDrawColor(1);
+      display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
+                        15 + (i + 1) * 13, strVal.c_str());
     }
 
   } while (display->nextPage());
 }
 
-void scrDebug::cw() {
-  if (session->tempTarget + 10 > session->tempMax)
-    return;
-  session->tempTarget += 10;
-}
-
-void scrDebug::ccw() {
-  if (session->tempTarget - 10 < session->tempMin)
-    return;
-  session->tempTarget -= 10;
-}
-
-Screen *scrDebug::btTopDown() { return this; }
-
-Screen *scrDebug::btTopUp() {
-  if (!session->running()) {
-    session->start();
+void scrPID::cw() {
+  if (edit < 0) {
+    // Nenhum item sendo editado, iluminar item posterior
+    highlight = (highlight + 1) % nitems;
   } else {
-    session->stop();
+    // Ajustar coeficiente
+    session->settings.PID[edit] += (edit == 1 ) ? 1e-4 : 1e-2;
+  }
+}
+
+void scrPID::ccw() {
+  if (edit < 0) {
+    // Nenhum item sendo editado, iluminar item anterior
+    if (--highlight < 0)
+      highlight = nitems - 1;
+  } else {
+    // Ajustar coeficiente
+    session->settings.PID[edit] -= (edit == 1 ) ? 1e-4 : 1e-2;
+  }
+}
+
+Screen *scrPID::btTopDown() { return this; }
+
+Screen *scrPID::btTopUp() {
+
+  if (edit < 0) {
+    edit = highlight;
+  } else {
+    // Sair da edição
+    edit = -1;
   }
   return this;
 }
 
-Screen *scrDebug::btFrontDown() { return this; }
+Screen *scrPID::btFrontDown() { return this; }
 
-Screen *scrDebug::btFrontUp() {
+Screen *scrPID::btFrontUp() {
+  //session->save();
   // Chamar a tela definida em leave
   session->changed = true;
   return leave;
 }
+

@@ -58,7 +58,7 @@ void Session::reset() {
 
   // Coeficientes PID
   settings.PID[0] = 1e-2;
-  settings.PID[1] = 1.5e-4;
+  settings.PID[1] = 2e-4;
   settings.PID[2] = 7e-2;
 
   // Limiares de desligamento
