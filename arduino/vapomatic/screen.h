@@ -32,7 +32,7 @@ protected:
 class scrMain : public Screen {
 public:
   scrMain(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display);
-  // void splash();
+  void splash();
   void show();
   void rotate(const char forward);
   Screen *btTop();

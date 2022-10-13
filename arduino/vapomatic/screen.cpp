@@ -24,7 +24,6 @@ void Screen::h1Setup(String &str){
 scrMain::scrMain(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
     : Screen(session, display) {}
 
-/*
 void scrMain::splash() {
 
   static const unsigned char logo_bits[] U8X8_PROGMEM = {
@@ -71,16 +70,13 @@ void scrMain::splash() {
 
   } while (display->nextPage());
 }
-*/
 
 void scrMain::show() {
 
-  /*
-  if (millis() < 4500) {
+  if (millis() < 2000) {
     splash();
     return;
   }
-  */
 
   // String para exibir labels e valores
   String str;
@@ -149,7 +145,7 @@ void scrMain::show() {
 
     display->drawUTF8(
         (int)(round((float)(128 - display->getUTF8Width(str.c_str())) / 2.0)),
-        61, str.c_str());
+        62, str.c_str());
 
   } while (display->nextPage());
 }
