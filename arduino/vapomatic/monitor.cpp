@@ -25,6 +25,11 @@ Monitor::Monitor(Session *session, Screen *screen, int btTop, int btFront,
   digitalWrite(btFront, HIGH);
   btFrontSt[0] = 0;
   btFrontSt[1] = 0;
+
+  // Contagem
+  counting = 0;
+  started = 0;
+  elapsed = 0;
 }
 
 void Monitor::action() {
@@ -41,6 +46,18 @@ void Monitor::action() {
   }
 
   // Contador de tempo
+  if (session->running() != counting) {
+    counting = session->running();
+    if (counting) {
+      started = millis();
+      session->elapsed = 0;
+      elapsed = 0;
+    }
+  }
+  if (counting) {
+    elapsed = millis() - started;
+    session->elapsed = elapsed / 1000;
+  }
   if (session->elapsed != local.elapsed) {
     local.elapsed = session->elapsed;
     session->changed = true;

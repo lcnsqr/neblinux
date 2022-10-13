@@ -26,6 +26,11 @@ private:
   // Botão frontal
   int btFront;
   int btFrontSt[2];
+
+  // Contagem do tempo ativo em milissegundos
+  bool counting;
+  unsigned long started;
+  unsigned long elapsed;
 };
 
 #endif

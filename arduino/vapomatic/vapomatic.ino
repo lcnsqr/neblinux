@@ -8,7 +8,6 @@
 #include "shutdown.h"
 #include "task.h"
 #include "therm.h"
-#include "timer.h"
 
 // Estado do aparelho e comunicação interserviços
 Session session;
@@ -31,8 +30,6 @@ Rotary rotary;
 Fan fan(7, &session, 75);
 // Controle do aquecedor
 Heater heater(5, &session, 38);
-// Contador de tempo
-Timer timer(&session, 1000);
 // Para de encher automaticamente
 Shutdown shutdown(&session, 500);
 
@@ -49,7 +46,6 @@ void setup() {
   tasks.add(&monitor);
   tasks.add(&fan);
   tasks.add(&heater);
-  tasks.add(&timer);
   tasks.add(&shutdown);
 }
 
