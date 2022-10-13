@@ -11,17 +11,12 @@ public:
   // Exibir tela no display
   virtual void show();
 
-  // Rotary encoder clockwise
-  virtual void cw();
-
-  // Rotary encoder counter-clockwise
-  virtual void ccw();
+  // Rotary encoder
+  virtual void rotate(const char forward);
 
   // Reagir ao pressionamento dos botões
-  virtual Screen *btTopDown();
-  virtual Screen *btTopUp();
-  virtual Screen *btFrontDown();
-  virtual Screen *btFrontUp();
+  virtual Screen *btTop();
+  virtual Screen *btFront();
 
   // Tela exibida ao pressionar botão central
   Screen *leave;
@@ -39,24 +34,18 @@ public:
   scrMain(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display);
   // void splash();
   void show();
-  void cw();
-  void ccw();
-  Screen *btTopDown();
-  Screen *btTopUp();
-  Screen *btFrontDown();
-  Screen *btFrontUp();
+  void rotate(const char forward);
+  Screen *btTop();
+  Screen *btFront();
 };
 
 class scrSetup : public Screen {
 public:
   scrSetup(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display);
   void show();
-  void cw();
-  void ccw();
-  Screen *btTopDown();
-  Screen *btTopUp();
-  Screen *btFrontDown();
-  Screen *btFrontUp();
+  void rotate(const char forward);
+  Screen *btTop();
+  Screen *btFront();
 
   // Telas para itens
   Screen *screens[2];
@@ -70,12 +59,9 @@ class scrCalib : public Screen {
 public:
   scrCalib(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display);
   void show();
-  void cw();
-  void ccw();
-  Screen *btTopDown();
-  Screen *btTopUp();
-  Screen *btFrontDown();
-  Screen *btFrontUp();
+  void rotate(const char forward);
+  Screen *btTop();
+  Screen *btFront();
 
   // Itens na tela
   int nitems;
@@ -90,12 +76,9 @@ class scrPID : public Screen {
 public:
   scrPID(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display);
   void show();
-  void cw();
-  void ccw();
-  Screen *btTopDown();
-  Screen *btTopUp();
-  Screen *btFrontDown();
-  Screen *btFrontUp();
+  void rotate(const char forward);
+  Screen *btTop();
+  Screen *btFront();
 
   // Itens na tela
   int nitems;

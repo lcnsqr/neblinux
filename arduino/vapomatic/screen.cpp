@@ -154,21 +154,20 @@ void scrMain::show() {
   } while (display->nextPage());
 }
 
-void scrMain::cw() {
-  if (session->tempTarget + 10 > session->tempMax)
-    return;
-  session->tempTarget += 10;
+void scrMain::rotate(const char forward) {
+  if ( forward ){
+    if (session->tempTarget + 10 > session->tempMax)
+      return;
+    session->tempTarget += 10;
+  }
+  else {
+    if (session->tempTarget - 10 < session->tempMin)
+      return;
+    session->tempTarget -= 10;
+  }
 }
 
-void scrMain::ccw() {
-  if (session->tempTarget - 10 < session->tempMin)
-    return;
-  session->tempTarget -= 10;
-}
-
-Screen *scrMain::btTopDown() { return this; }
-
-Screen *scrMain::btTopUp() {
+Screen *scrMain::btTop() {
   if (!session->running()) {
     session->start();
   } else {
@@ -177,9 +176,7 @@ Screen *scrMain::btTopUp() {
   return this;
 }
 
-Screen *scrMain::btFrontDown() { return this; }
-
-Screen *scrMain::btFrontUp() {
+Screen *scrMain::btFront() {
   // Chamar a tela definida em leave
   session->changed = true;
   return leave;
@@ -227,20 +224,19 @@ void scrSetup::show() {
   } while (display->nextPage());
 }
 
-void scrSetup::cw() {
-  // Iluminar item posterior
-  highlight = (highlight + 1) % nitems;
+void scrSetup::rotate(const char forward) {
+  if ( forward ) {
+    // Iluminar item posterior
+    highlight = (highlight + 1) % nitems;
+  }
+  else {
+    // Iluminar item anterior
+    if (--highlight < 0)
+      highlight = nitems - 1;
+    }
 }
 
-void scrSetup::ccw() {
-  // Iluminar item anterior
-  if (--highlight < 0)
-    highlight = nitems - 1;
-}
-
-Screen *scrSetup::btTopDown() { return this; }
-
-Screen *scrSetup::btTopUp() {
+Screen *scrSetup::btTop() {
   // Invocar ação correspondente ao item
   if (highlight == 0) {
     // Calibrar temperatura
@@ -249,6 +245,7 @@ Screen *scrSetup::btTopUp() {
     // Ajustar PID
     return screens[1];
   } else if (highlight == 2) {
+    // Alternar desligamento automático
     session->settings.shutEnabled = !session->settings.shutEnabled;
     session->save();
     session->changed = true;
@@ -260,9 +257,7 @@ Screen *scrSetup::btTopUp() {
   return this;
 }
 
-Screen *scrSetup::btFrontDown() { return this; }
-
-Screen *scrSetup::btFrontUp() {
+Screen *scrSetup::btFront() {
   // Chamar a tela definida em leave
   session->changed = true;
   return leave;
@@ -317,40 +312,39 @@ void scrCalib::show() {
   } while (display->nextPage());
 }
 
-void scrCalib::cw() {
-  if (edit < 0) {
-    // Nenhum item sendo editado, iluminar item posterior
-    highlight = (highlight + 1) % nitems;
-  } else {
-    // Ajustar temperatura estimada conforme probe externo
-    session->settings.tempEx[edit] += 5;
-    // Registrar qual é a temperatura interna ao final da aferição
-    session->settings.tempCore[edit] = session->tempCore;
-    // Reconfigurar
-    mat::leastsquares(3, 2, session->settings.tempCore,
-                      session->settings.tempEx, session->thCfs[1]);
+void scrCalib::rotate(const char forward) {
+  if ( forward ){
+    if (edit < 0) {
+      // Nenhum item sendo editado, iluminar item posterior
+      highlight = (highlight + 1) % nitems;
+    } else {
+      // Ajustar temperatura estimada conforme probe externo
+      session->settings.tempEx[edit] += 5;
+      // Registrar qual é a temperatura interna ao final da aferição
+      session->settings.tempCore[edit] = session->tempCore;
+      // Reconfigurar
+      mat::leastsquares(3, 2, session->settings.tempCore,
+                        session->settings.tempEx, session->thCfs[1]);
+    }
+  }
+  else {
+    if (edit < 0) {
+      // Nenhum item sendo editado, iluminar item anterior
+      if (--highlight < 0)
+        highlight = nitems - 1;
+    } else {
+      // Ajustar temperatura estimada conforme probe externo
+      session->settings.tempEx[edit] -= 5;
+      // Registrar qual é a temperatura interna ao final da aferição
+      session->settings.tempCore[edit] = session->tempCore;
+      // Reconfigurar
+      mat::leastsquares(3, 2, session->settings.tempCore,
+                        session->settings.tempEx, session->thCfs[1]);
+    }
   }
 }
 
-void scrCalib::ccw() {
-  if (edit < 0) {
-    // Nenhum item sendo editado, iluminar item anterior
-    if (--highlight < 0)
-      highlight = nitems - 1;
-  } else {
-    // Ajustar temperatura estimada conforme probe externo
-    session->settings.tempEx[edit] -= 5;
-    // Registrar qual é a temperatura interna ao final da aferição
-    session->settings.tempCore[edit] = session->tempCore;
-    // Reconfigurar
-    mat::leastsquares(3, 2, session->settings.tempCore,
-                      session->settings.tempEx, session->thCfs[1]);
-  }
-}
-
-Screen *scrCalib::btTopDown() { return this; }
-
-Screen *scrCalib::btTopUp() {
+Screen *scrCalib::btTop() {
 
   if (edit < 0) {
     edit = highlight;
@@ -368,9 +362,7 @@ Screen *scrCalib::btTopUp() {
   return this;
 }
 
-Screen *scrCalib::btFrontDown() { return this; }
-
-Screen *scrCalib::btFrontUp() {
+Screen *scrCalib::btFront() {
   session->save();
   // Chamar a tela definida em leave
   session->changed = true;
@@ -427,30 +419,29 @@ void scrPID::show() {
   } while (display->nextPage());
 }
 
-void scrPID::cw() {
-  if (edit < 0) {
-    // Nenhum item sendo editado, iluminar item posterior
-    highlight = (highlight + 1) % nitems;
-  } else {
-    // Ajustar coeficiente
-    session->settings.PID[edit] += (edit == 1) ? 1e-4 : 1e-2;
+void scrPID::rotate(const char forward) {
+  if ( forward ) {
+    if (edit < 0) {
+      // Nenhum item sendo editado, iluminar item posterior
+      highlight = (highlight + 1) % nitems;
+    } else {
+      // Ajustar coeficiente
+      session->settings.PID[edit] += (edit == 1) ? 1e-4 : 1e-2;
+    }
+  }
+  else {
+    if (edit < 0) {
+      // Nenhum item sendo editado, iluminar item anterior
+      if (--highlight < 0)
+        highlight = nitems - 1;
+    } else {
+      // Ajustar coeficiente
+      session->settings.PID[edit] -= (edit == 1) ? 1e-4 : 1e-2;
+    }
   }
 }
 
-void scrPID::ccw() {
-  if (edit < 0) {
-    // Nenhum item sendo editado, iluminar item anterior
-    if (--highlight < 0)
-      highlight = nitems - 1;
-  } else {
-    // Ajustar coeficiente
-    session->settings.PID[edit] -= (edit == 1) ? 1e-4 : 1e-2;
-  }
-}
-
-Screen *scrPID::btTopDown() { return this; }
-
-Screen *scrPID::btTopUp() {
+Screen *scrPID::btTop() {
 
   if (edit < 0) {
     edit = highlight;
@@ -461,9 +452,7 @@ Screen *scrPID::btTopUp() {
   return this;
 }
 
-Screen *scrPID::btFrontDown() { return this; }
-
-Screen *scrPID::btFrontUp() {
+Screen *scrPID::btFront() {
   session->save();
   // Chamar a tela definida em leave
   session->changed = true;
