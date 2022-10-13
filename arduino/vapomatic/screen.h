@@ -23,6 +23,9 @@ public:
   virtual Screen *btFrontDown();
   virtual Screen *btFrontUp();
 
+  // Tela exibida ao pressionar botão central
+  Screen *leave;
+
 protected:
   Session *session;
   U8G2_SH1106_128X64_NONAME_2_HW_I2C *display;
@@ -39,9 +42,6 @@ public:
   Screen *btTopUp();
   Screen *btFrontDown();
   Screen *btFrontUp();
-
-  // Tela exibida ao pressionar botão central
-  Screen *leave;
 };
 
 class scrSetup : public Screen {
@@ -61,9 +61,6 @@ public:
   // Itens na tela
   int nitems;
   int highlight;
-
-  // Tela exibida ao pressionar botão central
-  Screen *leave;
 };
 
 class scrCalib : public Screen {
@@ -77,9 +74,6 @@ public:
   Screen *btFrontDown();
   Screen *btFrontUp();
 
-  // Tela exibida ao pressionar botão central
-  Screen *leave;
-
   // Itens na tela
   int nitems;
   int highlight;
@@ -87,7 +81,6 @@ public:
 
   // Valores de tempTarget para cada estágio da calibragem
   const int calibTarget[3] = {50, 150, 210};
-
 };
 
 class scrPID : public Screen {
@@ -101,14 +94,10 @@ public:
   Screen *btFrontDown();
   Screen *btFrontUp();
 
-  // Tela exibida ao pressionar botão central
-  Screen *leave;
-
   // Itens na tela
   int nitems;
   int highlight;
   int edit;
-
 };
 
 #endif

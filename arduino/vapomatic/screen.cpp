@@ -4,15 +4,15 @@
 #include "session.h"
 
 Screen::Screen(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
-    : session(session), display(display) {}
+    : session(session), display(display) {
+  leave = NULL;
+}
 
 /***
  * Tela principal
  */
 scrMain::scrMain(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
-    : Screen(session, display) {
-  leave = NULL;
-}
+    : Screen(session, display) {}
 
 /*
 void scrMain::splash() {
@@ -134,7 +134,7 @@ void scrMain::show() {
     str = String(session->elapsed / 60) + "m" + String(session->elapsed % 60) +
           "s";
     if (!session->running()) {
-      str = (session->elapsed == 0) ? "Parado" : str;
+      str = (session->elapsed == 0) ? "VAPOMATIC" : str;
     }
 
     display->drawUTF8(
@@ -180,9 +180,7 @@ Screen *scrMain::btFrontUp() {
  */
 scrSetup::scrSetup(Session *session,
                    U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
-    : Screen(session, display) {
-  leave = NULL;
-}
+    : Screen(session, display) {}
 
 void scrSetup::show() {
 
@@ -265,9 +263,7 @@ Screen *scrSetup::btFrontUp() {
  */
 scrCalib::scrCalib(Session *session,
                    U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
-    : Screen(session, display) {
-  leave = NULL;
-}
+    : Screen(session, display) {}
 
 void scrCalib::show() {
 
@@ -380,11 +376,8 @@ Screen *scrCalib::btFrontUp() {
 /***
  * Tela para alterar coeficientes do PID
  */
-scrPID::scrPID(Session *session,
-                   U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
-    : Screen(session, display) {
-  leave = NULL;
-}
+scrPID::scrPID(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
+    : Screen(session, display) {}
 
 void scrPID::show() {
 
@@ -410,16 +403,15 @@ void scrPID::show() {
         13, strVal.c_str());
 
     for (int i = 0; i < nitems; ++i) {
+      display->setDrawColor(1);
+      strVal = String(session->PID[i]);
+      display->drawUTF8(0, 15 + (i + 1) * 13, strVal.c_str());
+
       // Mudar cor se item iluminado
       if (highlight == i && edit < 0)
         display->setDrawColor(0);
       else
         display->setDrawColor(1);
-
-      strVal = String(session->PID[i]);
-      display->drawUTF8(0, 15 + (i + 1) * 13, strVal.c_str());
-
-      display->setDrawColor(1);
       display->drawUTF8(
           (int)(round((float)(128 - display->getUTF8Width(labels[i])) / 2.0)),
           15 + (i + 1) * 13, labels[i]);
@@ -443,7 +435,7 @@ void scrPID::cw() {
     highlight = (highlight + 1) % nitems;
   } else {
     // Ajustar coeficiente
-    session->settings.PID[edit] += (edit == 1 ) ? 1e-4 : 1e-2;
+    session->settings.PID[edit] += (edit == 1) ? 1e-4 : 1e-2;
   }
 }
 
@@ -454,7 +446,7 @@ void scrPID::ccw() {
       highlight = nitems - 1;
   } else {
     // Ajustar coeficiente
-    session->settings.PID[edit] -= (edit == 1 ) ? 1e-4 : 1e-2;
+    session->settings.PID[edit] -= (edit == 1) ? 1e-4 : 1e-2;
   }
 }
 
@@ -474,9 +466,8 @@ Screen *scrPID::btTopUp() {
 Screen *scrPID::btFrontDown() { return this; }
 
 Screen *scrPID::btFrontUp() {
-  //session->save();
+  session->save();
   // Chamar a tela definida em leave
   session->changed = true;
   return leave;
 }
-
