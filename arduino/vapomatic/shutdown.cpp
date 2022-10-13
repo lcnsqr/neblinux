@@ -1,17 +1,16 @@
 #include "shutdown.h"
+#include "mat.h"
 #include "session.h"
 #include "task.h"
 #include <Arduino.h>
-#include "mat.h"
 
 Shutdown::Shutdown(Session *session, unsigned long wait)
     : Task(wait), session(session) {
 
-  for ( int i = 0; i < pts; ++i ) {
+  for (int i = 0; i < pts; ++i) {
     x[i] = (float)i;
     y[i] = 0;
   }
-
 }
 
 void Shutdown::action() {
@@ -19,7 +18,7 @@ void Shutdown::action() {
   if (!(session->running() && session->settings.shutEnabled))
     return;
 
-  for ( int i = 1; i < pts; ++i )
+  for (int i = 1; i < pts; ++i)
     y[i - 1] = y[i];
 
   y[pts - 1] = session->tempEx - session->tempTarget;

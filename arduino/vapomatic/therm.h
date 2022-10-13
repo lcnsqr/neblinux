@@ -30,7 +30,6 @@ private:
 
   // Analog in
   int port;
-
 };
 
 #endif

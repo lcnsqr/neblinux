@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 Therm::Therm(Session *session, int port, unsigned long wait)
-    : Task(wait), session(session), port(port) { }
+    : Task(wait), session(session), port(port) {}
 
 void Therm::action() {
   int bufSum = 0;

@@ -101,14 +101,16 @@ void scrMain::show() {
       tempEx = session->tempMin;
     if (tempEx > session->tempMax)
       tempEx = session->tempMax;
-    tempDial = round(32.0 * (tempEx - session->tempMin) / (session->tempMax - session->tempMin));
+    tempDial = round(32.0 * (tempEx - session->tempMin) /
+                     (session->tempMax - session->tempMin));
     display->drawBox(56, (u8g2_uint_t)(34 - tempDial), 6,
                      (u8g2_uint_t)tempDial);
 
     // Escala objetivo
     display->drawFrame(66, 2, 6, 32);
-    tempDial = (u8g2_uint_t)round(32.0 * (session->tempTarget - session->tempMin) /
-                                  (session->tempMax - session->tempMin));
+    tempDial =
+        (u8g2_uint_t)round(32.0 * (session->tempTarget - session->tempMin) /
+                           (session->tempMax - session->tempMin));
     display->drawBox(66, 34 - tempDial, 6, tempDial);
 
     // 16 pixel height
@@ -385,20 +387,14 @@ void scrDebug::show() {
   const int rows = 5;
   const int nfields = 10;
   const struct {
-    char* label;
-    float* value;
+    char *label;
+    float *value;
   } field[nfields] = {
-    {"Th", &session->analogTherm},
-    {"P", &session->PID[0]},
-    {"I", &session->PID[1]},
-    {"D", &session->PID[2]},
-    {"Ga", &session->PID[4]},
-    {"Ta", &session->tempTarget},
-    {"Co", &session->tempCore},
-    {"Ex", &session->tempEx},
-    {"s0", &session->shut[0]},
-    {"s1", &session->shut[1]}
-  };
+      {"Th", &session->analogTherm}, {"P", &session->PID[0]},
+      {"I", &session->PID[1]},       {"D", &session->PID[2]},
+      {"Ga", &session->PID[4]},      {"Ta", &session->tempTarget},
+      {"Co", &session->tempCore},    {"Ex", &session->tempEx},
+      {"s0", &session->shut[0]},     {"s1", &session->shut[1]}};
 
   // Valor formatado
   String strVal;
@@ -410,16 +406,15 @@ void scrDebug::show() {
   display->firstPage();
   do {
 
-
     for (int i = 0; i < nfields; ++i) {
 
       display->drawUTF8((i / rows) * 64, (i % rows + 1) * 12, field[i].label);
 
       strVal = String(*field[i].value);
       display->drawUTF8(
-          (int)round((i / rows) * 64 + (float)(62 - display->getUTF8Width(strVal.c_str()))),
+          (int)round((i / rows) * 64 +
+                     (float)(62 - display->getUTF8Width(strVal.c_str()))),
           (i % rows + 1) * 12, strVal.c_str());
-
     }
 
   } while (display->nextPage());
