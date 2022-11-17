@@ -42,7 +42,7 @@ void Monitor::action() {
   if ((int)session->tempCore != (int)local.tempCore ||
       (int)session->tempEx != (int)local.tempEx) {
     local.tempCore = session->tempCore;
-    session->changed = true;
+    //session->changed = true;
   }
 
   // Contador de tempo
@@ -66,11 +66,11 @@ void Monitor::action() {
   // Detector de encerramento
   if (session->shut[0] != local.shut[0]) {
     local.shut[0] = session->shut[0];
-    session->changed = true;
+    //session->changed = true;
   }
   if (session->shut[1] != local.shut[1]) {
     local.shut[1] = session->shut[1];
-    session->changed = true;
+    //session->changed = true;
   }
 
   // Avaliar estado de pressionamento dos botões;
