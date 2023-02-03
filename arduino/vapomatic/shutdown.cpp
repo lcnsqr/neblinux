@@ -30,7 +30,8 @@ void Shutdown::action() {
   // Desligar se detectado crescimento
   // íngreme da distância temp - alvo.
   if (session->shut[0] > session->settings.shutLim[0] &&
-      session->shut[1] > session->settings.shutLim[1]) {
+      session->shut[1] > session->settings.shutLim[1] &&
+      session->tempEx > session->tempTarget) {
     session->stop();
   }
 }
