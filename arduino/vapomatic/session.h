@@ -23,7 +23,7 @@ public:
   void reset();
 
   // Mínimo e máximo aquecimento
-  static const float tempMin = 100.0;
+  static const float tempMin = 20.0;
   static const float tempMax = 220.0;
 
   // Configurações
