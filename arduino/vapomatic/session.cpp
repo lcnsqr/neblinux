@@ -47,9 +47,9 @@ void Session::save() { EEPROM.put(0, settings); }
 
 void Session::reset() {
   // Temperaturas antes de calibrar
-  settings.tempCore[0] = 66.57;
-  settings.tempCore[1] = 89.89;
-  settings.tempCore[2] = 120.23;
+  settings.tempCore[0] = 81.16;
+  settings.tempCore[1] = 105.49;
+  settings.tempCore[2] = 152.40;
   settings.tempEx[0] = 140;
   settings.tempEx[1] = 180;
   settings.tempEx[2] = 220;
