@@ -32,7 +32,7 @@ Fan fan(7, &session, 75);
 // Controle do aquecedor
 Heater heater(5, &session, 38);
 // Para de encher automaticamente
-Shutdown shutdown(&session, 1500);
+Shutdown shutdown(&session, 3000);
 // Transmitir estado via serial
 Log logger(&session, 500);
 
