@@ -6,7 +6,8 @@
 #include "screen.h"
 #include "session.h"
 #include "shutdown.h"
-#include "log.h"
+// Armazenamento insuficiente no atmega328p, deixar fora
+//#include "log.h"
 #include "task.h"
 #include "therm.h"
 
@@ -32,13 +33,13 @@ Fan fan(7, &session, 75);
 // Controle do aquecedor
 Heater heater(5, &session, 38);
 // Para de encher automaticamente
-Shutdown shutdown(&session, 3000);
+Shutdown shutdown(&session, 2000);
 // Transmitir estado via serial
-Log logger(&session, 500);
+//Log logger(&session, 500);
 
 void setup() {
 
-  Serial.begin(115200);
+  //Serial.begin(115200);
 
   // Configurar sessão
   session.load();
@@ -60,32 +61,32 @@ void loop() { tasks.run(); }
 void setupUI() {
 
   // Qual tela chamar com botão frontal na tela principal
-  //uiMain.leave = &uiSetup;
+  uiMain.leave = &uiSetup;
 
   /**
    * Tela de setup
    */
- //uiSetup.nitems = 4;
- //uiSetup.screens[0] = &uiCalib;
- //uiSetup.screens[1] = &uiPID;
- //uiSetup.highlight = 0;
- //uiSetup.leave = &uiMain;
+  uiSetup.nitems = 4;
+  uiSetup.screens[0] = &uiCalib;
+  uiSetup.screens[1] = &uiPID;
+  uiSetup.highlight = 0;
+  uiSetup.leave = &uiMain;
 
   /**
    * Tela de calibragem
    */
- //uiCalib.nitems = 3;
- //uiCalib.highlight = 0;
- //uiCalib.edit = -1;
- //uiCalib.leave = &uiSetup;
+  uiCalib.nitems = 3;
+  uiCalib.highlight = 0;
+  uiCalib.edit = -1;
+  uiCalib.leave = &uiSetup;
 
   /**
    * Configurações do PID
    */
- //uiPID.nitems = 3;
- //uiPID.highlight = 0;
- //uiPID.edit = -1;
- //uiPID.leave = &uiSetup;
+  uiPID.nitems = 3;
+  uiPID.highlight = 0;
+  uiPID.edit = -1;
+  uiPID.leave = &uiSetup;
 
   // Subir display
   display.begin();

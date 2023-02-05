@@ -30,7 +30,7 @@ void Session::load() {
   // Temperatura alvo
   tempTarget = settings.tempTarget;
 
-  // thCfs[0] : Coeficientes usados quando desativado
+  // thCfs[0] : Coeficientes temperatura usados quando desativado
   thCfs[0][0] = 0;
   thCfs[0][1] = 1.0;
   thCfs[0][2] = 0;
@@ -57,12 +57,12 @@ void Session::reset() {
   settings.tempTarget = 180;
 
   // Coeficientes PID
-  settings.PID[0] = 1e-2;
-  settings.PID[1] = 2e-4;
-  settings.PID[2] = 7e-2;
+  settings.PID[0] = 0.08;
+  settings.PID[1] = 0.0008;
+  settings.PID[2] = 0;
 
   // Limiares de desligamento
-  settings.shutLim[0] = 4.0;
+  settings.shutLim[0] = 1.0;
   settings.shutLim[1] = 1.0;
   settings.shutEnabled = 1;
 

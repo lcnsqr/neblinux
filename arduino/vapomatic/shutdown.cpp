@@ -15,8 +15,8 @@ Shutdown::Shutdown(Session *session, unsigned long wait)
 
 void Shutdown::action() {
 
- //if (!(session->running() && session->settings.shutEnabled))
- //  return;
+  if (!(session->running() && session->settings.shutEnabled))
+    return;
 
   for (int i = 1; i < pts; ++i)
     y[i - 1] = y[i];
@@ -29,8 +29,8 @@ void Shutdown::action() {
 
   // Desligar se detectado crescimento
   // íngreme da distância temp - alvo.
- //if (session->shut[0] > session->settings.shutLim[0] &&
- //    session->shut[1] > session->settings.shutLim[1]) {
- //  session->stop();
- //}
+  if (session->shut[0] > session->settings.shutLim[0] &&
+      session->shut[1] > session->settings.shutLim[1]) {
+    session->stop();
+  }
 }
