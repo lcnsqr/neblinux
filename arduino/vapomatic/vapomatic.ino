@@ -53,7 +53,7 @@ void setup() {
   tasks.add(&fan);
   tasks.add(&heater);
   tasks.add(&shutdown);
-  tasks.add(&logger);
+  //tasks.add(&logger);
 }
 
 void loop() { tasks.run(); }
