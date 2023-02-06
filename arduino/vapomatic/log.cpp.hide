@@ -3,13 +3,11 @@
 #include "task.h"
 #include <Arduino.h>
 
-Log::Log(Session *session, unsigned long wait)
-    : Task(wait), session(session) {
-
-}
+Log::Log(Session *session, unsigned long wait) : Task(wait), session(session) {}
 
 void Log::action() {
-  if ( ! session->running() ) return;
+  if (!session->running())
+    return;
 
   Serial.print(millis());
   Serial.print("\t");
@@ -44,8 +42,7 @@ void Log::action() {
   if (session->elapsed > session->settings.shutLim[0] &&
       session->shut[1] < session->settings.shutLim[1]) {
     Serial.print("off");
-  }
-  else {
+  } else {
     Serial.print("on");
   }
   Serial.print("\n");

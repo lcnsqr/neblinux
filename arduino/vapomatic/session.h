@@ -6,8 +6,8 @@ struct Settings {
   float tempCore[3]; // Temperaturas internas na calibragem
   float tempEx[3];   // Temperaturas aferidas na calibragem
   float PID[3];      // Coeficientes PID
-  bool shutEnabled; // Desligamento automático ativo/inativo
-  float tempTarget; // Temperatura alvo padrão
+  bool shutEnabled;  // Desligamento automático ativo/inativo
+  float tempTarget;  // Temperatura alvo padrão
 };
 
 // Estado e IPC

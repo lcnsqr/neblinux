@@ -8,14 +8,12 @@ Screen::Screen(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
   leave = NULL;
 }
 
-void Screen::h1Setup(String &str){
-  str = String((int)session->PID[4]) + " / " +
-           String((int)session->tempCore) + " °C / " +
-           String((int)session->tempEx) + " °C";
+void Screen::h1Setup(String &str) {
+  str = String((int)session->PID[4]) + " / " + String((int)session->tempCore) +
+        " °C / " + String((int)session->tempEx) + " °C";
   display->drawUTF8(
-      (int)(round((float)(128 - display->getUTF8Width(str.c_str())) /
-                  2.0)),
-      13, str.c_str());
+      (int)(round((float)(128 - display->getUTF8Width(str.c_str())) / 2.0)), 13,
+      str.c_str());
 }
 
 /***
@@ -151,12 +149,11 @@ void scrMain::show() {
 }
 
 void scrMain::rotate(const char forward) {
-  if ( forward ){
+  if (forward) {
     if (session->tempTarget + 10 > session->tempMax)
       return;
     session->tempTarget += 10;
-  }
-  else {
+  } else {
     if (session->tempTarget - 10 < session->tempMin)
       return;
     session->tempTarget -= 10;
@@ -221,15 +218,14 @@ void scrSetup::show() {
 }
 
 void scrSetup::rotate(const char forward) {
-  if ( forward ) {
+  if (forward) {
     // Iluminar item posterior
     highlight = (highlight + 1) % nitems;
-  }
-  else {
+  } else {
     // Iluminar item anterior
     if (--highlight < 0)
       highlight = nitems - 1;
-    }
+  }
 }
 
 Screen *scrSetup::btTop() {
@@ -309,7 +305,7 @@ void scrCalib::show() {
 }
 
 void scrCalib::rotate(const char forward) {
-  if ( forward ){
+  if (forward) {
     if (edit < 0) {
       // Nenhum item sendo editado, iluminar item posterior
       highlight = (highlight + 1) % nitems;
@@ -322,8 +318,7 @@ void scrCalib::rotate(const char forward) {
       mat::leastsquares(3, 2, session->settings.tempCore,
                         session->settings.tempEx, session->thCfs[1]);
     }
-  }
-  else {
+  } else {
     if (edit < 0) {
       // Nenhum item sendo editado, iluminar item anterior
       if (--highlight < 0)
@@ -416,7 +411,7 @@ void scrPID::show() {
 }
 
 void scrPID::rotate(const char forward) {
-  if ( forward ) {
+  if (forward) {
     if (edit < 0) {
       // Nenhum item sendo editado, iluminar item posterior
       highlight = (highlight + 1) % nitems;
@@ -424,8 +419,7 @@ void scrPID::rotate(const char forward) {
       // Ajustar coeficiente
       session->settings.PID[edit] += (edit == 1) ? 1e-4 : 1e-2;
     }
-  }
-  else {
+  } else {
     if (edit < 0) {
       // Nenhum item sendo editado, iluminar item anterior
       if (--highlight < 0)

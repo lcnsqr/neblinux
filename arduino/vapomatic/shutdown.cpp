@@ -29,7 +29,7 @@ void Shutdown::action() {
   mat::leastsquares(pts, 1, x, y, session->shut);
 
   // Desligar se detectado queda íngreme na carga após 60s.
-  if (session->shut[1] < slope && session->elapsed > minsec ) {
+  if (session->shut[1] < slope && session->elapsed > minsec) {
     session->stop();
   }
 }

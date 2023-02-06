@@ -73,10 +73,12 @@ void Monitor::action() {
   // A ação do botão pode alterar a tela atual.
   btTopSt[0] = btTopSt[1]; // Copiar estado anterior do botão superior
   btTopSt[1] = (digitalRead(btTop) == LOW) ? 1 : 0; // LOW é pressionado
-  if (btTopSt[0] == 1 && btTopSt[1] == 0) screen = screen->btTop(); // Botão pra cima
-  btFrontSt[0] = btFrontSt[1];  // Copiar estador anterior do botão frontal
+  if (btTopSt[0] == 1 && btTopSt[1] == 0)
+    screen = screen->btTop();  // Botão pra cima
+  btFrontSt[0] = btFrontSt[1]; // Copiar estador anterior do botão frontal
   btFrontSt[1] = (digitalRead(btFront) == LOW) ? 1 : 0; // LOW é pressionado
-  if (btFrontSt[0] == 1 && btFrontSt[1] == 0) screen = screen->btFront(); // Botão pra cima
+  if (btFrontSt[0] == 1 && btFrontSt[1] == 0)
+    screen = screen->btFront(); // Botão pra cima
 
   // Resposta ao rotary também depende da tela atual.
   // O estado está em *encoderMove* no caso do rotary encoder.

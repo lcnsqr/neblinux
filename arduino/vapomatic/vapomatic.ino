@@ -37,11 +37,11 @@ Heater heater(5, &session, 38);
 // O declive importante aparece num intervalo ~ 10s
 Shutdown shutdown(&session, 3500);
 // Transmitir estado via serial
-//Log logger(&session, 500);
+// Log logger(&session, 500);
 
 void setup() {
 
-  //Serial.begin(115200);
+  // Serial.begin(115200);
 
   // Configurar sessão
   session.load();
@@ -55,7 +55,7 @@ void setup() {
   tasks.add(&fan);
   tasks.add(&heater);
   tasks.add(&shutdown);
-  //tasks.add(&logger);
+  // tasks.add(&logger);
 }
 
 void loop() { tasks.run(); }
