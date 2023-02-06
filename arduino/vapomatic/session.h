@@ -6,8 +6,6 @@ struct Settings {
   float tempCore[3]; // Temperaturas internas na calibragem
   float tempEx[3];   // Temperaturas aferidas na calibragem
   float PID[3];      // Coeficientes PID
-  float shutLim[2]; // Limiares de desligamento (y-intercept e slope da função
-                    // temp - alvo)
   bool shutEnabled; // Desligamento automático ativo/inativo
   float tempTarget; // Temperatura alvo padrão
 };
@@ -50,7 +48,7 @@ public:
   // thCfs[1] : Coeficientes usados quando ativado
   float thCfs[2][3];
 
-  // Indicadores de encerramento
+  // Indicador de encerramento
   float shut[2];
 
   // Rotary variável auxiliar

@@ -36,11 +36,17 @@ void Log::action() {
   Serial.print(session->tempEx);
   Serial.print("\t");
 
-  // Indicadores de encerramento
-  Serial.print(session->tempEx - session->tempTarget);
-  Serial.print("\t");
+  // Indicador de encerramento
   Serial.print(session->shut[0]);
   Serial.print("\t");
   Serial.print(session->shut[1]);
+  Serial.print("\t");
+  if (session->elapsed > session->settings.shutLim[0] &&
+      session->shut[1] < session->settings.shutLim[1]) {
+    Serial.print("off");
+  }
+  else {
+    Serial.print("on");
+  }
   Serial.print("\n");
 }

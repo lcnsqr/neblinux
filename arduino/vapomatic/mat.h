@@ -10,7 +10,7 @@ int elem(int rows, int cols, int r, int c);
 
 // https://rosettacode.org/wiki/Matrix_multiplication#C
 void mult(const int m, const int n, const int p, float *const a, float *const b,
-          float *const c);
+          float *c);
 
 /*----------------------------------------------------------------------
 gjinv - Invert a matrix, Gauss-Jordan algorithm

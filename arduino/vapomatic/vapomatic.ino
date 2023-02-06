@@ -33,7 +33,9 @@ Fan fan(7, &session, 75);
 // Controle do aquecedor
 Heater heater(5, &session, 38);
 // Para de encher automaticamente
-Shutdown shutdown(&session, 2000);
+// Três pontos amostrais separados por 3.5s
+// O declive importante aparece num intervalo ~ 10s
+Shutdown shutdown(&session, 3500);
 // Transmitir estado via serial
 //Log logger(&session, 500);
 

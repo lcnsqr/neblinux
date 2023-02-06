@@ -37,7 +37,7 @@ int mat::leastsquares(int m, int n, float x[], float y[], float c[]) {
 int mat::elem(int rows, int cols, int r, int c) { return r * cols + c; }
 
 void mat::mult(const int m, const int n, const int p, float *const a,
-               float *const b, float *const c) {
+               float *const b, float *c) {
   for (int row = 0; row < m; row++) {
     for (int col = 0; col < p; col++) {
       c[mat::elem(m, p, row, col)] = 0;

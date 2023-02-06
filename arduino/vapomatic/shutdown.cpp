@@ -21,16 +21,15 @@ void Shutdown::action() {
   for (int i = 1; i < pts; ++i)
     y[i - 1] = y[i];
 
-  y[pts - 1] = session->tempEx - session->tempTarget;
+  // Valor no atuador 0 - 255
+  y[pts - 1] = session->PID[4];
 
   // Pontos correspondem às últimas leituras de temperatura.
-  // Polinômio interpolador para regressão de segunda ordem.
-  mat::leastsquares(pts, 2, x, y, session->shut);
+  // Polinômio interpolador para regressão de primeira ordem.
+  mat::leastsquares(pts, 1, x, y, session->shut);
 
-  // Desligar se detectado crescimento
-  // íngreme da distância temp - alvo.
-  if (session->shut[0] > session->settings.shutLim[0] &&
-      session->shut[1] > session->settings.shutLim[1]) {
+  // Desligar se detectado queda íngreme na carga após 60s.
+  if (session->shut[1] < slope && session->elapsed > minsec ) {
     session->stop();
   }
 }

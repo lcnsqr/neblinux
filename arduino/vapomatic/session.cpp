@@ -58,12 +58,10 @@ void Session::reset() {
 
   // Coeficientes PID
   settings.PID[0] = 0.08;
-  settings.PID[1] = 0.0008;
-  settings.PID[2] = 0;
+  settings.PID[1] = 0.0007;
+  settings.PID[2] = 0.06;
 
-  // Limiares de desligamento
-  settings.shutLim[0] = 1.0;
-  settings.shutLim[1] = 1.0;
+  // Desligamento automático
   settings.shutEnabled = 1;
 
   save();
