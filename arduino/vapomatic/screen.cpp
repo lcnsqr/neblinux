@@ -121,7 +121,7 @@ void scrMain::show() {
     display->setFont(u8g2_font_inb16_mn);
 
     // Valores leitura e objetivo
-    str = String((int)session->tempEx);
+    str = String((int)tempEx);
     display->drawStr(52 - display->getStrWidth(str.c_str()), 34, str.c_str());
     str = String((int)session->tempTarget);
     display->drawStr(76, 34, str.c_str());
