@@ -69,7 +69,7 @@ public:
   int edit;
 
   // Valores de tempTarget para cada estágio da calibragem
-  const int calibTarget[3] = {140, 180, 220};
+  const int calibTarget[3] = {150, 180, 200};
 };
 
 class scrPID : public Screen {

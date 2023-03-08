@@ -50,9 +50,9 @@ void Session::reset() {
   settings.tempCore[0] = 81.16;
   settings.tempCore[1] = 105.49;
   settings.tempCore[2] = 152.40;
-  settings.tempEx[0] = 140;
+  settings.tempEx[0] = 150;
   settings.tempEx[1] = 180;
-  settings.tempEx[2] = 220;
+  settings.tempEx[2] = 200;
 
   settings.tempTarget = 180;
 
