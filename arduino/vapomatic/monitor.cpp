@@ -39,9 +39,9 @@ void Monitor::action() {
   // Se sim, atualizar a tela.
 
   // Temperatura atual
-  if ((int)session->tempCore != (int)local.tempCore ||
-      (int)session->tempEx != (int)local.tempEx) {
-    local.tempCore = session->tempCore;
+  if ((int)session->state.tempCore != (int)local.state.tempCore ||
+      (int)session->state.tempEx != (int)local.state.tempEx) {
+    local.state.tempCore = session->state.tempCore;
     session->changed = true;
   }
 
@@ -50,22 +50,22 @@ void Monitor::action() {
     counting = session->running();
     if (counting) {
       started = millis();
-      session->elapsed = 0;
+      session->state.elapsed = 0;
       elapsed = 0;
     }
   }
   if (counting) {
     elapsed = millis() - started;
-    session->elapsed = elapsed / 1000;
+    session->state.elapsed = elapsed / 1000;
   }
-  if (session->elapsed != local.elapsed) {
-    local.elapsed = session->elapsed;
+  if (session->state.elapsed != local.state.elapsed) {
+    local.state.elapsed = session->state.elapsed;
     session->changed = true;
   }
 
   // Detector de encerramento
-  if (session->shut[1] != local.shut[1]) {
-    local.shut[1] = session->shut[1];
+  if (session->state.shut[1] != local.state.shut[1]) {
+    local.state.shut[1] = session->state.shut[1];
     session->changed = true;
   }
 

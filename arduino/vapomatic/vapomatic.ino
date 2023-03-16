@@ -6,8 +6,6 @@
 #include "screen.h"
 #include "session.h"
 #include "shutdown.h"
-// Armazenamento insuficiente no atmega328p, deixar fora
-//#include "log.h"
 #include "task.h"
 #include "therm.h"
 
@@ -22,8 +20,8 @@ U8G2_SH1106_128X64_NONAME_2_HW_I2C display(U8G2_R2, U8X8_PIN_NONE);
 // Telas da UI
 scrMain uiMain(&session, &display);
 scrSetup uiSetup(&session, &display);
-scrCalib uiCalib(&session, &display);
-scrPID uiPID(&session, &display);
+//scrCalib uiCalib(&session, &display);
+//scrPID uiPID(&session, &display);
 // Monitoramento de eventos
 Monitor monitor(&session, &uiMain, 4, 8, 25);
 // Callback de eventos do rotary encoder
@@ -36,8 +34,6 @@ Heater heater(5, &session, 38);
 // Três pontos amostrais separados por 3.5s
 // O declive importante aparece num intervalo ~ 10s
 Shutdown shutdown(&session, 3500);
-// Transmitir estado via serial
-// Log logger(&session, 500);
 
 void setup() {
 
@@ -55,7 +51,6 @@ void setup() {
   tasks.add(&fan);
   tasks.add(&heater);
   tasks.add(&shutdown);
-  // tasks.add(&logger);
 }
 
 void loop() { tasks.run(); }
@@ -69,26 +64,26 @@ void setupUI() {
    * Tela de setup
    */
   uiSetup.nitems = 4;
-  uiSetup.screens[0] = &uiCalib;
-  uiSetup.screens[1] = &uiPID;
+  //uiSetup.screens[0] = &uiCalib;
+  //uiSetup.screens[1] = &uiPID;
   uiSetup.highlight = 0;
   uiSetup.leave = &uiMain;
 
   /**
    * Tela de calibragem
    */
-  uiCalib.nitems = 3;
-  uiCalib.highlight = 0;
-  uiCalib.edit = -1;
-  uiCalib.leave = &uiSetup;
+  //uiCalib.nitems = 3;
+  //uiCalib.highlight = 0;
+  //uiCalib.edit = -1;
+  //uiCalib.leave = &uiSetup;
 
   /**
    * Configurações do PID
    */
-  uiPID.nitems = 3;
-  uiPID.highlight = 0;
-  uiPID.edit = -1;
-  uiPID.leave = &uiSetup;
+  //uiPID.nitems = 3;
+  //uiPID.highlight = 0;
+  //uiPID.edit = -1;
+  //uiPID.leave = &uiSetup;
 
   // Subir display
   display.begin();

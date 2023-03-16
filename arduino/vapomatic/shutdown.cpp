@@ -22,14 +22,14 @@ void Shutdown::action() {
     y[i - 1] = y[i];
 
   // Valor no atuador 0 - 255
-  y[pts - 1] = session->PID[4];
+  y[pts - 1] = session->state.PID[4];
 
   // Pontos correspondem às últimas leituras de temperatura.
   // Polinômio interpolador para regressão de primeira ordem.
-  mat::leastsquares(pts, 1, x, y, session->shut);
+  mat::leastsquares(pts, 1, x, y, session->state.shut);
 
   // Desligar se detectado queda íngreme na carga após 60s.
-  if (session->shut[1] < slope && session->elapsed > minsec) {
+  if (session->state.shut[1] < slope && session->state.elapsed > minsec) {
     session->stop();
   }
 }

@@ -5,22 +5,22 @@
 Session::Session() {
 
   changed = false;
-  tempCore = 0;
-  tempEx = 0;
-  tempTarget = 0;
+  state.tempCore = 0;
+  state.tempEx = 0;
+  state.tempTarget = 0;
 
-  on = false;
+  state.on = false;
 
-  elapsed = 0;
+  state.elapsed = 0;
 
-  PID[0] = 0;
-  PID[1] = 0;
-  PID[2] = 0;
-  PID[3] = 0;
-  PID[4] = 0;
+  state.PID[0] = 0;
+  state.PID[1] = 0;
+  state.PID[2] = 0;
+  state.PID[3] = 0;
+  state.PID[4] = 0;
 
-  shut[0] = 0;
-  shut[1] = 0;
+  state.shut[0] = 0;
+  state.shut[1] = 0;
 }
 
 void Session::load() {
@@ -28,19 +28,19 @@ void Session::load() {
   EEPROM.get(0, settings);
 
   // Temperatura alvo
-  tempTarget = settings.tempTarget;
+  state.tempTarget = settings.tempTarget;
 
   // thCfs[0] : Coeficientes temperatura usados quando desativado
-  thCfs[0][0] = 0;
-  thCfs[0][1] = 1.0;
-  thCfs[0][2] = 0;
+  state.thCfs[0][0] = 0;
+  state.thCfs[0][1] = 1.0;
+  state.thCfs[0][2] = 0;
 
   // Quantidade de pontos de calibragem
   // const int m = 3;
   // Grau do polinômio interpolador
   // const int n = 2;
   // thCfs[1] : Coeficientes usados quando ativado
-  mat::leastsquares(3, 2, settings.tempCore, settings.tempEx, thCfs[1]);
+  mat::leastsquares(3, 2, settings.tempCore, settings.tempEx, state.thCfs[1]);
 }
 
 void Session::save() { EEPROM.put(0, settings); }
@@ -69,24 +69,24 @@ void Session::reset() {
 }
 
 void Session::start() {
-  on = true;
+  state.on = true;
   changed = true;
 }
 
 void Session::stop() {
-  on = false;
+  state.on = false;
   changed = true;
 
   // Resetar PID
-  PID[0] = 0;
-  PID[1] = 0;
-  PID[2] = 0;
-  PID[3] = 0;
-  PID[4] = 0;
+  state.PID[0] = 0;
+  state.PID[1] = 0;
+  state.PID[2] = 0;
+  state.PID[3] = 0;
+  state.PID[4] = 0;
 
   // Lembrar da temperatura
-  settings.tempTarget = tempTarget;
+  settings.tempTarget = state.tempTarget;
   save();
 }
 
-bool Session::running() { return on; }
+bool Session::running() { return state.on; }

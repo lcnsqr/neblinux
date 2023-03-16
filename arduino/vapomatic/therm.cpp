@@ -13,9 +13,9 @@ void Therm::action() {
     bufCount = 0;
     for (int i = 0; i < bufLen; ++i)
       bufSum += buf[i];
-    session->analogTherm = (float)bufSum / (float)bufLen;
-    session->tempCore = celsiusSteinhart(session->analogTherm);
-    session->tempEx = celsiusPoly(session->tempCore);
+    session->state.analogTherm = (float)bufSum / (float)bufLen;
+    session->state.tempCore = celsiusSteinhart(session->state.analogTherm);
+    session->state.tempEx = celsiusPoly(session->state.tempCore);
   } else {
     buf[bufCount++] = analogRead(port);
   }
@@ -23,8 +23,8 @@ void Therm::action() {
 
 float Therm::celsiusPoly(float core) {
   const int i = (int)session->running();
-  return session->thCfs[i][0] + session->thCfs[i][1] * core +
-         session->thCfs[i][2] * pow(core, 2);
+  return session->state.thCfs[i][0] + session->state.thCfs[i][1] * core +
+         session->state.thCfs[i][2] * pow(core, 2);
 }
 
 float Therm::celsiusSteinhart(float thermistor) {

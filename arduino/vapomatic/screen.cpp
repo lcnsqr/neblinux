@@ -9,8 +9,8 @@ Screen::Screen(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
 }
 
 void Screen::h1Setup(String &str) {
-  str = String((int)session->PID[4]) + " / " + String((int)session->tempCore) +
-        " °C / " + String((int)session->tempEx) + " °C";
+  str = String((int)session->state.PID[4]) + " / " + String((int)session->state.tempCore) +
+        " °C / " + String((int)session->state.tempEx) + " °C";
   display->drawUTF8(
       (int)(round((float)(128 - display->getUTF8Width(str.c_str())) / 2.0)), 13,
       str.c_str());
@@ -100,7 +100,7 @@ void scrMain::show() {
 
     // Escala leitura
     display->drawFrame(56, 2, 6, 32);
-    tempEx = session->tempEx;
+    tempEx = session->state.tempEx;
     if (tempEx < session->tempMin)
       tempEx = session->tempMin;
     if (tempEx > session->tempMax)
@@ -113,7 +113,7 @@ void scrMain::show() {
     // Escala objetivo
     display->drawFrame(66, 2, 6, 32);
     tempDial =
-        (u8g2_uint_t)round(32.0 * (session->tempTarget - session->tempMin) /
+        (u8g2_uint_t)round(32.0 * (session->state.tempTarget - session->tempMin) /
                            (session->tempMax - session->tempMin));
     display->drawBox(66, 34 - tempDial, 6, tempDial);
 
@@ -123,7 +123,7 @@ void scrMain::show() {
     // Valores leitura e objetivo
     str = String((int)tempEx);
     display->drawStr(52 - display->getStrWidth(str.c_str()), 34, str.c_str());
-    str = String((int)session->tempTarget);
+    str = String((int)session->state.tempTarget);
     display->drawStr(76, 34, str.c_str());
 
     // 9 pixel height
@@ -135,10 +135,10 @@ void scrMain::show() {
         46, str.c_str());
 
     // Status
-    str = String(session->elapsed / 60) + "m" + String(session->elapsed % 60) +
+    str = String(session->state.elapsed / 60) + "m" + String(session->state.elapsed % 60) +
           "s";
     if (!session->running()) {
-      str = (session->elapsed == 0) ? "VAPOMATIC" : str;
+      str = (session->state.elapsed == 0) ? "VAPOMATIC" : str;
     }
 
     display->drawUTF8(
@@ -150,13 +150,13 @@ void scrMain::show() {
 
 void scrMain::rotate(const char forward) {
   if (forward) {
-    if (session->tempTarget + 10 > session->tempMax)
+    if (session->state.tempTarget + 10 > session->tempMax)
       return;
-    session->tempTarget += 10;
+    session->state.tempTarget += 10;
   } else {
-    if (session->tempTarget - 10 < session->tempMin)
+    if (session->state.tempTarget - 10 < session->tempMin)
       return;
-    session->tempTarget -= 10;
+    session->state.tempTarget -= 10;
   }
 }
 
@@ -258,193 +258,193 @@ Screen *scrSetup::btFront() {
 /***
  * Tela Calibragem
  */
-scrCalib::scrCalib(Session *session,
-                   U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
-    : Screen(session, display) {}
-
-void scrCalib::show() {
-
-  // Valor formatado
-  String strVal;
-
-  // 9 pixel height
-  display->setFont(u8g2_font_6x13_mf);
-
-  display->firstPage();
-  do {
-
-    display->setDrawColor(1);
-    h1Setup(strVal);
-
-    for (int i = 0; i < nitems; ++i) {
-      // Mudar cor se item iluminado
-      if (highlight == i && edit < 0)
-        display->setDrawColor(0);
-      else
-        display->setDrawColor(1);
-
-      strVal = String(calibTarget[i]) + " °C";
-      display->drawUTF8(0, 15 + (i + 1) * 13, strVal.c_str());
-
-      display->setDrawColor(1);
-      display->drawUTF8(
-          (int)(round((float)(128 - display->getUTF8Width("=")) / 2.0)),
-          15 + (i + 1) * 13, "=");
-
-      strVal = String((int)session->settings.tempEx[i]) + " °C";
-
-      if (highlight == i && edit == i)
-        display->setDrawColor(0);
-      else
-        display->setDrawColor(1);
-      display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
-                        15 + (i + 1) * 13, strVal.c_str());
-    }
-
-  } while (display->nextPage());
-}
-
-void scrCalib::rotate(const char forward) {
-  if (forward) {
-    if (edit < 0) {
-      // Nenhum item sendo editado, iluminar item posterior
-      highlight = (highlight + 1) % nitems;
-    } else {
-      // Ajustar temperatura estimada conforme probe externo
-      session->settings.tempEx[edit] += 5;
-      // Registrar qual é a temperatura interna ao final da aferição
-      session->settings.tempCore[edit] = session->tempCore;
-      // Reconfigurar
-      mat::leastsquares(3, 2, session->settings.tempCore,
-                        session->settings.tempEx, session->thCfs[1]);
-    }
-  } else {
-    if (edit < 0) {
-      // Nenhum item sendo editado, iluminar item anterior
-      if (--highlight < 0)
-        highlight = nitems - 1;
-    } else {
-      // Ajustar temperatura estimada conforme probe externo
-      session->settings.tempEx[edit] -= 5;
-      // Registrar qual é a temperatura interna ao final da aferição
-      session->settings.tempCore[edit] = session->tempCore;
-      // Reconfigurar
-      mat::leastsquares(3, 2, session->settings.tempCore,
-                        session->settings.tempEx, session->thCfs[1]);
-    }
-  }
-}
-
-Screen *scrCalib::btTop() {
-
-  if (edit < 0) {
-    edit = highlight;
-    // Qual temperatura aferir
-    session->tempTarget = calibTarget[edit];
-    // Aquecer e aferir para o nível correspondente
-    session->start();
-  } else {
-    session->settings.tempCore[edit] = session->tempCore;
-    // Desligar
-    session->stop();
-    // Sair da edição
-    edit = -1;
-  }
-  return this;
-}
-
-Screen *scrCalib::btFront() {
-  session->save();
-  // Chamar a tela definida em leave
-  session->changed = true;
-  return leave;
-}
-
-/***
- * Tela para alterar coeficientes do PID
- */
-scrPID::scrPID(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
-    : Screen(session, display) {}
-
-void scrPID::show() {
-
-  // Texto dos itens
-  const char *labels[3] = {"P", "I", "D"};
-
-  // Valor formatado
-  String strVal;
-
-  // 9 pixel height
-  display->setFont(u8g2_font_6x13_mf);
-
-  display->firstPage();
-  do {
-
-    display->setDrawColor(1);
-    h1Setup(strVal);
-
-    for (int i = 0; i < nitems; ++i) {
-      display->setDrawColor(1);
-      strVal = String(session->PID[i]);
-      display->drawUTF8(0, 15 + (i + 1) * 13, strVal.c_str());
-
-      // Mudar cor se item iluminado
-      if (highlight == i && edit < 0)
-        display->setDrawColor(0);
-      else
-        display->setDrawColor(1);
-      display->drawUTF8(
-          (int)(round((float)(128 - display->getUTF8Width(labels[i])) / 2.0)),
-          15 + (i + 1) * 13, labels[i]);
-
-      strVal = String(session->settings.PID[i], 4);
-
-      if (highlight == i && edit == i)
-        display->setDrawColor(0);
-      else
-        display->setDrawColor(1);
-      display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
-                        15 + (i + 1) * 13, strVal.c_str());
-    }
-
-  } while (display->nextPage());
-}
-
-void scrPID::rotate(const char forward) {
-  if (forward) {
-    if (edit < 0) {
-      // Nenhum item sendo editado, iluminar item posterior
-      highlight = (highlight + 1) % nitems;
-    } else {
-      // Ajustar coeficiente
-      session->settings.PID[edit] += (edit == 1) ? 1e-4 : 1e-2;
-    }
-  } else {
-    if (edit < 0) {
-      // Nenhum item sendo editado, iluminar item anterior
-      if (--highlight < 0)
-        highlight = nitems - 1;
-    } else {
-      // Ajustar coeficiente
-      session->settings.PID[edit] -= (edit == 1) ? 1e-4 : 1e-2;
-    }
-  }
-}
-
-Screen *scrPID::btTop() {
-
-  if (edit < 0) {
-    edit = highlight;
-  } else {
-    // Sair da edição
-    edit = -1;
-  }
-  return this;
-}
-
-Screen *scrPID::btFront() {
-  session->save();
-  // Chamar a tela definida em leave
-  session->changed = true;
-  return leave;
-}
+//scrCalib::scrCalib(Session *session,
+//                   U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
+//    : Screen(session, display) {}
+//
+//void scrCalib::show() {
+//
+//  // Valor formatado
+//  String strVal;
+//
+//  // 9 pixel height
+//  display->setFont(u8g2_font_6x13_mf);
+//
+//  display->firstPage();
+//  do {
+//
+//    display->setDrawColor(1);
+//    h1Setup(strVal);
+//
+//    for (int i = 0; i < nitems; ++i) {
+//      // Mudar cor se item iluminado
+//      if (highlight == i && edit < 0)
+//        display->setDrawColor(0);
+//      else
+//        display->setDrawColor(1);
+//
+//      strVal = String(calibTarget[i]) + " °C";
+//      display->drawUTF8(0, 15 + (i + 1) * 13, strVal.c_str());
+//
+//      display->setDrawColor(1);
+//      display->drawUTF8(
+//          (int)(round((float)(128 - display->getUTF8Width("=")) / 2.0)),
+//          15 + (i + 1) * 13, "=");
+//
+//      strVal = String((int)session->settings.tempEx[i]) + " °C";
+//
+//      if (highlight == i && edit == i)
+//        display->setDrawColor(0);
+//      else
+//        display->setDrawColor(1);
+//      display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
+//                        15 + (i + 1) * 13, strVal.c_str());
+//    }
+//
+//  } while (display->nextPage());
+//}
+//
+//void scrCalib::rotate(const char forward) {
+//  if (forward) {
+//    if (edit < 0) {
+//      // Nenhum item sendo editado, iluminar item posterior
+//      highlight = (highlight + 1) % nitems;
+//    } else {
+//      // Ajustar temperatura estimada conforme probe externo
+//      session->settings.tempEx[edit] += 5;
+//      // Registrar qual é a temperatura interna ao final da aferição
+//      session->settings.tempCore[edit] = session->state.tempCore;
+//      // Reconfigurar
+//      mat::leastsquares(3, 2, session->settings.tempCore,
+//                        session->settings.tempEx, session->state.thCfs[1]);
+//    }
+//  } else {
+//    if (edit < 0) {
+//      // Nenhum item sendo editado, iluminar item anterior
+//      if (--highlight < 0)
+//        highlight = nitems - 1;
+//    } else {
+//      // Ajustar temperatura estimada conforme probe externo
+//      session->settings.tempEx[edit] -= 5;
+//      // Registrar qual é a temperatura interna ao final da aferição
+//      session->settings.tempCore[edit] = session->state.tempCore;
+//      // Reconfigurar
+//      mat::leastsquares(3, 2, session->settings.tempCore,
+//                        session->settings.tempEx, session->state.thCfs[1]);
+//    }
+//  }
+//}
+//
+//Screen *scrCalib::btTop() {
+//
+//  if (edit < 0) {
+//    edit = highlight;
+//    // Qual temperatura aferir
+//    session->state.tempTarget = calibTarget[edit];
+//    // Aquecer e aferir para o nível correspondente
+//    session->start();
+//  } else {
+//    session->settings.tempCore[edit] = session->state.tempCore;
+//    // Desligar
+//    session->stop();
+//    // Sair da edição
+//    edit = -1;
+//  }
+//  return this;
+//}
+//
+//Screen *scrCalib::btFront() {
+//  session->save();
+//  // Chamar a tela definida em leave
+//  session->changed = true;
+//  return leave;
+//}
+//
+///***
+// * Tela para alterar coeficientes do PID
+// */
+//scrPID::scrPID(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
+//    : Screen(session, display) {}
+//
+//void scrPID::show() {
+//
+//  // Texto dos itens
+//  const char *labels[3] = {"P", "I", "D"};
+//
+//  // Valor formatado
+//  String strVal;
+//
+//  // 9 pixel height
+//  display->setFont(u8g2_font_6x13_mf);
+//
+//  display->firstPage();
+//  do {
+//
+//    display->setDrawColor(1);
+//    h1Setup(strVal);
+//
+//    for (int i = 0; i < nitems; ++i) {
+//      display->setDrawColor(1);
+//      strVal = String(session->state.PID[i]);
+//      display->drawUTF8(0, 15 + (i + 1) * 13, strVal.c_str());
+//
+//      // Mudar cor se item iluminado
+//      if (highlight == i && edit < 0)
+//        display->setDrawColor(0);
+//      else
+//        display->setDrawColor(1);
+//      display->drawUTF8(
+//          (int)(round((float)(128 - display->getUTF8Width(labels[i])) / 2.0)),
+//          15 + (i + 1) * 13, labels[i]);
+//
+//      strVal = String(session->settings.PID[i], 4);
+//
+//      if (highlight == i && edit == i)
+//        display->setDrawColor(0);
+//      else
+//        display->setDrawColor(1);
+//      display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
+//                        15 + (i + 1) * 13, strVal.c_str());
+//    }
+//
+//  } while (display->nextPage());
+//}
+//
+//void scrPID::rotate(const char forward) {
+//  if (forward) {
+//    if (edit < 0) {
+//      // Nenhum item sendo editado, iluminar item posterior
+//      highlight = (highlight + 1) % nitems;
+//    } else {
+//      // Ajustar coeficiente
+//      session->settings.PID[edit] += (edit == 1) ? 1e-4 : 1e-2;
+//    }
+//  } else {
+//    if (edit < 0) {
+//      // Nenhum item sendo editado, iluminar item anterior
+//      if (--highlight < 0)
+//        highlight = nitems - 1;
+//    } else {
+//      // Ajustar coeficiente
+//      session->settings.PID[edit] -= (edit == 1) ? 1e-4 : 1e-2;
+//    }
+//  }
+//}
+//
+//Screen *scrPID::btTop() {
+//
+//  if (edit < 0) {
+//    edit = highlight;
+//  } else {
+//    // Sair da edição
+//    edit = -1;
+//  }
+//  return this;
+//}
+//
+//Screen *scrPID::btFront() {
+//  session->save();
+//  // Chamar a tela definida em leave
+//  session->changed = true;
+//  return leave;
+//}

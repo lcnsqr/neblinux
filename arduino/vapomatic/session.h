@@ -10,26 +10,8 @@ struct Settings {
   float tempTarget;  // Temperatura alvo padrão
 };
 
-// Estado e IPC
-class Session {
-public:
-  Session();
-
-  // Carregar/salvar configurações
-  void load();
-  void save();
-  void reset();
-
-  // Mínimo e máximo aquecimento
-  static const float tempMin = 20.0;
-  static const float tempMax = 220.0;
-
-  // Configurações
-  struct Settings settings;
-
-  // Sinalizar mudança na sessão
-  bool changed;
-
+// Estrutura para o estado da sessão
+struct State {
   // Tempo em segundos em atividade
   int elapsed;
 
@@ -51,6 +33,38 @@ public:
   // Indicador de encerramento
   float shut[2];
 
+  // On/off state change
+  bool on;
+
+  // 0,1,2: PID
+  // 3: D anterior (atual - alvo)
+  // 4: Valor do atuador
+  float PID[5];
+};
+
+// Estado e IPC
+class Session {
+public:
+  Session();
+
+  // Configurações
+  struct Settings settings;
+
+  // Estado
+  struct State state;
+
+  // Carregar/salvar configurações
+  void load();
+  void save();
+  void reset();
+
+  // Mínimo e máximo aquecimento
+  static const float tempMin = 20.0;
+  static const float tempMax = 220.0;
+
+  // Sinalizar mudança na sessão
+  bool changed;
+
   // Rotary variável auxiliar
   long int encoder;
 
@@ -60,15 +74,6 @@ public:
 
   // Ativo?
   bool running();
-
-  // 0,1,2: PID
-  // 3: D anterior (atual - alvo)
-  // 4: Valor do atuador
-  float PID[5];
-
-private:
-  // On/off state change
-  bool on;
 };
 
 #endif
