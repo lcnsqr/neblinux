@@ -11,7 +11,7 @@ Fan::Fan(int port, Session *session, unsigned long wait)
 
 void Fan::action() {
   // Ativado
-  if (session->running()) {
+  if (session->running() || session->state.fan) {
     digitalWrite(port, HIGH);
     return;
   }

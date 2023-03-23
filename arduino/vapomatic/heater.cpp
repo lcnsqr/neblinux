@@ -16,10 +16,18 @@ Heater::Heater(int port, Session *session, unsigned long wait)
   dif_old = &(session->state.PID[3]);
   F = &(session->state.PID[4]);
   */
+  session->state.PID[4] = 0;
 }
 
 void Heater::action() {
-  if (session->running()) {
+
+  if ( session->state.PID[5] == 0 ){
+    // PID desativado, apenas usar a carga em PID[4]
+    analogWrite(port, (int)session->state.PID[4]);
+    return;
+  }
+
+  if (session->running() && session->state.PID[5] != 0) {
     // Aquecer
     float dif = (float)wait * (session->state.tempTarget - session->state.tempEx);
 
@@ -31,6 +39,7 @@ void Heater::action() {
     session->state.PID[2] = session->settings.PID[2] * (dif - session->state.PID[3]);
 
     session->state.PID[4] = session->state.PID[0] + session->state.PID[1] + session->state.PID[2];
+
     if (session->state.PID[4] < 0)
       session->state.PID[4] = 0;
     if (session->state.PID[4] > 255)
@@ -44,5 +53,6 @@ void Heater::action() {
   }
 
   // Apenas zerar
-  analogWrite(port, 0);
+  session->state.PID[4] = 0;
+  analogWrite(port, (int)session->state.PID[4]);
 }

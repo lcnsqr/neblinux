@@ -5,11 +5,15 @@
 Session::Session() {
 
   changed = false;
+
+  state.header = 0xffff;
+
   state.tempCore = 0;
   state.tempEx = 0;
   state.tempTarget = 0;
 
   state.on = false;
+  state.fan = false;
 
   state.elapsed = 0;
 
@@ -18,6 +22,7 @@ Session::Session() {
   state.PID[2] = 0;
   state.PID[3] = 0;
   state.PID[4] = 0;
+  state.PID[5] = 1;
 
   state.shut[0] = 0;
   state.shut[1] = 0;

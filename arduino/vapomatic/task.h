@@ -15,14 +15,11 @@ protected:
 
 class Tasks {
 public:
-  Tasks() {}
-  ~Tasks();
-  void add(Task *task);
+  Tasks(){}
   void run();
 
-private:
-  Task **tasks;
-  int total;
+  static const int total = 5;
+  Task *tasks[total];
 };
 
 #endif
