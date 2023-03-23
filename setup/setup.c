@@ -525,6 +525,38 @@ int exec(char *cmdline){
     return 0;
   }
 
+  // Ativar
+  if ( ! strcmp("on", tokens[0]) ){
+
+    // Change state
+    pthread_mutex_lock(&state_mut);
+    stateOut.PID_enabled = 1;
+    stateOut.on = 1;
+    state_change = 1;
+    pthread_mutex_unlock(&state_mut);
+
+    printf("%s = %d\n", tokens[0], (int)stateOut.on);
+
+    tokens_cleanup(tokens);
+    return 0;
+  }
+
+  // Desativar
+  if ( ! strcmp("off", tokens[0]) ){
+
+    // Change state
+    pthread_mutex_lock(&state_mut);
+    stateOut.PID_enabled = 1;
+    stateOut.on = 0;
+    state_change = 1;
+    pthread_mutex_unlock(&state_mut);
+
+    printf("%s = %d\n", tokens[0], (int)stateOut.on);
+
+    tokens_cleanup(tokens);
+    return 0;
+  }
+
   // Fan control
   if ( ! strcmp("fan", tokens[0]) ){
 
