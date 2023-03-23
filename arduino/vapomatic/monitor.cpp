@@ -41,6 +41,29 @@ void Monitor::action() {
   // exibidas mudaram em relação à cópia local.
   // Se sim, atualizar a tela.
 
+  // Comunicação serial
+  serial_now = millis();
+  if ( serial_now - serial_before >= serial_wait ){
+    // Enviar estado para o utilitário de setup
+    Serial.write((char*)&(session->state), sizeof(struct State));
+    serial_before = serial_now;
+  }
+
+  if (Serial.available() > 0) {
+    // Receber mudanças no estado enviadas pelo utilitário de setup
+    Serial.readBytes((char*)&(stateIn), sizeof(struct StateIO));
+    // Aguardar recolhimento completo
+    delay(0.1);
+    // Modificar estado do aparelho a partir da estrutura enviada
+    session->state.tempTarget = stateIn.tempTarget;
+    session->state.on = stateIn.on;
+    session->state.fan = stateIn.fan;
+    session->state.PID[5] = (float)stateIn.PID_enabled;
+    if (session->state.PID[5] == 0)
+      session->state.PID[4] = stateIn.heat;
+    session->changed = true;
+  }
+
   // Temperatura atual
   if ((int)session->state.tempCore != (int)local.state.tempCore ||
       (int)session->state.tempEx != (int)local.state.tempEx) {
@@ -103,4 +126,5 @@ void Monitor::action() {
     // Mudanças exibidas
     session->changed = false;
   }
+
 }

@@ -14,7 +14,7 @@ public:
   void action();
 
   // Intervalo de transmissão serial
-  static const float serial_wait = 20.0;
+  static const float serial_wait = 250;
   long int serial_before, serial_now;
 
   // Buffer de recepção do estado

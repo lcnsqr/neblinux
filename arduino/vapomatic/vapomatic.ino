@@ -57,23 +57,6 @@ void setup() {
 
 void loop() {
   tasks.run();
-  monitor.serial_now = millis();
-  if ( monitor.serial_now - monitor.serial_before >= monitor.serial_wait ){
-    Serial.write((char*)&(session.state), sizeof(struct State));
-    monitor.serial_before = monitor.serial_now;
-  }
-
-  if (Serial.available() > 0) {
-    Serial.readBytes((char*)&(monitor.stateIn), sizeof(struct StateIO));
-    delay(0.1);
-    session.state.tempTarget = monitor.stateIn.tempTarget;
-    session.state.on = monitor.stateIn.on;
-    session.state.fan = monitor.stateIn.fan;
-    session.state.PID[5] = (float)monitor.stateIn.PID_enabled;
-    if (session.state.PID[5] == 0)
-      session.state.PID[4] = monitor.stateIn.heat;
-  }
-
 }
 
 void setupUI() {
