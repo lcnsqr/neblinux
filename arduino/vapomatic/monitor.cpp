@@ -30,6 +30,9 @@ Monitor::Monitor(Session *session, Screen *screen, int btTop, int btFront,
   counting = 0;
   started = 0;
   elapsed = 0;
+
+  // Contagem de tempo para transmissão serial
+  serial_before = millis();
 }
 
 void Monitor::action() {

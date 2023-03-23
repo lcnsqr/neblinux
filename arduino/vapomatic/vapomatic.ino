@@ -36,17 +36,9 @@ Heater heater(5, &session, 38);
 // O declive importante aparece num intervalo ~ 10s
 Shutdown shutdown(&session, 3500);
 
-// Intervalo de transmissão serial
-#define serial_wait 250
-long int serial_before, serial_now;
-
-// Buffer de recepção do estado
-struct StateIO stateIn;
-
 void setup() {
 
   Serial.begin(115200);
-  serial_before = millis();
 
   // Configurar sessão
   session.load();
@@ -65,21 +57,21 @@ void setup() {
 
 void loop() {
   tasks.run();
-  serial_now = millis();
-  if ( serial_now - serial_before >= serial_wait ){
+  monitor.serial_now = millis();
+  if ( monitor.serial_now - monitor.serial_before >= monitor.serial_wait ){
     Serial.write((char*)&(session.state), sizeof(struct State));
-    serial_before = serial_now;
+    monitor.serial_before = monitor.serial_now;
   }
 
   if (Serial.available() > 0) {
-    Serial.readBytes((char*)&stateIn, sizeof(struct StateIO));
+    Serial.readBytes((char*)&(monitor.stateIn), sizeof(struct StateIO));
     delay(0.1);
-    session.state.tempTarget = stateIn.tempTarget;
-    session.state.on = stateIn.on;
-    session.state.fan = stateIn.fan;
-    session.state.PID[5] = (float)stateIn.PID_enabled;
+    session.state.tempTarget = monitor.stateIn.tempTarget;
+    session.state.on = monitor.stateIn.on;
+    session.state.fan = monitor.stateIn.fan;
+    session.state.PID[5] = (float)monitor.stateIn.PID_enabled;
     if (session.state.PID[5] == 0)
-      session.state.PID[4] = stateIn.heat;
+      session.state.PID[4] = monitor.stateIn.heat;
   }
 
 }
