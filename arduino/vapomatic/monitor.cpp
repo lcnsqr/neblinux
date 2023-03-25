@@ -43,15 +43,15 @@ void Monitor::action() {
 
   // Comunicação serial
   serial_now = millis();
-  if ( serial_now - serial_before >= serial_wait ){
+  if (serial_now - serial_before >= serial_wait) {
     // Enviar estado para o utilitário de setup
-    Serial.write((char*)&(session->state), sizeof(struct State));
+    Serial.write((char *)&(session->state), sizeof(struct State));
     serial_before = serial_now;
   }
 
   if (Serial.available() > 0) {
     // Receber mudanças no estado enviadas pelo utilitário de setup
-    Serial.readBytes((char*)&(stateIn), sizeof(struct StateIO));
+    Serial.readBytes((char *)&(stateIn), sizeof(struct StateIO));
     // Aguardar recolhimento completo
     delay(0.1);
     // Modificar estado do aparelho a partir da estrutura enviada
@@ -126,5 +126,4 @@ void Monitor::action() {
     // Mudanças exibidas
     session->changed = false;
   }
-
 }

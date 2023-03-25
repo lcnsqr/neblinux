@@ -15,7 +15,7 @@ protected:
 
 class Tasks {
 public:
-  Tasks(){}
+  Tasks() {}
   void run();
 
   static const int total = 5;

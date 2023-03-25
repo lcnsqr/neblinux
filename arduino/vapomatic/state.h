@@ -5,7 +5,7 @@
 
 // Estrutura para o estado da sessão
 struct State {
-	// Marca inicial do dataframe para transmissão serial
+  // Marca inicial do dataframe para transmissão serial
   int32_t header;
 
   // Tempo em segundos em atividade
@@ -40,7 +40,6 @@ struct State {
   // 4: Valor do atuador
   // 5: Se 0, aplicar atuador mas não calcular PID
   float PID[6];
-
 };
 
 // Estrutura de comando via porta serial
@@ -59,7 +58,6 @@ struct StateIO {
 
   // Valor no atuador
   uint32_t heat;
-
 };
 
 #endif

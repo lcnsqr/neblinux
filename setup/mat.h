@@ -8,8 +8,8 @@ int mat_leastsquares(int m, int n, float x[], float y[], float c[]);
 int mat_elem(int rows, int cols, int r, int c);
 
 // https://rosettacode.org/wiki/Matrix_multiplication#C
-void mat_mult(const int m, const int n, const int p, float *const a, float *const b,
-          float *c);
+void mat_mult(const int m, const int n, const int p, float *const a,
+              float *const b, float *c);
 
 /*----------------------------------------------------------------------
 gjinv - Invert a matrix, Gauss-Jordan algorithm

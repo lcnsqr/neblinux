@@ -9,8 +9,9 @@ Screen::Screen(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
 }
 
 void Screen::h1Setup(String &str) {
-  str = String((int)session->state.PID[4]) + " / " + String((int)session->state.tempCore) +
-        " °C / " + String((int)session->state.tempEx) + " °C";
+  str = String((int)session->state.PID[4]) + " / " +
+        String((int)session->state.tempCore) + " °C / " +
+        String((int)session->state.tempEx) + " °C";
   display->drawUTF8(
       (int)(round((float)(128 - display->getUTF8Width(str.c_str())) / 2.0)), 13,
       str.c_str());
@@ -100,7 +101,8 @@ void scrMain::show() {
 
     // Escala leitura
     display->drawFrame(56, 2, 6, 32);
-    tempEx = constrain(session->state.tempEx, session->tempMin, session->tempMax);
+    tempEx =
+        constrain(session->state.tempEx, session->tempMin, session->tempMax);
     tempDial = round(32.0 * (tempEx - session->tempMin) /
                      (session->tempMax - session->tempMin));
     display->drawBox(56, (u8g2_uint_t)(34 - tempDial), 6,
@@ -108,7 +110,10 @@ void scrMain::show() {
     // Escala objetivo
     display->drawFrame(66, 2, 6, 32);
     tempDial =
-        (u8g2_uint_t)round(32.0 * (constrain(session->state.tempTarget, session->tempMin, session->tempMax) - session->tempMin) /
+        (u8g2_uint_t)round(32.0 *
+                           (constrain(session->state.tempTarget,
+                                      session->tempMin, session->tempMax) -
+                            session->tempMin) /
                            (session->tempMax - session->tempMin));
     display->drawBox(66, 34 - tempDial, 6, tempDial);
 
@@ -130,8 +135,8 @@ void scrMain::show() {
         46, str.c_str());
 
     // Status
-    str = String(session->state.elapsed / 60) + "m" + String(session->state.elapsed % 60) +
-          "s";
+    str = String(session->state.elapsed / 60) + "m" +
+          String(session->state.elapsed % 60) + "s";
     if (!session->running()) {
       str = (session->state.elapsed == 0) ? "VAPOMATIC" : str;
     }
@@ -253,11 +258,11 @@ Screen *scrSetup::btFront() {
 /***
  * Tela Calibragem
  */
-//scrCalib::scrCalib(Session *session,
+// scrCalib::scrCalib(Session *session,
 //                   U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
 //    : Screen(session, display) {}
 //
-//void scrCalib::show() {
+// void scrCalib::show() {
 //
 //  // Valor formatado
 //  String strVal;
@@ -299,7 +304,7 @@ Screen *scrSetup::btFront() {
 //  } while (display->nextPage());
 //}
 //
-//void scrCalib::rotate(const char forward) {
+// void scrCalib::rotate(const char forward) {
 //  if (forward) {
 //    if (edit < 0) {
 //      // Nenhum item sendo editado, iluminar item posterior
@@ -330,7 +335,7 @@ Screen *scrSetup::btFront() {
 //  }
 //}
 //
-//Screen *scrCalib::btTop() {
+// Screen *scrCalib::btTop() {
 //
 //  if (edit < 0) {
 //    edit = highlight;
@@ -348,7 +353,7 @@ Screen *scrSetup::btFront() {
 //  return this;
 //}
 //
-//Screen *scrCalib::btFront() {
+// Screen *scrCalib::btFront() {
 //  session->save();
 //  // Chamar a tela definida em leave
 //  session->changed = true;
@@ -358,10 +363,10 @@ Screen *scrSetup::btFront() {
 ///***
 // * Tela para alterar coeficientes do PID
 // */
-//scrPID::scrPID(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
+// scrPID::scrPID(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
 //    : Screen(session, display) {}
 //
-//void scrPID::show() {
+// void scrPID::show() {
 //
 //  // Texto dos itens
 //  const char *labels[3] = {"P", "I", "D"};
@@ -405,7 +410,7 @@ Screen *scrSetup::btFront() {
 //  } while (display->nextPage());
 //}
 //
-//void scrPID::rotate(const char forward) {
+// void scrPID::rotate(const char forward) {
 //  if (forward) {
 //    if (edit < 0) {
 //      // Nenhum item sendo editado, iluminar item posterior
@@ -426,7 +431,7 @@ Screen *scrSetup::btFront() {
 //  }
 //}
 //
-//Screen *scrPID::btTop() {
+// Screen *scrPID::btTop() {
 //
 //  if (edit < 0) {
 //    edit = highlight;
@@ -437,7 +442,7 @@ Screen *scrSetup::btFront() {
 //  return this;
 //}
 //
-//Screen *scrPID::btFront() {
+// Screen *scrPID::btFront() {
 //  session->save();
 //  // Chamar a tela definida em leave
 //  session->changed = true;
