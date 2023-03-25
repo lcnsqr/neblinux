@@ -53,7 +53,7 @@ void Monitor::action() {
     // Receber mudanças no estado enviadas pelo utilitário de setup
     Serial.readBytes((char *)&(stateIn), sizeof(struct StateIO));
     // Aguardar recolhimento completo
-    delay(0.1);
+    delay(100);
     // Modificar estado do aparelho a partir da estrutura enviada
     session->state.tempTarget = stateIn.tempTarget;
     session->state.on = stateIn.on;
