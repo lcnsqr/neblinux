@@ -100,20 +100,15 @@ void scrMain::show() {
 
     // Escala leitura
     display->drawFrame(56, 2, 6, 32);
-    tempEx = session->state.tempEx;
-    if (tempEx < session->tempMin)
-      tempEx = session->tempMin;
-    if (tempEx > session->tempMax)
-      tempEx = session->tempMax;
+    tempEx = constrain(session->state.tempEx, session->tempMin, session->tempMax);
     tempDial = round(32.0 * (tempEx - session->tempMin) /
                      (session->tempMax - session->tempMin));
     display->drawBox(56, (u8g2_uint_t)(34 - tempDial), 6,
                      (u8g2_uint_t)tempDial);
-
     // Escala objetivo
     display->drawFrame(66, 2, 6, 32);
     tempDial =
-        (u8g2_uint_t)round(32.0 * (session->state.tempTarget - session->tempMin) /
+        (u8g2_uint_t)round(32.0 * (constrain(session->state.tempTarget, session->tempMin, session->tempMax) - session->tempMin) /
                            (session->tempMax - session->tempMin));
     display->drawBox(66, 34 - tempDial, 6, tempDial);
 
