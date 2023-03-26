@@ -129,7 +129,8 @@ void *pthread_temp_gist(void *arg) {
   float coefs_heat[2];
 
   fprintf(gnuplot,
-          "set term qt 2 title \"Retas\" noraise position 1300,600 \n");
+          "set term svg size 500,500 name \"gist\"\n");
+  fprintf(gnuplot, "set output \"|./cutsvg.pl gist.svg\"\n");
   fprintf(gnuplot, "set xrange [%.2f:%.2f]\n", 0.0, 1.0);
   fprintf(gnuplot, "set yrange [%.2f:%.2f]\n", -1.0, 1.0);
   fprintf(gnuplot, "set title font \",14\"\n");
@@ -199,7 +200,8 @@ void *pthread_plot(void *arg) {
   // fprintf(gnuplot, "set multiplot layout 1, 2\n");
 
   fprintf(gnuplot,
-          "set term qt 1 title \"Temperaturas\" noraise position 1300,50 \n");
+          "set term svg size 500,500 name \"temp\"\n");
+  fprintf(gnuplot, "set output \"|./cutsvg.pl temp.svg\"\n");
   fprintf(gnuplot, "set xrange [%.2f:%.2f]\n", 0.0, (float)(GRAPH_POINTS - 1));
   fprintf(gnuplot, "set yrange [0:400]\n");
   fprintf(gnuplot, "set title font \",14\"\n");
