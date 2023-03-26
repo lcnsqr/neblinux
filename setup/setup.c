@@ -65,15 +65,20 @@ struct StateIO stateOut;
 uint8_t state_change = 0;
 // mutex de alteração do estado
 pthread_mutex_t state_mut = PTHREAD_MUTEX_INITIALIZER;
+// Intervalo entre comunicações na porta serial
+#define RX_PAUSE 0.25
+#define TX_PAUSE 0.1
 
 // Operações matemáticas
 #include "mat.h"
 
+// Número de pontos nos gráficos
 #define GRAPH_POINTS 120
-#define GRAPH_STEP 0.25
+// Pausa entre atualizações do gráfico
+#define GRAPH_PAUSE 0.25
 
 // mutex do histórico de temperaturas
-pthread_mutex_t temps_mut = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t graph_mut = PTHREAD_MUTEX_INITIALIZER;
 
 // Temperature sequences for graphs
 struct {
@@ -87,7 +92,7 @@ struct {
   int i_probe;
   float heat[GRAPH_POINTS];
   int i_heat;
-} temps;
+} graph;
 
 // Avaliar comportamento da temperatura
 void *pthread_temp_gist(void *arg) {
@@ -123,38 +128,40 @@ void *pthread_temp_gist(void *arg) {
   float coefs_probe[2];
   float coefs_heat[2];
 
+  fprintf(gnuplot,
+          "set term qt 2 title \"Retas\" noraise position 1300,600 \n");
   fprintf(gnuplot, "set xrange [%.2f:%.2f]\n", 0.0, 1.0);
   fprintf(gnuplot, "set yrange [%.2f:%.2f]\n", -1.0, 1.0);
   fprintf(gnuplot, "set title font \",14\"\n");
-  fprintf(gnuplot, "set title \"RL últimos %d pontos\"\n", tail_points);
+  fprintf(gnuplot, "set title \"Retas dos últimos %d pontos\"\n", tail_points);
 
   while (fflush(gnuplot) == 0) {
 
-    sleep(GRAPH_STEP);
+    sleep(GRAPH_PAUSE);
 
     fprintf(gnuplot, "%s\n",
             "plot \"-\" using 1:2 title \"Interna\" with lines lw 2, \"-\" "
             "using 1:3 title \"Sonda\" with lines lw 2, \"-\" using 1:4 title "
             "\"Aquecimento\" with lines lw 2");
 
-    pthread_mutex_lock(&temps_mut);
+    pthread_mutex_lock(&graph_mut);
 
     for (int j = 0; j < tail_points; j++) {
       tail_core[j] =
-          temps.core[(temps.i_core + (GRAPH_POINTS - tail_points) + j) %
+          graph.core[(graph.i_core + (GRAPH_POINTS - tail_points) + j) %
                      GRAPH_POINTS] /
           y_temp_max;
       tail_probe[j] =
-          temps.probe[(temps.i_probe + (GRAPH_POINTS - tail_points) + j) %
+          graph.probe[(graph.i_probe + (GRAPH_POINTS - tail_points) + j) %
                       GRAPH_POINTS] /
           y_temp_max;
       tail_heat[j] =
-          temps.heat[(temps.i_heat + (GRAPH_POINTS - tail_points) + j) %
+          graph.heat[(graph.i_heat + (GRAPH_POINTS - tail_points) + j) %
                      GRAPH_POINTS] /
           y_heat_max;
     }
 
-    pthread_mutex_unlock(&temps_mut);
+    pthread_mutex_unlock(&graph_mut);
 
     // Regressão linear core
     mat_leastsquares(tail_points, 1, tail_x, tail_core, coefs_core);
@@ -191,15 +198,16 @@ void *pthread_plot(void *arg) {
 
   // fprintf(gnuplot, "set multiplot layout 1, 2\n");
 
-  fprintf(gnuplot, "set xrange [%.2f:%.2f]\n",
-          -(float)GRAPH_POINTS * GRAPH_STEP, -(float)GRAPH_STEP);
+  fprintf(gnuplot,
+          "set term qt 1 title \"Temperaturas\" noraise position 1300,50 \n");
+  fprintf(gnuplot, "set xrange [%.2f:%.2f]\n", 0.0, (float)(GRAPH_POINTS - 1));
   fprintf(gnuplot, "set yrange [0:400]\n");
   fprintf(gnuplot, "set title font \",14\"\n");
   fprintf(gnuplot, "set title \"Temperaturas\"\n");
 
   while (fflush(gnuplot) == 0) {
 
-    sleep(GRAPH_STEP);
+    sleep(GRAPH_PAUSE);
 
     fprintf(
         gnuplot, "%s\n",
@@ -207,18 +215,17 @@ void *pthread_plot(void *arg) {
         "1:3 title \"Sonda\" with lines lw 2, \"-\" using 1:4 title \"Alvo\" "
         "with lines lw 2, \"-\" using 1:5 title \"Saída\" with lines lw 2");
 
-    pthread_mutex_lock(&temps_mut);
+    pthread_mutex_lock(&graph_mut);
 
     for (int j = 0; j < GRAPH_POINTS; j++) {
-      fprintf(gnuplot, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",
-              -(float)GRAPH_POINTS * GRAPH_STEP + (float)j * GRAPH_STEP,
-              temps.core[(temps.i_core + j) % GRAPH_POINTS],
-              temps.probe[(temps.i_probe + j) % GRAPH_POINTS],
-              temps.target[(temps.i_target + j) % GRAPH_POINTS],
-              temps.ex[(temps.i_ex + j) % GRAPH_POINTS]);
+      fprintf(gnuplot, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n", (float)j,
+              graph.core[(graph.i_core + j) % GRAPH_POINTS],
+              graph.probe[(graph.i_probe + j) % GRAPH_POINTS],
+              graph.target[(graph.i_target + j) % GRAPH_POINTS],
+              graph.ex[(graph.i_ex + j) % GRAPH_POINTS]);
     }
 
-    pthread_mutex_unlock(&temps_mut);
+    pthread_mutex_unlock(&graph_mut);
 
     fprintf(gnuplot, "%s\n", "e");
   }
@@ -235,13 +242,13 @@ void *pthread_rxtx(void *arg) {
 
   int32_t header = 0x0000;
 
-  memset(temps.core, 0, GRAPH_POINTS * sizeof(float));
-  memset(temps.heat, 0, GRAPH_POINTS * sizeof(float));
+  memset(graph.core, 0, GRAPH_POINTS * sizeof(float));
+  memset(graph.heat, 0, GRAPH_POINTS * sizeof(float));
 
-  temps.i_core = 0;
-  temps.i_ex = 0;
-  temps.i_target = 0;
-  temps.i_heat = 0;
+  graph.i_core = 0;
+  graph.i_ex = 0;
+  graph.i_target = 0;
+  graph.i_heat = 0;
 
   while (rx_bytes >= 0) {
 
@@ -252,7 +259,7 @@ void *pthread_rxtx(void *arg) {
     if (state_change) {
       write(*port, (char *)&stateOut, sizeof(struct StateIO));
       state_change = 0;
-      sleep(0.1);
+      sleep(TX_PAUSE);
     }
 
     pthread_mutex_unlock(&state_mut);
@@ -282,21 +289,23 @@ void *pthread_rxtx(void *arg) {
 
     pthread_mutex_unlock(&state_mut);
 
-    pthread_mutex_lock(&temps_mut);
+    pthread_mutex_lock(&graph_mut);
 
-    temps.core[temps.i_core] = state.tempCore;
-    temps.i_core = (temps.i_core + 1) % GRAPH_POINTS;
+    graph.core[graph.i_core] = state.tempCore;
+    graph.i_core = (graph.i_core + 1) % GRAPH_POINTS;
 
-    temps.ex[temps.i_ex] = state.tempEx;
-    temps.i_ex = (temps.i_ex + 1) % GRAPH_POINTS;
+    graph.ex[graph.i_ex] = state.tempEx;
+    graph.i_ex = (graph.i_ex + 1) % GRAPH_POINTS;
 
-    temps.target[temps.i_target] = state.tempTarget;
-    temps.i_target = (temps.i_target + 1) % GRAPH_POINTS;
+    graph.target[graph.i_target] = state.tempTarget;
+    graph.i_target = (graph.i_target + 1) % GRAPH_POINTS;
 
-    temps.heat[temps.i_heat] = state.PID[4];
-    temps.i_heat = (temps.i_heat + 1) % GRAPH_POINTS;
+    graph.heat[graph.i_heat] = state.PID[4];
+    graph.i_heat = (graph.i_heat + 1) % GRAPH_POINTS;
 
-    pthread_mutex_unlock(&temps_mut);
+    pthread_mutex_unlock(&graph_mut);
+
+    sleep(RX_PAUSE);
   }
 
   pthread_exit((void *)NULL);
@@ -310,8 +319,8 @@ void *pthread_rx_probe(void *arg) {
   int rx_bytes = 0;
 
   float rx;
-  memset(temps.probe, 0, GRAPH_POINTS * sizeof(float));
-  temps.i_probe = 0;
+  memset(graph.probe, 0, GRAPH_POINTS * sizeof(float));
+  graph.i_probe = 0;
 
   while (rx_bytes >= 0) {
 
@@ -321,12 +330,14 @@ void *pthread_rx_probe(void *arg) {
     if (rx_bytes != sizeof(float))
       continue;
 
-    pthread_mutex_lock(&temps_mut);
+    pthread_mutex_lock(&graph_mut);
 
-    temps.probe[temps.i_probe] = rx;
-    temps.i_probe = (temps.i_probe + 1) % GRAPH_POINTS;
+    graph.probe[graph.i_probe] = rx;
+    graph.i_probe = (graph.i_probe + 1) % GRAPH_POINTS;
 
-    pthread_mutex_unlock(&temps_mut);
+    pthread_mutex_unlock(&graph_mut);
+
+    sleep(RX_PAUSE);
   }
 
   pthread_exit((void *)NULL);
