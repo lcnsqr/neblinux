@@ -65,9 +65,9 @@ struct StateIO stateOut;
 uint8_t state_change = 0;
 // mutex de alteração do estado
 pthread_mutex_t state_mut = PTHREAD_MUTEX_INITIALIZER;
-// Intervalo entre comunicações na porta serial
-#define RX_PAUSE 0.25
-#define TX_PAUSE 0.1
+// Intervalo entre comunicações na porta serial (microsegundos)
+#define RX_PAUSE 100e+3
+#define TX_PAUSE 100e+3
 
 // Operações matemáticas
 #include "mat.h"
@@ -75,7 +75,7 @@ pthread_mutex_t state_mut = PTHREAD_MUTEX_INITIALIZER;
 // Número de pontos nos gráficos
 #define GRAPH_POINTS 120
 // Pausa entre atualizações do gráfico
-#define GRAPH_PAUSE 0.25
+#define GRAPH_PAUSE 25e+3
 
 // mutex do histórico de temperaturas
 pthread_mutex_t graph_mut = PTHREAD_MUTEX_INITIALIZER;
@@ -137,7 +137,7 @@ void *pthread_temp_gist(void *arg) {
 
   while (fflush(gnuplot) == 0) {
 
-    sleep(GRAPH_PAUSE);
+    usleep(GRAPH_PAUSE);
 
     fprintf(gnuplot, "%s\n",
             "plot \"-\" using 1:2 title \"Interna\" with lines lw 2, \"-\" "
@@ -207,7 +207,7 @@ void *pthread_plot(void *arg) {
 
   while (fflush(gnuplot) == 0) {
 
-    sleep(GRAPH_PAUSE);
+    usleep(GRAPH_PAUSE);
 
     fprintf(
         gnuplot, "%s\n",
@@ -259,7 +259,7 @@ void *pthread_rxtx(void *arg) {
     if (state_change) {
       write(*port, (char *)&stateOut, sizeof(struct StateIO));
       state_change = 0;
-      sleep(TX_PAUSE);
+      usleep(TX_PAUSE);
     }
 
     pthread_mutex_unlock(&state_mut);
@@ -305,7 +305,7 @@ void *pthread_rxtx(void *arg) {
 
     pthread_mutex_unlock(&graph_mut);
 
-    sleep(RX_PAUSE);
+    usleep(RX_PAUSE);
   }
 
   pthread_exit((void *)NULL);
@@ -337,7 +337,7 @@ void *pthread_rx_probe(void *arg) {
 
     pthread_mutex_unlock(&graph_mut);
 
-    sleep(RX_PAUSE);
+    usleep(RX_PAUSE);
   }
 
   pthread_exit((void *)NULL);
