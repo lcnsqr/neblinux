@@ -1,13 +1,13 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include <readline/history.h>
 #include <readline/readline.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <signal.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -60,129 +60,132 @@ struct {
 
 // Comunicação via socket
 void *pthread_socket(void *arg) {
-	struct sockaddr_un name;
-	int ret;
-	int connection_socket;
-	int data_socket;
-	const int socket_buf_size = 4096;
-	char buffer[socket_buf_size];
-	memset(buffer, 0, socket_buf_size);
-	const char socket_path[] = "/tmp/vapomatic.sock";
+  struct sockaddr_un name;
+  int ret;
+  int connection_socket;
+  int data_socket;
+  const int socket_buf_size = 4096;
+  char buffer[socket_buf_size];
+  memset(buffer, 0, socket_buf_size);
+  const char socket_path[] = "/tmp/vapomatic.sock";
 
   float tempProbe;
 
-	/*
-	 * In case the program exited inadvertently on the last run,
-	 * remove the socket.
-	 */
+  /*
+   * In case the program exited inadvertently on the last run,
+   * remove the socket.
+   */
 
-	unlink(socket_path);
+  unlink(socket_path);
 
-	/* Create local socket. */
+  /* Create local socket. */
 
-	connection_socket = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (connection_socket == -1) {
-			perror("socket");
-			exit(EXIT_FAILURE);
-	}
+  connection_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (connection_socket == -1) {
+    perror("socket");
+    exit(EXIT_FAILURE);
+  }
 
-	/*
-	 * For portability clear the whole structure, since some
-	 * implementations have additional (nonstandard) fields in
-	 * the structure.
-	 */
+  /*
+   * For portability clear the whole structure, since some
+   * implementations have additional (nonstandard) fields in
+   * the structure.
+   */
 
-	memset(&name, 0, sizeof(struct sockaddr_un));
+  memset(&name, 0, sizeof(struct sockaddr_un));
 
-	/* Bind socket to socket name. */
+  /* Bind socket to socket name. */
 
-	name.sun_family = AF_UNIX;
-	strncpy(name.sun_path, socket_path, sizeof(name.sun_path) - 1);
+  name.sun_family = AF_UNIX;
+  strncpy(name.sun_path, socket_path, sizeof(name.sun_path) - 1);
 
-	ret = bind(connection_socket, (const struct sockaddr *) &name, sizeof(struct sockaddr_un));
-	if (ret == -1) {
-			perror("bind");
-			exit(EXIT_FAILURE);
-	}
+  ret = bind(connection_socket, (const struct sockaddr *)&name,
+             sizeof(struct sockaddr_un));
+  if (ret == -1) {
+    perror("bind");
+    exit(EXIT_FAILURE);
+  }
 
-	/*
-	 * Prepare for accepting connections. The backlog size is set
-	 * to 20. So while one request is being processed other requests
-	 * can be waiting.
-	 */
+  /*
+   * Prepare for accepting connections. The backlog size is set
+   * to 20. So while one request is being processed other requests
+   * can be waiting.
+   */
 
-	ret = listen(connection_socket, 20);
-	if (ret == -1) {
-			perror("listen");
-			exit(EXIT_FAILURE);
-	}
+  ret = listen(connection_socket, 20);
+  if (ret == -1) {
+    perror("listen");
+    exit(EXIT_FAILURE);
+  }
 
-	/* This is the main loop for handling connections. */
+  /* This is the main loop for handling connections. */
 
-	for (;;) {
+  for (;;) {
 
-			/* Wait for incoming connection. */
+    /* Wait for incoming connection. */
 
-			data_socket = accept(connection_socket, NULL, NULL);
-			if (data_socket == -1) {
-					perror("accept");
-					exit(EXIT_FAILURE);
-			}
+    data_socket = accept(connection_socket, NULL, NULL);
+    if (data_socket == -1) {
+      perror("accept");
+      exit(EXIT_FAILURE);
+    }
 
-			/* Wait for next data packet. */
+    /* Wait for next data packet. */
 
-			ret = read(data_socket, buffer, socket_buf_size);
-			if (ret == -1) {
-					perror("read");
-					exit(EXIT_FAILURE);
-			}
+    ret = read(data_socket, buffer, socket_buf_size);
+    if (ret == -1) {
+      perror("read");
+      exit(EXIT_FAILURE);
+    }
 
-			/* Ensure buffer is 0-terminated. */
+    /* Ensure buffer is 0-terminated. */
 
-			buffer[socket_buf_size - 1] = 0;
+    buffer[socket_buf_size - 1] = 0;
 
-			/* Handle commands. */
+    /* Handle commands. */
 
-			if (!strncmp(buffer, "END", socket_buf_size)) {
-					break;
-			}
+    if (!strncmp(buffer, "END", socket_buf_size)) {
+      break;
+    }
 
-			if (!strncmp(buffer, "STATE", socket_buf_size)) {
-        
-        pthread_mutex_lock(&graph_mut);
-        tempProbe = graph.probe[(graph.i_probe + (GRAPH_POINTS-1)) % GRAPH_POINTS],
-        pthread_mutex_unlock(&graph_mut);
+    if (!strncmp(buffer, "STATE", socket_buf_size)) {
 
-        pthread_mutex_lock(&state_mut);
-        snprintf(buffer, socket_buf_size, "{\"tempTarget\":%.2f,\"tempCore\":%.2f,\"tempProbe\":%.2f, \"heat\":%d}", state.tempTarget, state.tempCore, tempProbe, (int)state.PID[4]);
-        pthread_mutex_unlock(&state_mut);
-      }
+      pthread_mutex_lock(&graph_mut);
+      tempProbe =
+          graph.probe[(graph.i_probe + (GRAPH_POINTS - 1)) % GRAPH_POINTS],
+      pthread_mutex_unlock(&graph_mut);
 
-			/* Send result. */
+      pthread_mutex_lock(&state_mut);
+      snprintf(buffer, socket_buf_size,
+               "{\"tempTarget\":%.2f,\"tempCore\":%.2f,\"tempProbe\":%.2f, "
+               "\"heat\":%d}",
+               state.tempTarget, state.tempCore, tempProbe, (int)state.PID[4]);
+      pthread_mutex_unlock(&state_mut);
+    }
 
-			ret = write(data_socket, buffer, strlen(buffer));
-			if (ret == -1) {
-					perror("write");
-					exit(EXIT_FAILURE);
-			}
+    /* Send result. */
 
-			memset(buffer, 0, socket_buf_size);
+    ret = write(data_socket, buffer, strlen(buffer));
+    if (ret == -1) {
+      perror("write");
+      exit(EXIT_FAILURE);
+    }
 
-			/* Close socket. */
+    memset(buffer, 0, socket_buf_size);
 
-			close(data_socket);
+    /* Close socket. */
 
-	}
+    close(data_socket);
+  }
 
-	close(connection_socket);
+  close(connection_socket);
 
-	/* Unlink the socket. */
+  /* Unlink the socket. */
 
-	unlink(socket_path);
+  unlink(socket_path);
 
   pthread_exit((void *)NULL);
 }
-
 
 // Avaliar comportamento da temperatura
 void *pthread_temp_gist(void *arg) {
@@ -218,8 +221,7 @@ void *pthread_temp_gist(void *arg) {
   float coefs_probe[2];
   float coefs_heat[2];
 
-  fprintf(gnuplot,
-          "set term svg size 500,500 name \"gist\"\n");
+  fprintf(gnuplot, "set term svg size 500,500 name \"gist\"\n");
   fprintf(gnuplot, "set output \"|./cutsvg.pl gist.svg\"\n");
   fprintf(gnuplot, "set xrange [%.2f:%.2f]\n", 0.0, 1.0);
   fprintf(gnuplot, "set yrange [%.2f:%.2f]\n", -1.0, 1.0);
@@ -289,8 +291,7 @@ void *pthread_plot(void *arg) {
 
   // fprintf(gnuplot, "set multiplot layout 1, 2\n");
 
-  fprintf(gnuplot,
-          "set term svg size 500,500 name \"temp\"\n");
+  fprintf(gnuplot, "set term svg size 500,500 name \"temp\"\n");
   fprintf(gnuplot, "set output \"|./cutsvg.pl temp.svg\"\n");
   fprintf(gnuplot, "set xrange [%.2f:%.2f]\n", 0.0, (float)(GRAPH_POINTS - 1));
   fprintf(gnuplot, "set yrange [0:400]\n");
@@ -576,8 +577,8 @@ int main(int argc, char **argv) {
 
   // socket thread
   pthread_t pthread_socket_id;
-  pthread_return = pthread_create(&pthread_socket_id, NULL, &pthread_socket,
-                                  (void *)NULL);
+  pthread_return =
+      pthread_create(&pthread_socket_id, NULL, &pthread_socket, (void *)NULL);
   if (pthread_return != 0) {
     fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
             pthread_return);
