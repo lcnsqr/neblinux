@@ -1,61 +1,23 @@
-/*
- * getenv
- */
 #include <stdlib.h>
-
-/*
- * snprintf, readline
- */
 #include <stdio.h>
-
-/*
- * readline, add_history
- */
 #include <readline/history.h>
 #include <readline/readline.h>
-
-/*
- * readline, add_history, strcpy, strtok
- */
 #include <string.h>
-
-/*
- * mkdir
- */
 #include <sys/stat.h>
-
-/*
- * kill
- */
 #include <signal.h>
-
-/*
- * symlink
- */
 #include <unistd.h>
-
-/*
- * fork, execve
- */
-#include <unistd.h>
-
-/*
- * fork, mkdir, kill
- */
-#include <sys/types.h>
-
-/*
- * wait
- */
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include <errno.h>   // Error integer and strerror() function
-#include <fcntl.h>   // Contains file controls like O_RDWR
-#include <termios.h> // Contains POSIX terminal control definitions
+#include <errno.h>
+#include <fcntl.h>
+#include <termios.h>
 
 #include <pthread.h>
 #include <stdlib.h>
+
+#include <sys/socket.h>
+#include <sys/un.h>
 
 // Estrutura com estado do aparelho
 #include "../arduino/vapomatic/state.h"
@@ -63,8 +25,10 @@ struct State state;
 struct StateIO stateOut;
 // Variável de controle para enviar estado alterado
 uint8_t state_change = 0;
-// mutex de alteração do estado
+
+// mutex de acesso ao estado
 pthread_mutex_t state_mut = PTHREAD_MUTEX_INITIALIZER;
+
 // Intervalo entre comunicações na porta serial (microsegundos)
 #define RX_PAUSE 100e+3
 #define TX_PAUSE 100e+3
@@ -93,6 +57,132 @@ struct {
   float heat[GRAPH_POINTS];
   int i_heat;
 } graph;
+
+// Comunicação via socket
+void *pthread_socket(void *arg) {
+	struct sockaddr_un name;
+	int ret;
+	int connection_socket;
+	int data_socket;
+	const int socket_buf_size = 4096;
+	char buffer[socket_buf_size];
+	memset(buffer, 0, socket_buf_size);
+	const char socket_path[] = "/tmp/vapomatic.sock";
+
+  float tempProbe;
+
+	/*
+	 * In case the program exited inadvertently on the last run,
+	 * remove the socket.
+	 */
+
+	unlink(socket_path);
+
+	/* Create local socket. */
+
+	connection_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (connection_socket == -1) {
+			perror("socket");
+			exit(EXIT_FAILURE);
+	}
+
+	/*
+	 * For portability clear the whole structure, since some
+	 * implementations have additional (nonstandard) fields in
+	 * the structure.
+	 */
+
+	memset(&name, 0, sizeof(struct sockaddr_un));
+
+	/* Bind socket to socket name. */
+
+	name.sun_family = AF_UNIX;
+	strncpy(name.sun_path, socket_path, sizeof(name.sun_path) - 1);
+
+	ret = bind(connection_socket, (const struct sockaddr *) &name, sizeof(struct sockaddr_un));
+	if (ret == -1) {
+			perror("bind");
+			exit(EXIT_FAILURE);
+	}
+
+	/*
+	 * Prepare for accepting connections. The backlog size is set
+	 * to 20. So while one request is being processed other requests
+	 * can be waiting.
+	 */
+
+	ret = listen(connection_socket, 20);
+	if (ret == -1) {
+			perror("listen");
+			exit(EXIT_FAILURE);
+	}
+
+	/* This is the main loop for handling connections. */
+
+	for (;;) {
+
+			/* Wait for incoming connection. */
+
+			data_socket = accept(connection_socket, NULL, NULL);
+			if (data_socket == -1) {
+					perror("accept");
+					exit(EXIT_FAILURE);
+			}
+
+			/* Wait for next data packet. */
+
+			ret = read(data_socket, buffer, socket_buf_size);
+			if (ret == -1) {
+					perror("read");
+					exit(EXIT_FAILURE);
+			}
+
+			/* Ensure buffer is 0-terminated. */
+
+			buffer[socket_buf_size - 1] = 0;
+
+			/* Handle commands. */
+
+			if (!strncmp(buffer, "END", socket_buf_size)) {
+					break;
+			}
+
+			if (!strncmp(buffer, "STATE", socket_buf_size)) {
+        
+        pthread_mutex_lock(&graph_mut);
+        tempProbe = graph.probe[(graph.i_probe + (GRAPH_POINTS-1)) % GRAPH_POINTS],
+        pthread_mutex_unlock(&graph_mut);
+
+        pthread_mutex_lock(&state_mut);
+        snprintf(buffer, socket_buf_size, "{\"tempTarget\":%.2f,\"tempCore\":%.2f,\"tempProbe\":%.2f, \"heat\":%d}", state.tempTarget, state.tempCore, tempProbe, (int)state.PID[4]);
+        pthread_mutex_unlock(&state_mut);
+      }
+
+			/* Send result. */
+
+			ret = write(data_socket, buffer, strlen(buffer));
+			if (ret == -1) {
+					perror("write");
+					exit(EXIT_FAILURE);
+			}
+
+			memset(buffer, 0, socket_buf_size);
+
+			/* Close socket. */
+
+			close(data_socket);
+
+	}
+
+	close(connection_socket);
+
+	/* Unlink the socket. */
+
+	unlink(socket_path);
+
+  pthread_exit((void *)NULL);
+}
+
 
 // Avaliar comportamento da temperatura
 void *pthread_temp_gist(void *arg) {
@@ -484,6 +574,16 @@ int main(int argc, char **argv) {
     exit(-1);
   }
 
+  // socket thread
+  pthread_t pthread_socket_id;
+  pthread_return = pthread_create(&pthread_socket_id, NULL, &pthread_socket,
+                                  (void *)NULL);
+  if (pthread_return != 0) {
+    fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
+            pthread_return);
+    exit(-1);
+  }
+
   // Wait until serial port ready
   sleep(4);
 
@@ -551,6 +651,9 @@ int main(int argc, char **argv) {
             pthread_return);
     exit(-1);
   }
+
+  // Kill socket thread
+  pthread_kill(pthread_socket_id, 15);
 
   // Released aloccated memory
   free(prompt);

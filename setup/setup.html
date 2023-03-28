@@ -47,6 +47,18 @@ function update_graphs(){
 
 setInterval(update_graphs, 250);
 
+// Conexão WebSocket
+ws = new WebSocket('ws://127.0.0.1:8888');
+
+ws.onopen = function(event){
+  console.log("Conexão aberta");
+}
+
+ws.onmessage = function(event){
+  var data = JSON.parse(event.data);
+  console.log(data);
+}
+
 </script>
 
 </body>
