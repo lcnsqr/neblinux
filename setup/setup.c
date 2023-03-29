@@ -194,7 +194,7 @@ void *pthread_temp_gist(void *arg) {
   FILE *gnuplot = popen("gnuplot 2>/dev/null", "w");
 
   // Mostrar coeficientes no fd 3
-  FILE *fd_coefs = fdopen(3, "w");
+  //FILE *fd_coefs = fdopen(3, "w");
 
   static const int tail_points = 24;
   static const float y_temp_max = 400.0;
@@ -265,9 +265,7 @@ void *pthread_temp_gist(void *arg) {
     // Regressão linear aquecimento
     mat_leastsquares(tail_points, 1, tail_x, tail_heat, coefs_heat);
 
-    // fprintf(fd_coefs, "%5.6f\t%5.6f\t%5.6f\t%5.6f\n", coefs_core[0],
-    // coefs_core[1], coefs_probe[0], coefs_probe[1]);
-    fprintf(fd_coefs, "%5.6f\t%5.6f\n", coefs_heat[0], coefs_heat[1]);
+    //fprintf(fd_coefs, "%5.6f\t%5.6f\n", coefs_heat[0], coefs_heat[1]);
 
     // Retas core e sonda e aquecimento
     for (int j = 0; j < tail_points; j++) {
@@ -415,6 +413,11 @@ void *pthread_rx_probe(void *arg) {
   memset(graph.probe, 0, GRAPH_POINTS * sizeof(float));
   graph.i_probe = 0;
 
+
+  // Ganho na resistência causa um desvio na leitura da sonda
+  const float drift_max = 10.0;
+  float drift = 0.0;
+
   while (rx_bytes >= 0) {
 
     rx = 0;
@@ -423,9 +426,14 @@ void *pthread_rx_probe(void *arg) {
     if (rx_bytes != sizeof(float))
       continue;
 
+    // Computar fator de desvio
+    pthread_mutex_lock(&state_mut);
+    drift = state.PID[4]/255.0 * drift_max;
+    pthread_mutex_unlock(&state_mut);
+
     pthread_mutex_lock(&graph_mut);
 
-    graph.probe[graph.i_probe] = rx;
+    graph.probe[graph.i_probe] = rx + drift;
     graph.i_probe = (graph.i_probe + 1) % GRAPH_POINTS;
 
     pthread_mutex_unlock(&graph_mut);
@@ -505,7 +513,7 @@ int main(int argc, char **argv) {
   const char serial_probe[] = "/dev/ttyACM0";
 
   // Valores padrão para a estrutura de controle
-  stateOut.tempTarget = 100.0;
+  stateOut.tempTarget = 180.0;
   stateOut.on = 0;
   stateOut.fan = 0;
   stateOut.PID_enabled = 1;
