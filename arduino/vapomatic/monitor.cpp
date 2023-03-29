@@ -45,6 +45,7 @@ void Monitor::action() {
   serial_now = millis();
   if (serial_now - serial_before >= serial_wait) {
     // Enviar estado para o utilitário de setup
+    session->state.ts = millis();
     Serial.write((char *)&(session->state), sizeof(struct State));
     serial_before = serial_now;
   }

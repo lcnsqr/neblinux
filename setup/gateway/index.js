@@ -73,7 +73,7 @@ wss.on('connection', function connection(ws) {
       ws.send(data.toString())
       client.end()
     })
-  }, 250)
+  }, 500)
 
 
 })

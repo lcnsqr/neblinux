@@ -157,9 +157,9 @@ void *pthread_socket(void *arg) {
 
       pthread_mutex_lock(&state_mut);
       snprintf(buffer, socket_buf_size,
-               "{\"tempTarget\":%.2f,\"tempCore\":%.2f,\"tempProbe\":%.2f, "
+               "{\"ts\": %d, \"tempTarget\":%.2f,\"tempCore\":%.2f,\"tempProbe\":%.2f, "
                "\"heat\":%d}",
-               state.tempTarget, state.tempCore, tempProbe, (int)state.PID[4]);
+               state.ts, state.tempTarget, state.tempCore, tempProbe, (int)state.PID[4]);
       pthread_mutex_unlock(&state_mut);
     }
 

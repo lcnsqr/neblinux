@@ -40,6 +40,9 @@ struct State {
   // 4: Valor do atuador
   // 5: Se 0, aplicar atuador mas não calcular PID
   float PID[6];
+
+  // timestamp
+  uint32_t ts;
 };
 
 // Estrutura de comando via porta serial

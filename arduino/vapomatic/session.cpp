@@ -26,6 +26,8 @@ Session::Session() {
 
   state.shut[0] = 0;
   state.shut[1] = 0;
+  
+  state.ts = 0;
 }
 
 void Session::load() {
