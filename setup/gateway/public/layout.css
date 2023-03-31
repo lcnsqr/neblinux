@@ -1,0 +1,9 @@
+div#graphs {
+	display: flex;
+  justify-content: space-evenly;
+}
+
+div#graphs > div {
+	width: 500px;
+	height: 500px;
+}

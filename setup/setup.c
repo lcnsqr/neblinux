@@ -30,22 +30,22 @@ uint8_t state_change = 0;
 pthread_mutex_t state_mut = PTHREAD_MUTEX_INITIALIZER;
 
 // Intervalo entre comunicações na porta serial (microsegundos)
-#define RX_PAUSE 100e+3
-#define TX_PAUSE 100e+3
+#define RX_PAUSE 200e+3
+#define TX_PAUSE 200e+3
 
 // Operações matemáticas
 #include "mat.h"
 
 // Número de pontos nos gráficos
-#define GRAPH_POINTS 120
-// Pausa entre atualizações do gráfico
-#define GRAPH_PAUSE 25e+3
+#define GRAPH_POINTS 200
 
 // mutex do histórico de temperaturas
 pthread_mutex_t graph_mut = PTHREAD_MUTEX_INITIALIZER;
 
-// Temperature sequences for graphs
+// Sequences for graphs
 struct {
+  float ts[GRAPH_POINTS];
+  int i_ts;
   float core[GRAPH_POINTS];
   int i_core;
   float ex[GRAPH_POINTS];
@@ -64,12 +64,22 @@ void *pthread_socket(void *arg) {
   int ret;
   int connection_socket;
   int data_socket;
-  const int socket_buf_size = 4096;
+  const int socket_buf_size = 65536;
   char buffer[socket_buf_size];
   memset(buffer, 0, socket_buf_size);
   const char socket_path[] = "/tmp/vapomatic.sock";
 
-  float tempProbe;
+  // Sequências de valores em texto para o formato json
+  char graph_core[16384];
+  memset(graph_core, 0, 16384);
+  char graph_probe[16384];
+  memset(graph_probe, 0, 16384);
+  char graph_target[16384];
+  memset(graph_target, 0, 16384);
+  char graph_ex[16384];
+  memset(graph_ex, 0, 16384);
+  char graph_heat[16384];
+  memset(graph_heat, 0, 16384);
 
   /*
    * In case the program exited inadvertently on the last run,
@@ -148,18 +158,51 @@ void *pthread_socket(void *arg) {
       break;
     }
 
+    // Estado da sessão
     if (!strncmp(buffer, "STATE", socket_buf_size)) {
 
+      // Eixo x em segundos (negativos) contados pelo timestamp
+      float x = 0;
+
+      // Gerar sequências em texto
       pthread_mutex_lock(&graph_mut);
-      tempProbe =
-          graph.probe[(graph.i_probe + (GRAPH_POINTS - 1)) % GRAPH_POINTS],
+      for (int j = 0; j < GRAPH_POINTS; j++) {
+
+        x = graph.ts[(graph.i_ts + j) % GRAPH_POINTS] -
+            graph.ts[(graph.i_ts + GRAPH_POINTS - 1) % GRAPH_POINTS];
+        x *= 1e-3;
+
+        sprintf(graph_core + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
+                graph.core[(graph.i_core + j) % GRAPH_POINTS],
+                (j == GRAPH_POINTS - 1) ? " " : ",");
+        sprintf(graph_probe + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
+                graph.probe[(graph.i_probe + j) % GRAPH_POINTS],
+                (j == GRAPH_POINTS - 1) ? " " : ",");
+        sprintf(graph_target + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
+                graph.target[(graph.i_target + j) % GRAPH_POINTS],
+                (j == GRAPH_POINTS - 1) ? " " : ",");
+        sprintf(graph_ex + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
+                graph.ex[(graph.i_ex + j) % GRAPH_POINTS],
+                (j == GRAPH_POINTS - 1) ? " " : ",");
+        sprintf(graph_heat + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
+                graph.heat[(graph.i_heat + j) % GRAPH_POINTS],
+                (j == GRAPH_POINTS - 1) ? " " : ",");
+      }
       pthread_mutex_unlock(&graph_mut);
 
       pthread_mutex_lock(&state_mut);
       snprintf(buffer, socket_buf_size,
-               "{\"ts\": %d, \"tempTarget\":%.2f,\"tempCore\":%.2f,\"tempProbe\":%.2f, "
-               "\"heat\":%d}",
-               state.ts, state.tempTarget, state.tempCore, tempProbe, (int)state.PID[4]);
+               "{\"ts\": %d, \"graph\":"
+               "{"
+               "\"core\":[%s],"
+               "\"probe\":[%s],"
+               "\"target\":[%s],"
+               "\"ex\":[%s],"
+               "\"heat\":[%s]"
+               "}"
+               "}",
+               state.ts, graph_core, graph_probe, graph_target, graph_ex,
+               graph_heat);
       pthread_mutex_unlock(&state_mut);
     }
 
@@ -187,16 +230,13 @@ void *pthread_socket(void *arg) {
   pthread_exit((void *)NULL);
 }
 
-// Avaliar comportamento da temperatura
-void *pthread_temp_gist(void *arg) {
-
-  // Create gnuplot process to pipe in temp linear regression
-  FILE *gnuplot = popen("gnuplot 2>/dev/null", "w");
-
-  // Mostrar coeficientes no fd 3
-  //FILE *fd_coefs = fdopen(3, "w");
+// Computar regressão linear nos pontos recentes
+/*
+void *pthread_regression(void *arg) {
 
   static const int tail_points = 24;
+  // Regressão nos pontos dos últimos segundos
+  static const int tail_time = 5;
   static const float y_temp_max = 400.0;
   static const float y_heat_max = 255.0;
 
@@ -221,21 +261,9 @@ void *pthread_temp_gist(void *arg) {
   float coefs_probe[2];
   float coefs_heat[2];
 
-  fprintf(gnuplot, "set term svg size 500,500 name \"gist\"\n");
-  fprintf(gnuplot, "set output \"|./cutsvg.pl gist.svg\"\n");
-  fprintf(gnuplot, "set xrange [%.2f:%.2f]\n", 0.0, 1.0);
-  fprintf(gnuplot, "set yrange [%.2f:%.2f]\n", -1.0, 1.0);
-  fprintf(gnuplot, "set title font \",14\"\n");
-  fprintf(gnuplot, "set title \"Retas dos últimos %d pontos\"\n", tail_points);
-
-  while (fflush(gnuplot) == 0) {
+  while (1) {
 
     usleep(GRAPH_PAUSE);
-
-    fprintf(gnuplot, "%s\n",
-            "plot \"-\" using 1:2 title \"Interna\" with lines lw 2, \"-\" "
-            "using 1:3 title \"Sonda\" with lines lw 2, \"-\" using 1:4 title "
-            "\"Aquecimento\" with lines lw 2");
 
     pthread_mutex_lock(&graph_mut);
 
@@ -265,64 +293,19 @@ void *pthread_temp_gist(void *arg) {
     // Regressão linear aquecimento
     mat_leastsquares(tail_points, 1, tail_x, tail_heat, coefs_heat);
 
-    //fprintf(fd_coefs, "%5.6f\t%5.6f\n", coefs_heat[0], coefs_heat[1]);
-
     // Retas core e sonda e aquecimento
     for (int j = 0; j < tail_points; j++) {
       tail_core_line[j] = coefs_core[0] + coefs_core[1] * tail_x[j];
       tail_probe_line[j] = coefs_probe[0] + coefs_probe[1] * tail_x[j];
       tail_heat_line[j] = coefs_heat[0] + coefs_heat[1] * tail_x[j];
-      fprintf(gnuplot, "%.2f\t%.2f\t%.2f\t%.2f\n", tail_x[j], tail_core_line[j],
-              tail_probe_line[j], tail_heat_line[j]);
     }
 
-    fprintf(gnuplot, "%s\n", "e");
   }
 
   pthread_exit((void *)NULL);
 }
 
-// Plotagem
-void *pthread_plot(void *arg) {
-
-  FILE *gnuplot = popen("gnuplot 2>/dev/null", "w");
-
-  // fprintf(gnuplot, "set multiplot layout 1, 2\n");
-
-  fprintf(gnuplot, "set term svg size 500,500 name \"temp\"\n");
-  fprintf(gnuplot, "set output \"|./cutsvg.pl temp.svg\"\n");
-  fprintf(gnuplot, "set xrange [%.2f:%.2f]\n", 0.0, (float)(GRAPH_POINTS - 1));
-  fprintf(gnuplot, "set yrange [0:400]\n");
-  fprintf(gnuplot, "set title font \",14\"\n");
-  fprintf(gnuplot, "set title \"Temperaturas\"\n");
-
-  while (fflush(gnuplot) == 0) {
-
-    usleep(GRAPH_PAUSE);
-
-    fprintf(
-        gnuplot, "%s\n",
-        "plot \"-\" using 1:2 title \"Interna\" with lines lw 2, \"-\" using "
-        "1:3 title \"Sonda\" with lines lw 2, \"-\" using 1:4 title \"Alvo\" "
-        "with lines lw 2, \"-\" using 1:5 title \"Saída\" with lines lw 2");
-
-    pthread_mutex_lock(&graph_mut);
-
-    for (int j = 0; j < GRAPH_POINTS; j++) {
-      fprintf(gnuplot, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n", (float)j,
-              graph.core[(graph.i_core + j) % GRAPH_POINTS],
-              graph.probe[(graph.i_probe + j) % GRAPH_POINTS],
-              graph.target[(graph.i_target + j) % GRAPH_POINTS],
-              graph.ex[(graph.i_ex + j) % GRAPH_POINTS]);
-    }
-
-    pthread_mutex_unlock(&graph_mut);
-
-    fprintf(gnuplot, "%s\n", "e");
-  }
-
-  pthread_exit((void *)NULL);
-}
+*/
 
 // Comunicação com o aparelho
 void *pthread_rxtx(void *arg) {
@@ -333,9 +316,16 @@ void *pthread_rxtx(void *arg) {
 
   int32_t header = 0x0000;
 
+  // Simular tempos anteriores
+  for (int i = 0; i < GRAPH_POINTS; i++)
+    graph.ts[i] = -70 * 1e+3 + (float)i * 70 * 1e+3 / (float)GRAPH_POINTS;
+
   memset(graph.core, 0, GRAPH_POINTS * sizeof(float));
+  memset(graph.ex, 0, GRAPH_POINTS * sizeof(float));
+  memset(graph.target, 0, GRAPH_POINTS * sizeof(float));
   memset(graph.heat, 0, GRAPH_POINTS * sizeof(float));
 
+  graph.i_ts = 0;
   graph.i_core = 0;
   graph.i_ex = 0;
   graph.i_target = 0;
@@ -367,6 +357,10 @@ void *pthread_rxtx(void *arg) {
     if (!state_change) {
       for (int b = 4; b < sizeof(struct State); b += 4)
         rx_bytes = read(*port, (char *)&state + b, 4);
+      // Ignorar carga de aquecimento nos primeiros milisegundos
+      // Artefatos no início da comunicação serial podem aparentar picos
+      if (state.ts < 5000)
+        state.PID[4] = 0;
     }
 
     // Atualizar stateOut
@@ -381,6 +375,9 @@ void *pthread_rxtx(void *arg) {
     pthread_mutex_unlock(&state_mut);
 
     pthread_mutex_lock(&graph_mut);
+
+    graph.ts[graph.i_ts] = (float)state.ts;
+    graph.i_ts = (graph.i_ts + 1) % GRAPH_POINTS;
 
     graph.core[graph.i_core] = state.tempCore;
     graph.i_core = (graph.i_core + 1) % GRAPH_POINTS;
@@ -413,7 +410,6 @@ void *pthread_rx_probe(void *arg) {
   memset(graph.probe, 0, GRAPH_POINTS * sizeof(float));
   graph.i_probe = 0;
 
-
   // Ganho na resistência causa um desvio na leitura da sonda
   const float drift_max = 10.0;
   float drift = 0.0;
@@ -428,7 +424,7 @@ void *pthread_rx_probe(void *arg) {
 
     // Computar fator de desvio
     pthread_mutex_lock(&state_mut);
-    drift = state.PID[4]/255.0 * drift_max;
+    drift = state.PID[4] / 255.0 * drift_max;
     pthread_mutex_unlock(&state_mut);
 
     pthread_mutex_lock(&graph_mut);
@@ -443,18 +439,6 @@ void *pthread_rx_probe(void *arg) {
 
   pthread_exit((void *)NULL);
 }
-
-/*
- * Forward declarations
- */
-
-// Parse and run cmdline. Returns
-// zero value to keep the shell running
-// or non-zero value to end the shell.
-int exec(char *cmdline);
-
-// Release memory used to parse the command line
-void tokens_cleanup(char **tokens);
 
 int init_tty(int port_vapomatic) {
   // Create new termios struct, we call it 'tty' for convention
@@ -507,169 +491,17 @@ int init_tty(int port_vapomatic) {
   return 0;
 }
 
-int main(int argc, char **argv) {
-
-  const char serial_vapomatic[] = "/dev/ttyUSB0";
-  const char serial_probe[] = "/dev/ttyACM0";
-
-  // Valores padrão para a estrutura de controle
-  stateOut.tempTarget = 180.0;
-  stateOut.on = 0;
-  stateOut.fan = 0;
-  stateOut.PID_enabled = 1;
-  stateOut.heat = 0;
-
-  // Open the serial port. Change device path as needed (currently set to an
-  // standard FTDI USB-UART cable type device)
-  int port_vapomatic = open(serial_vapomatic, O_RDWR);
-  int port_probe = open(serial_probe, O_RDWR);
-
-  int init_tty_return = init_tty(port_vapomatic);
-  if (init_tty_return != 0) {
-    fprintf(stderr, "ERROR; return code from init_tty() on %s is %d\n",
-            serial_vapomatic, init_tty_return);
-    exit(-1);
+// Release memory used to parse the command line
+void tokens_cleanup(char **tokens) {
+  for (int i = 0; tokens[i] != NULL; i++) {
+    free(tokens[i]);
   }
-
-  init_tty_return = init_tty(port_probe);
-  if (init_tty_return != 0) {
-    fprintf(stderr, "ERROR; return code from init_tty() on %s is %d\n",
-            serial_probe, init_tty_return);
-    exit(-1);
-  }
-
-  // RXTX thread
-  pthread_t pthread_rxtx_id;
-  int pthread_return;
-
-  pthread_return = pthread_create(&pthread_rxtx_id, NULL, &pthread_rxtx,
-                                  (void *)&port_vapomatic);
-  if (pthread_return != 0) {
-    fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
-            pthread_return);
-    exit(-1);
-  }
-
-  // RX probe thread
-  pthread_t pthread_rx_probe_id;
-
-  pthread_return = pthread_create(&pthread_rx_probe_id, NULL, &pthread_rx_probe,
-                                  (void *)&port_probe);
-  if (pthread_return != 0) {
-    fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
-            pthread_return);
-    exit(-1);
-  }
-
-  // Plot thread
-  pthread_t pthread_plot_id;
-
-  pthread_return =
-      pthread_create(&pthread_plot_id, NULL, &pthread_plot, (void *)NULL);
-  if (pthread_return != 0) {
-    fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
-            pthread_return);
-    exit(-1);
-  }
-
-  // Plot linear regression
-  pthread_t pthread_temp_gist_id;
-
-  pthread_return = pthread_create(&pthread_temp_gist_id, NULL,
-                                  &pthread_temp_gist, (void *)NULL);
-  if (pthread_return != 0) {
-    fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
-            pthread_return);
-    exit(-1);
-  }
-
-  // socket thread
-  pthread_t pthread_socket_id;
-  pthread_return =
-      pthread_create(&pthread_socket_id, NULL, &pthread_socket, (void *)NULL);
-  if (pthread_return != 0) {
-    fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
-            pthread_return);
-    exit(-1);
-  }
-
-  // Wait until serial port ready
-  sleep(4);
-
-  /*
-   * Shell
-   */
-
-  // The username from evironment variable USER
-  char *user = getenv("USER");
-
-  // The workdir from evironment variable PWD
-  // char *pwd = getenv("PWD");
-
-  // The command prompt
-  char *prompt = malloc(1024);
-  // snprintf(prompt, 1024, "{%s@%s} ", user, pwd);
-  snprintf(prompt, 1024, "{%s@vapomatic} ", user);
-
-  // Command line returned by the user
-  char *cmdline;
-
-  // Stop the main loop if end != 0
-  int end = 0;
-
-  // The main loop for handling commands
-  while (!end) {
-    cmdline = readline(prompt);
-
-    if (cmdline == NULL) {
-      // EOF in an empty line, break prompt loop
-      printf("exit\n");
-      break;
-    }
-
-    // Add cmdline to the command history
-    if (cmdline && *cmdline) {
-      add_history(cmdline);
-    }
-
-    // Run the command
-    end = exec(cmdline);
-
-    // Release cmdline memory
-    free(cmdline);
-  }
-
-  // Close gnuplot
-  pthread_kill(pthread_plot_id, 15);
-  pthread_kill(pthread_temp_gist_id, 15);
-
-  // End serial communication with ship
-  close(port_vapomatic);
-  pthread_return = pthread_join(pthread_rxtx_id, NULL);
-  if (pthread_return != 0) {
-    fprintf(stderr, "ERROR; return code from pthread_join() is %d\n",
-            pthread_return);
-    exit(-1);
-  }
-
-  // End serial communication with probe
-  close(port_probe);
-  pthread_return = pthread_join(pthread_rx_probe_id, NULL);
-  if (pthread_return != 0) {
-    fprintf(stderr, "ERROR; return code from pthread_join() is %d\n",
-            pthread_return);
-    exit(-1);
-  }
-
-  // Kill socket thread
-  pthread_kill(pthread_socket_id, 15);
-
-  // Released aloccated memory
-  free(prompt);
-
-  return 0;
+  free(tokens);
 }
 
+// Parse and run cmdline. Returns
+// zero value to keep the shell running
+// or non-zero value to end the shell.
 int exec(char *cmdline) {
 
   // Parse command line
@@ -853,9 +685,158 @@ int exec(char *cmdline) {
   return 0;
 }
 
-void tokens_cleanup(char **tokens) {
-  for (int i = 0; tokens[i] != NULL; i++) {
-    free(tokens[i]);
+int main(int argc, char **argv) {
+
+  const char serial_vapomatic[] = "/dev/ttyUSB0";
+  const char serial_probe[] = "/dev/ttyACM0";
+
+  // Resetar estado
+  memset(&state, 0, sizeof(struct State));
+
+  // Valores padrão para a estrutura de controle
+  stateOut.tempTarget = 180.0;
+  stateOut.on = 0;
+  stateOut.fan = 0;
+  stateOut.PID_enabled = 1;
+  stateOut.heat = 0;
+
+  // Open the serial port. Change device path as needed (currently set to an
+  // standard FTDI USB-UART cable type device)
+  int port_vapomatic = open(serial_vapomatic, O_RDWR);
+  int port_probe = open(serial_probe, O_RDWR);
+
+  int init_tty_return = init_tty(port_vapomatic);
+  if (init_tty_return != 0) {
+    fprintf(stderr, "ERROR; return code from init_tty() on %s is %d\n",
+            serial_vapomatic, init_tty_return);
+    exit(-1);
   }
-  free(tokens);
+
+  init_tty_return = init_tty(port_probe);
+  if (init_tty_return != 0) {
+    fprintf(stderr, "ERROR; return code from init_tty() on %s is %d\n",
+            serial_probe, init_tty_return);
+    exit(-1);
+  }
+
+  // RXTX thread
+  pthread_t pthread_rxtx_id;
+  int pthread_return;
+
+  pthread_return = pthread_create(&pthread_rxtx_id, NULL, &pthread_rxtx,
+                                  (void *)&port_vapomatic);
+  if (pthread_return != 0) {
+    fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
+            pthread_return);
+    exit(-1);
+  }
+
+  // RX probe thread
+  pthread_t pthread_rx_probe_id;
+
+  pthread_return = pthread_create(&pthread_rx_probe_id, NULL, &pthread_rx_probe,
+                                  (void *)&port_probe);
+  if (pthread_return != 0) {
+    fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
+            pthread_return);
+    exit(-1);
+  }
+
+  // Linear regression
+  /*
+  pthread_t pthread_regression_id;
+
+  pthread_return = pthread_create(&pthread_regression_id, NULL,
+                                  &pthread_regression, (void *)NULL);
+  if (pthread_return != 0) {
+    fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
+            pthread_return);
+    exit(-1);
+  }
+  */
+
+  // socket thread
+  pthread_t pthread_socket_id;
+  pthread_return =
+      pthread_create(&pthread_socket_id, NULL, &pthread_socket, (void *)NULL);
+  if (pthread_return != 0) {
+    fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
+            pthread_return);
+    exit(-1);
+  }
+
+  // Wait until serial port ready
+  sleep(4);
+
+  /*
+   * Shell
+   */
+
+  // The username from evironment variable USER
+  char *user = getenv("USER");
+
+  // The workdir from evironment variable PWD
+  // char *pwd = getenv("PWD");
+
+  // The command prompt
+  char *prompt = malloc(1024);
+  // snprintf(prompt, 1024, "{%s@%s} ", user, pwd);
+  snprintf(prompt, 1024, "{%s@vapomatic} ", user);
+
+  // Command line returned by the user
+  char *cmdline;
+
+  // Stop the main loop if end != 0
+  int end = 0;
+
+  // The main loop for handling commands
+  while (!end) {
+    cmdline = readline(prompt);
+
+    if (cmdline == NULL) {
+      // EOF in an empty line, break prompt loop
+      printf("exit\n");
+      break;
+    }
+
+    // Add cmdline to the command history
+    if (cmdline && *cmdline) {
+      add_history(cmdline);
+    }
+
+    // Run the command
+    end = exec(cmdline);
+
+    // Release cmdline memory
+    free(cmdline);
+  }
+
+  // Stop regression
+  // pthread_kill(pthread_regression_id, 15);
+
+  // End serial communication with device
+  close(port_vapomatic);
+  pthread_return = pthread_join(pthread_rxtx_id, NULL);
+  if (pthread_return != 0) {
+    fprintf(stderr, "ERROR; return code from pthread_join() is %d\n",
+            pthread_return);
+    exit(-1);
+  }
+
+  // End serial communication with probe
+  close(port_probe);
+  pthread_return = pthread_join(pthread_rx_probe_id, NULL);
+  if (pthread_return != 0) {
+    fprintf(stderr, "ERROR; return code from pthread_join() is %d\n",
+            pthread_return);
+    exit(-1);
+  }
+
+  // Kill socket thread
+  pthread_kill(pthread_socket_id, 15);
+
+  // Released aloccated memory
+  free(prompt);
+
+  return 0;
 }

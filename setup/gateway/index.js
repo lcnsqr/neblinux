@@ -4,6 +4,9 @@ const app = express()
 const host = "127.0.0.1"
 const port = 8080
 
+// Static files
+app.use(express.static('public'))
+
 // Ler arquivos SVG
 const fs = require("fs")
 // Cópias dos últimos gráficos lidos corretamente
@@ -20,18 +23,14 @@ const wss = new WebSocketServer({host: '127.0.0.1', port: 8888});
 const net = require('net');
 const socketfile = '/tmp/vapomatic.sock';
 
+// EJS
+app.set('view engine', 'ejs')
+
 app.get('/', (req, res) => {
-  fs.readFile('../setup.html', 'utf8', (err, data) => {
-    if (err) {
-      console.error(err)
-      return
-    }
-    res.send(data)
-    return
-  })
+  res.render('main', {title: "Vapomatic"})
 })
 
-app.get('/graph/:graph(temp|gist).svg', (req, res) => {
+app.get('/graph/:graph(temp|heat).svg', (req, res) => {
   fs.readFile('../'+req.params.graph+'.svg', 'utf8', (err, data) => {
     if (err || data.substr(data.length - 7, 6) != "</svg>" ) {
       res.setHeader("Content-Type", "image/svg+xml")
@@ -73,7 +72,7 @@ wss.on('connection', function connection(ws) {
       ws.send(data.toString())
       client.end()
     })
-  }, 500)
+  }, 250)
 
 
 })
