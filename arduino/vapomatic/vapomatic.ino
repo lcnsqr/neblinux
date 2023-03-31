@@ -12,6 +12,8 @@
 
 // Estado do aparelho e comunicação interserviços
 Session session;
+// Controle do aquecedor
+Heater heater(5, &session, 38);
 // Loop de serviços
 Tasks tasks;
 // Leitura da temperatura
@@ -29,8 +31,6 @@ Monitor monitor(&session, &uiMain, 4, 8, 25);
 Rotary rotary;
 // Controle da ventoinha
 Fan fan(7, &session, 75);
-// Controle do aquecedor
-Heater heater(5, &session, 38);
 // Para de encher automaticamente
 // Três pontos amostrais separados por 3.5s
 // O declive importante aparece num intervalo ~ 10s

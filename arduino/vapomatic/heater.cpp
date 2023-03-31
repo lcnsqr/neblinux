@@ -17,6 +17,7 @@ Heater::Heater(int port, Session *session, unsigned long wait)
   F = &(session->state.PID[4]);
   */
   session->state.PID[4] = 0;
+  analogWrite(port, (int)session->state.PID[4]);
 }
 
 void Heater::action() {
