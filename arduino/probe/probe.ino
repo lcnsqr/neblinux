@@ -10,7 +10,7 @@ static const int thermoCS = 10;
 static const int thermoCSK = 13;
 MAX6675 thermocouple(thermoCSK, thermoCS, thermoSO);
 // Leitura da temperatura no termopar
-Therm therm(&thermocouple, 250);
+Therm therm(&thermocouple, 290);
 
 void setup() {
   Serial.begin(115200);
