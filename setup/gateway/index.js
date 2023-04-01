@@ -7,14 +7,6 @@ const port = 8080
 // Static files
 app.use(express.static('public'))
 
-// Ler arquivos SVG
-const fs = require("fs")
-// Cópias dos últimos gráficos lidos corretamente
-var graph = {
-  temp: '',
-  gist: ''
-}
-
 // Websockets
 const WebSocketServer = require('ws').Server;
 const wss = new WebSocketServer({host: '127.0.0.1', port: 8888});
@@ -30,18 +22,15 @@ app.get('/', (req, res) => {
   res.render('main', {title: "Vapomatic"})
 })
 
-app.get('/graph/:graph(temp|heat).svg', (req, res) => {
-  fs.readFile('../'+req.params.graph+'.svg', 'utf8', (err, data) => {
-    if (err || data.substr(data.length - 7, 6) != "</svg>" ) {
-      res.setHeader("Content-Type", "image/svg+xml")
-      res.send(graph[req.params.graph])
-      return
-    }
-    graph[req.params.graph] = data
-    res.setHeader("Content-Type", "image/svg+xml")
-    res.send(data)
-    return
-  })
+app.get('/command/:command/:timestamp', (req, res) => {
+	// Enviar comando via unix socket
+	const client = net.createConnection({path: socketfile})
+	client.write(req.params.command)
+	client.on('data', (data) => {
+		// Apenas fechar conexão por socket e ignorar resposta
+		client.end()
+	})
+	res.sendStatus(204)
 })
 
 const server = app.listen(port, host, () => {

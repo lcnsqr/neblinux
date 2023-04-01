@@ -58,446 +58,6 @@ struct {
   int i_heat;
 } graph;
 
-// Comunicação via socket
-void *pthread_socket(void *arg) {
-  struct sockaddr_un name;
-  int ret;
-  int connection_socket;
-  int data_socket;
-  const int socket_buf_size = 65536;
-  char buffer[socket_buf_size];
-  memset(buffer, 0, socket_buf_size);
-  const char socket_path[] = "/tmp/vapomatic.sock";
-
-  // Sequências de valores em texto para o formato json
-  char graph_core[16384];
-  memset(graph_core, 0, 16384);
-  char graph_probe[16384];
-  memset(graph_probe, 0, 16384);
-  char graph_target[16384];
-  memset(graph_target, 0, 16384);
-  char graph_ex[16384];
-  memset(graph_ex, 0, 16384);
-  char graph_heat[16384];
-  memset(graph_heat, 0, 16384);
-
-  /*
-   * In case the program exited inadvertently on the last run,
-   * remove the socket.
-   */
-
-  unlink(socket_path);
-
-  /* Create local socket. */
-
-  connection_socket = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (connection_socket == -1) {
-    perror("socket");
-    exit(EXIT_FAILURE);
-  }
-
-  /*
-   * For portability clear the whole structure, since some
-   * implementations have additional (nonstandard) fields in
-   * the structure.
-   */
-
-  memset(&name, 0, sizeof(struct sockaddr_un));
-
-  /* Bind socket to socket name. */
-
-  name.sun_family = AF_UNIX;
-  strncpy(name.sun_path, socket_path, sizeof(name.sun_path) - 1);
-
-  ret = bind(connection_socket, (const struct sockaddr *)&name,
-             sizeof(struct sockaddr_un));
-  if (ret == -1) {
-    perror("bind");
-    exit(EXIT_FAILURE);
-  }
-
-  /*
-   * Prepare for accepting connections. The backlog size is set
-   * to 20. So while one request is being processed other requests
-   * can be waiting.
-   */
-
-  ret = listen(connection_socket, 20);
-  if (ret == -1) {
-    perror("listen");
-    exit(EXIT_FAILURE);
-  }
-
-  /* This is the main loop for handling connections. */
-
-  for (;;) {
-
-    /* Wait for incoming connection. */
-
-    data_socket = accept(connection_socket, NULL, NULL);
-    if (data_socket == -1) {
-      perror("accept");
-      exit(EXIT_FAILURE);
-    }
-
-    /* Wait for next data packet. */
-
-    ret = read(data_socket, buffer, socket_buf_size);
-    if (ret == -1) {
-      perror("read");
-      exit(EXIT_FAILURE);
-    }
-
-    /* Ensure buffer is 0-terminated. */
-
-    buffer[socket_buf_size - 1] = 0;
-
-    /* Handle commands. */
-
-    if (!strncmp(buffer, "END", socket_buf_size)) {
-      break;
-    }
-
-    // Estado da sessão
-    if (!strncmp(buffer, "STATE", socket_buf_size)) {
-
-      // Eixo x em segundos (negativos) contados pelo timestamp
-      float x = 0;
-
-      // Gerar sequências em texto
-      pthread_mutex_lock(&graph_mut);
-      for (int j = 0; j < GRAPH_POINTS; j++) {
-
-        x = graph.ts[(graph.i_ts + j) % GRAPH_POINTS] -
-            graph.ts[(graph.i_ts + GRAPH_POINTS - 1) % GRAPH_POINTS];
-        x *= 1e-3;
-
-        sprintf(graph_core + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
-                graph.core[(graph.i_core + j) % GRAPH_POINTS],
-                (j == GRAPH_POINTS - 1) ? " " : ",");
-        sprintf(graph_probe + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
-                graph.probe[(graph.i_probe + j) % GRAPH_POINTS],
-                (j == GRAPH_POINTS - 1) ? " " : ",");
-        sprintf(graph_target + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
-                graph.target[(graph.i_target + j) % GRAPH_POINTS],
-                (j == GRAPH_POINTS - 1) ? " " : ",");
-        sprintf(graph_ex + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
-                graph.ex[(graph.i_ex + j) % GRAPH_POINTS],
-                (j == GRAPH_POINTS - 1) ? " " : ",");
-        sprintf(graph_heat + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
-                graph.heat[(graph.i_heat + j) % GRAPH_POINTS],
-                (j == GRAPH_POINTS - 1) ? " " : ",");
-      }
-      pthread_mutex_unlock(&graph_mut);
-
-      pthread_mutex_lock(&state_mut);
-      snprintf(buffer, socket_buf_size,
-               "{"
-               "\"elapsed\": %d,"
-               "\"on\": %d,"
-               "\"fan\": %d,"
-               "\"PID\": [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f],"
-               "\"ts\": %d,"
-               "\"graph\":"
-               "{"
-               "\"core\":[%s],"
-               "\"probe\":[%s],"
-               "\"target\":[%s],"
-               "\"ex\":[%s],"
-               "\"heat\":[%s]"
-               "}"
-               "}",
-               state.elapsed, state.on, state.fan, state.PID[0], state.PID[1],
-               state.PID[2], state.PID[3], state.PID[4], state.PID[5], state.ts,
-               graph_core, graph_probe, graph_target, graph_ex, graph_heat);
-      pthread_mutex_unlock(&state_mut);
-    }
-
-    /* Send result. */
-
-    ret = write(data_socket, buffer, strlen(buffer));
-    if (ret == -1) {
-      perror("write");
-      exit(EXIT_FAILURE);
-    }
-
-    memset(buffer, 0, socket_buf_size);
-
-    /* Close socket. */
-
-    close(data_socket);
-  }
-
-  close(connection_socket);
-
-  /* Unlink the socket. */
-
-  unlink(socket_path);
-
-  pthread_exit((void *)NULL);
-}
-
-// Computar regressão linear nos pontos recentes
-/*
-void *pthread_regression(void *arg) {
-
-  static const int tail_points = 24;
-  // Regressão nos pontos dos últimos segundos
-  static const int tail_time = 5;
-  static const float y_temp_max = 400.0;
-  static const float y_heat_max = 255.0;
-
-  // Nos testes, o slope estável será < 1e-3 = 0.001 no domínio e imagem
-  // normalizadis
-
-  float tail_x[tail_points];
-
-  float tail_core[tail_points];
-  float tail_core_line[tail_points];
-
-  float tail_probe[tail_points];
-  float tail_probe_line[tail_points];
-
-  float tail_heat[tail_points];
-  float tail_heat_line[tail_points];
-
-  for (int i = 0; i < tail_points; i++)
-    tail_x[i] = (float)i / (float)tail_points;
-
-  float coefs_core[2];
-  float coefs_probe[2];
-  float coefs_heat[2];
-
-  while (1) {
-
-    usleep(GRAPH_PAUSE);
-
-    pthread_mutex_lock(&graph_mut);
-
-    for (int j = 0; j < tail_points; j++) {
-      tail_core[j] =
-          graph.core[(graph.i_core + (GRAPH_POINTS - tail_points) + j) %
-                     GRAPH_POINTS] /
-          y_temp_max;
-      tail_probe[j] =
-          graph.probe[(graph.i_probe + (GRAPH_POINTS - tail_points) + j) %
-                      GRAPH_POINTS] /
-          y_temp_max;
-      tail_heat[j] =
-          graph.heat[(graph.i_heat + (GRAPH_POINTS - tail_points) + j) %
-                     GRAPH_POINTS] /
-          y_heat_max;
-    }
-
-    pthread_mutex_unlock(&graph_mut);
-
-    // Regressão linear core
-    mat_leastsquares(tail_points, 1, tail_x, tail_core, coefs_core);
-
-    // Regressão linear sonda
-    mat_leastsquares(tail_points, 1, tail_x, tail_probe, coefs_probe);
-
-    // Regressão linear aquecimento
-    mat_leastsquares(tail_points, 1, tail_x, tail_heat, coefs_heat);
-
-    // Retas core e sonda e aquecimento
-    for (int j = 0; j < tail_points; j++) {
-      tail_core_line[j] = coefs_core[0] + coefs_core[1] * tail_x[j];
-      tail_probe_line[j] = coefs_probe[0] + coefs_probe[1] * tail_x[j];
-      tail_heat_line[j] = coefs_heat[0] + coefs_heat[1] * tail_x[j];
-    }
-
-  }
-
-  pthread_exit((void *)NULL);
-}
-
-*/
-
-// Comunicação com o aparelho
-void *pthread_rxtx(void *arg) {
-
-  int *port = (int *)arg;
-
-  int rx_bytes = 0;
-
-  int32_t header = 0x0000;
-
-  // Simular tempos anteriores
-  for (int i = 0; i < GRAPH_POINTS; i++)
-    graph.ts[i] = -120 * 1e+3 + (float)i * 120 * 1e+3 / (float)GRAPH_POINTS;
-
-  memset(graph.core, 0, GRAPH_POINTS * sizeof(float));
-  memset(graph.ex, 0, GRAPH_POINTS * sizeof(float));
-  memset(graph.target, 0, GRAPH_POINTS * sizeof(float));
-  memset(graph.heat, 0, GRAPH_POINTS * sizeof(float));
-
-  graph.i_ts = 0;
-  graph.i_core = 0;
-  graph.i_ex = 0;
-  graph.i_target = 0;
-  graph.i_heat = 0;
-
-  while (rx_bytes >= 0) {
-
-    // Send changed state
-
-    pthread_mutex_lock(&state_mut);
-
-    if (state_change) {
-      write(*port, (char *)&stateOut, sizeof(struct StateIO));
-      state_change = 0;
-      usleep(TX_PAUSE);
-    }
-
-    pthread_mutex_unlock(&state_mut);
-
-    // Skip to the begining of the dataframe
-    while (rx_bytes >= 0 && header != 0xffff)
-      rx_bytes = read(*port, (char *)&header, 4);
-
-    // Reset header
-    header = 0x0000;
-
-    // Read the remaining dataframe
-    pthread_mutex_lock(&state_mut);
-    if (!state_change) {
-      for (int b = 4; b < sizeof(struct State); b += 4)
-        rx_bytes = read(*port, (char *)&state + b, 4);
-      // Ignorar carga de aquecimento nos primeiros milisegundos
-      // Artefatos no início da comunicação serial podem aparentar picos
-      if (state.ts < 5000)
-        state.PID[4] = 0;
-    }
-
-    // Atualizar stateOut
-    /*
-    stateOut.tempTarget = state.tempTarget;
-    stateOut.on = state.on;
-    stateOut.fan = state.fan;
-    stateOut.PID_enabled = (uint32_t)state.PID[5];
-    stateOut.heat = (uint32_t)state.PID[4];
-    */
-
-    pthread_mutex_unlock(&state_mut);
-
-    pthread_mutex_lock(&graph_mut);
-
-    graph.ts[graph.i_ts] = (float)state.ts;
-    graph.i_ts = (graph.i_ts + 1) % GRAPH_POINTS;
-
-    graph.core[graph.i_core] = state.tempCore;
-    graph.i_core = (graph.i_core + 1) % GRAPH_POINTS;
-
-    graph.ex[graph.i_ex] = state.tempEx;
-    graph.i_ex = (graph.i_ex + 1) % GRAPH_POINTS;
-
-    graph.target[graph.i_target] = state.tempTarget;
-    graph.i_target = (graph.i_target + 1) % GRAPH_POINTS;
-
-    graph.heat[graph.i_heat] = state.PID[4];
-    graph.i_heat = (graph.i_heat + 1) % GRAPH_POINTS;
-
-    pthread_mutex_unlock(&graph_mut);
-
-    usleep(RX_PAUSE);
-  }
-
-  pthread_exit((void *)NULL);
-}
-
-// Leitura da sonda
-void *pthread_rx_probe(void *arg) {
-
-  int *port = (int *)arg;
-
-  int rx_bytes = 0;
-
-  float rx;
-  memset(graph.probe, 0, GRAPH_POINTS * sizeof(float));
-  graph.i_probe = 0;
-
-  // Ganho na resistência causa um desvio na leitura da sonda
-  const float drift_max = 10.0;
-  float drift = 0.0;
-
-  while (rx_bytes >= 0) {
-
-    rx = 0;
-    rx_bytes = read(*port, (char *)&rx, sizeof(float));
-
-    if (rx_bytes != sizeof(float))
-      continue;
-
-    // Computar fator de desvio
-    pthread_mutex_lock(&state_mut);
-    drift = state.PID[4] / 255.0 * drift_max;
-    pthread_mutex_unlock(&state_mut);
-
-    pthread_mutex_lock(&graph_mut);
-
-    graph.probe[graph.i_probe] = rx + drift;
-    graph.i_probe = (graph.i_probe + 1) % GRAPH_POINTS;
-
-    pthread_mutex_unlock(&graph_mut);
-
-    usleep(RX_PAUSE);
-  }
-
-  pthread_exit((void *)NULL);
-}
-
-int init_tty(int port_vapomatic) {
-  // Create new termios struct, we call it 'tty' for convention
-  struct termios tty;
-
-  // Read in existing settings, and handle any error
-  if (tcgetattr(port_vapomatic, &tty) != 0) {
-    printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
-    return 1;
-  }
-
-  tty.c_cflag &= ~PARENB; // Clear parity bit, disabling parity (most common)
-  tty.c_cflag &= ~CSTOPB; // Clear stop field, only one stop bit used in
-                          // communication (most common)
-  tty.c_cflag &= ~CSIZE;  // Clear all bits that set the data size
-  tty.c_cflag |= CS8;     // 8 bits per byte (most common)
-  tty.c_cflag &=
-      ~CRTSCTS; // Disable RTS/CTS hardware flow control (most common)
-  tty.c_cflag |=
-      CREAD | CLOCAL; // Turn on READ & ignore ctrl lines (CLOCAL = 1)
-
-  tty.c_lflag &= ~ICANON;
-  tty.c_lflag &= ~ECHO;   // Disable echo
-  tty.c_lflag &= ~ECHOE;  // Disable erasure
-  tty.c_lflag &= ~ECHONL; // Disable new-line echo
-  tty.c_lflag &= ~ISIG;   // Disable interpretation of INTR, QUIT and SUSP
-  tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Turn off s/w flow ctrl
-  tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR |
-                   ICRNL); // Disable any special handling of received bytes
-
-  tty.c_oflag &= ~OPOST; // Prevent special interpretation of output bytes (e.g.
-                         // newline chars)
-  tty.c_oflag &=
-      ~ONLCR; // Prevent conversion of newline to carriage return/line feed
-
-  tty.c_cc[VTIME] = 30; // Wait for up to 3s (30 deciseconds), returning as soon
-                        // as any data is received.
-  tty.c_cc[VMIN] = 0;
-
-  // Set in/out baud rate to be 115200
-  cfsetispeed(&tty, B115200);
-  cfsetospeed(&tty, B115200);
-
-  // Save tty settings, also checking for error
-  if (tcsetattr(port_vapomatic, TCSANOW, &tty) != 0) {
-    printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
-    return 1;
-  }
-
-  return 0;
-}
-
 // Release memory used to parse the command line
 void tokens_cleanup(char **tokens) {
   for (int i = 0; tokens[i] != NULL; i++) {
@@ -689,6 +249,450 @@ int exec(char *cmdline) {
   */
 
   tokens_cleanup(tokens);
+  return 0;
+}
+
+// Comunicação via socket
+void *pthread_socket(void *arg) {
+  struct sockaddr_un name;
+  int ret;
+  int connection_socket;
+  int data_socket;
+  const int socket_buf_size = 65536;
+  char buffer[socket_buf_size];
+  memset(buffer, 0, socket_buf_size);
+  const char socket_path[] = "/tmp/vapomatic.sock";
+
+  // Sequências de valores em texto para o formato json
+  char graph_core[16384];
+  memset(graph_core, 0, 16384);
+  char graph_probe[16384];
+  memset(graph_probe, 0, 16384);
+  char graph_target[16384];
+  memset(graph_target, 0, 16384);
+  char graph_ex[16384];
+  memset(graph_ex, 0, 16384);
+  char graph_heat[16384];
+  memset(graph_heat, 0, 16384);
+
+  /*
+   * In case the program exited inadvertently on the last run,
+   * remove the socket.
+   */
+
+  unlink(socket_path);
+
+  /* Create local socket. */
+
+  connection_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (connection_socket == -1) {
+    perror("socket");
+    exit(EXIT_FAILURE);
+  }
+
+  /*
+   * For portability clear the whole structure, since some
+   * implementations have additional (nonstandard) fields in
+   * the structure.
+   */
+
+  memset(&name, 0, sizeof(struct sockaddr_un));
+
+  /* Bind socket to socket name. */
+
+  name.sun_family = AF_UNIX;
+  strncpy(name.sun_path, socket_path, sizeof(name.sun_path) - 1);
+
+  ret = bind(connection_socket, (const struct sockaddr *)&name,
+             sizeof(struct sockaddr_un));
+  if (ret == -1) {
+    perror("bind");
+    exit(EXIT_FAILURE);
+  }
+
+  /*
+   * Prepare for accepting connections. The backlog size is set
+   * to 20. So while one request is being processed other requests
+   * can be waiting.
+   */
+
+  ret = listen(connection_socket, 20);
+  if (ret == -1) {
+    perror("listen");
+    exit(EXIT_FAILURE);
+  }
+
+  /* This is the main loop for handling connections. */
+
+  for (;;) {
+
+    /* Wait for incoming connection. */
+
+    data_socket = accept(connection_socket, NULL, NULL);
+    if (data_socket == -1) {
+      perror("accept");
+      exit(EXIT_FAILURE);
+    }
+
+    /* Wait for next data packet. */
+
+    ret = read(data_socket, buffer, socket_buf_size);
+    if (ret == -1) {
+      perror("read");
+      exit(EXIT_FAILURE);
+    }
+
+    /* Ensure buffer is 0-terminated. */
+
+    buffer[socket_buf_size - 1] = 0;
+
+    /* Handle commands. */
+
+    if (!strncmp(buffer, "END", socket_buf_size)) {
+      break;
+    }
+
+    // Estado da sessão
+    if (!strncmp(buffer, "STATE", socket_buf_size)) {
+
+      // Eixo x em segundos (negativos) contados pelo timestamp
+      float x = 0;
+
+      // Gerar sequências em texto
+      pthread_mutex_lock(&graph_mut);
+      for (int j = 0; j < GRAPH_POINTS; j++) {
+
+        x = graph.ts[(graph.i_ts + j) % GRAPH_POINTS] -
+            graph.ts[(graph.i_ts + GRAPH_POINTS - 1) % GRAPH_POINTS];
+        x *= 1e-3;
+
+        sprintf(graph_core + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
+                graph.core[(graph.i_core + j) % GRAPH_POINTS],
+                (j == GRAPH_POINTS - 1) ? " " : ",");
+        sprintf(graph_probe + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
+                graph.probe[(graph.i_probe + j) % GRAPH_POINTS],
+                (j == GRAPH_POINTS - 1) ? " " : ",");
+        sprintf(graph_target + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
+                graph.target[(graph.i_target + j) % GRAPH_POINTS],
+                (j == GRAPH_POINTS - 1) ? " " : ",");
+        sprintf(graph_ex + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
+                graph.ex[(graph.i_ex + j) % GRAPH_POINTS],
+                (j == GRAPH_POINTS - 1) ? " " : ",");
+        sprintf(graph_heat + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
+                graph.heat[(graph.i_heat + j) % GRAPH_POINTS],
+                (j == GRAPH_POINTS - 1) ? " " : ",");
+      }
+      pthread_mutex_unlock(&graph_mut);
+
+      pthread_mutex_lock(&state_mut);
+      snprintf(buffer, socket_buf_size,
+               "{"
+               "\"elapsed\": %d,"
+               "\"on\": %d,"
+               "\"fan\": %d,"
+               "\"PID\": [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f],"
+               "\"ts\": %d,"
+               "\"graph\":"
+               "{"
+               "\"core\":[%s],"
+               "\"probe\":[%s],"
+               "\"target\":[%s],"
+               "\"ex\":[%s],"
+               "\"heat\":[%s]"
+               "}"
+               "}",
+               state.elapsed, state.on, state.fan, state.PID[0], state.PID[1],
+               state.PID[2], state.PID[3], state.PID[4], state.PID[5], state.ts,
+               graph_core, graph_probe, graph_target, graph_ex, graph_heat);
+      pthread_mutex_unlock(&state_mut);
+    }
+    else {
+      // Se não for solicitação do estado, executar comando
+      exec(buffer);
+    }
+
+    /* Send result. */
+
+    ret = write(data_socket, buffer, strlen(buffer));
+    if (ret == -1) {
+      perror("write");
+      exit(EXIT_FAILURE);
+    }
+
+    memset(buffer, 0, socket_buf_size);
+
+    /* Close socket. */
+
+    close(data_socket);
+  }
+
+  close(connection_socket);
+
+  /* Unlink the socket. */
+
+  unlink(socket_path);
+
+  pthread_exit((void *)NULL);
+}
+
+// Computar regressão linear nos pontos recentes
+/*
+void *pthread_regression(void *arg) {
+
+  static const int tail_points = 24;
+  // Regressão nos pontos dos últimos segundos
+  static const int tail_time = 5;
+  static const float y_temp_max = 400.0;
+  static const float y_heat_max = 255.0;
+
+  // Nos testes, o slope estável será < 1e-3 = 0.001 no domínio e imagem
+  // normalizadis
+
+  float tail_x[tail_points];
+
+  float tail_core[tail_points];
+  float tail_core_line[tail_points];
+
+  float tail_probe[tail_points];
+  float tail_probe_line[tail_points];
+
+  float tail_heat[tail_points];
+  float tail_heat_line[tail_points];
+
+  for (int i = 0; i < tail_points; i++)
+    tail_x[i] = (float)i / (float)tail_points;
+
+  float coefs_core[2];
+  float coefs_probe[2];
+  float coefs_heat[2];
+
+  while (1) {
+
+    usleep(GRAPH_PAUSE);
+
+    pthread_mutex_lock(&graph_mut);
+
+    for (int j = 0; j < tail_points; j++) {
+      tail_core[j] =
+          graph.core[(graph.i_core + (GRAPH_POINTS - tail_points) + j) %
+                     GRAPH_POINTS] /
+          y_temp_max;
+      tail_probe[j] =
+          graph.probe[(graph.i_probe + (GRAPH_POINTS - tail_points) + j) %
+                      GRAPH_POINTS] /
+          y_temp_max;
+      tail_heat[j] =
+          graph.heat[(graph.i_heat + (GRAPH_POINTS - tail_points) + j) %
+                     GRAPH_POINTS] /
+          y_heat_max;
+    }
+
+    pthread_mutex_unlock(&graph_mut);
+
+    // Regressão linear core
+    mat_leastsquares(tail_points, 1, tail_x, tail_core, coefs_core);
+
+    // Regressão linear sonda
+    mat_leastsquares(tail_points, 1, tail_x, tail_probe, coefs_probe);
+
+    // Regressão linear aquecimento
+    mat_leastsquares(tail_points, 1, tail_x, tail_heat, coefs_heat);
+
+    // Retas core e sonda e aquecimento
+    for (int j = 0; j < tail_points; j++) {
+      tail_core_line[j] = coefs_core[0] + coefs_core[1] * tail_x[j];
+      tail_probe_line[j] = coefs_probe[0] + coefs_probe[1] * tail_x[j];
+      tail_heat_line[j] = coefs_heat[0] + coefs_heat[1] * tail_x[j];
+    }
+
+  }
+
+  pthread_exit((void *)NULL);
+}
+
+*/
+
+// Comunicação com o aparelho
+void *pthread_rxtx(void *arg) {
+
+  int *port = (int *)arg;
+
+  int rx_bytes = 0;
+
+  int32_t header = 0x0000;
+
+  // Simular tempos anteriores
+  for (int i = 0; i < GRAPH_POINTS; i++)
+    graph.ts[i] = -600 * 1e+3 + (float)i * 600 * 1e+3 / (float)GRAPH_POINTS;
+
+  memset(graph.core, 0, GRAPH_POINTS * sizeof(float));
+  memset(graph.ex, 0, GRAPH_POINTS * sizeof(float));
+  memset(graph.target, 0, GRAPH_POINTS * sizeof(float));
+  memset(graph.heat, 0, GRAPH_POINTS * sizeof(float));
+
+  graph.i_ts = 0;
+  graph.i_core = 0;
+  graph.i_ex = 0;
+  graph.i_target = 0;
+  graph.i_heat = 0;
+
+  while (rx_bytes >= 0) {
+
+    // Send changed state
+
+    pthread_mutex_lock(&state_mut);
+
+    if (state_change) {
+      write(*port, (char *)&stateOut, sizeof(struct StateIO));
+      state_change = 0;
+      usleep(TX_PAUSE);
+    }
+
+    pthread_mutex_unlock(&state_mut);
+
+    // Skip to the begining of the dataframe
+    while (rx_bytes >= 0 && header != 0xffff)
+      rx_bytes = read(*port, (char *)&header, 4);
+
+    // Reset header
+    header = 0x0000;
+
+    // Read the remaining dataframe
+    pthread_mutex_lock(&state_mut);
+    if (!state_change) {
+      for (int b = 4; b < sizeof(struct State); b += 4)
+        rx_bytes = read(*port, (char *)&state + b, 4);
+      // Ignorar carga de aquecimento nos primeiros milisegundos
+      // Artefatos no início da comunicação serial podem aparentar picos
+      if (state.ts < 5000)
+        state.PID[4] = 0;
+    }
+
+    // Atualizar stateOut
+    /*
+    stateOut.tempTarget = state.tempTarget;
+    stateOut.on = state.on;
+    stateOut.fan = state.fan;
+    stateOut.PID_enabled = (uint32_t)state.PID[5];
+    stateOut.heat = (uint32_t)state.PID[4];
+    */
+
+    pthread_mutex_unlock(&state_mut);
+
+    pthread_mutex_lock(&graph_mut);
+
+    graph.ts[graph.i_ts] = (float)state.ts;
+    graph.i_ts = (graph.i_ts + 1) % GRAPH_POINTS;
+
+    graph.core[graph.i_core] = state.tempCore;
+    graph.i_core = (graph.i_core + 1) % GRAPH_POINTS;
+
+    graph.ex[graph.i_ex] = state.tempEx;
+    graph.i_ex = (graph.i_ex + 1) % GRAPH_POINTS;
+
+    graph.target[graph.i_target] = state.tempTarget;
+    graph.i_target = (graph.i_target + 1) % GRAPH_POINTS;
+
+    graph.heat[graph.i_heat] = state.PID[4];
+    graph.i_heat = (graph.i_heat + 1) % GRAPH_POINTS;
+
+    pthread_mutex_unlock(&graph_mut);
+
+    usleep(RX_PAUSE);
+  }
+
+  pthread_exit((void *)NULL);
+}
+
+// Leitura da sonda
+void *pthread_rx_probe(void *arg) {
+
+  int *port = (int *)arg;
+
+  int rx_bytes = 0;
+
+  float rx;
+  memset(graph.probe, 0, GRAPH_POINTS * sizeof(float));
+  graph.i_probe = 0;
+
+  // Ganho na resistência causa um desvio na leitura da sonda
+  const float drift_max = 10.0;
+  float drift = 0.0;
+
+  while (rx_bytes >= 0) {
+
+    rx = 0;
+    rx_bytes = read(*port, (char *)&rx, sizeof(float));
+
+    if (rx_bytes != sizeof(float))
+      continue;
+
+    // Computar fator de desvio
+    pthread_mutex_lock(&state_mut);
+    drift = state.PID[4] / 255.0 * drift_max;
+    pthread_mutex_unlock(&state_mut);
+
+    pthread_mutex_lock(&graph_mut);
+
+    graph.probe[graph.i_probe] = rx + drift;
+    graph.i_probe = (graph.i_probe + 1) % GRAPH_POINTS;
+
+    pthread_mutex_unlock(&graph_mut);
+
+    usleep(RX_PAUSE);
+  }
+
+  pthread_exit((void *)NULL);
+}
+
+int init_tty(int port_vapomatic) {
+  // Create new termios struct, we call it 'tty' for convention
+  struct termios tty;
+
+  // Read in existing settings, and handle any error
+  if (tcgetattr(port_vapomatic, &tty) != 0) {
+    printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+    return 1;
+  }
+
+  tty.c_cflag &= ~PARENB; // Clear parity bit, disabling parity (most common)
+  tty.c_cflag &= ~CSTOPB; // Clear stop field, only one stop bit used in
+                          // communication (most common)
+  tty.c_cflag &= ~CSIZE;  // Clear all bits that set the data size
+  tty.c_cflag |= CS8;     // 8 bits per byte (most common)
+  tty.c_cflag &=
+      ~CRTSCTS; // Disable RTS/CTS hardware flow control (most common)
+  tty.c_cflag |=
+      CREAD | CLOCAL; // Turn on READ & ignore ctrl lines (CLOCAL = 1)
+
+  tty.c_lflag &= ~ICANON;
+  tty.c_lflag &= ~ECHO;   // Disable echo
+  tty.c_lflag &= ~ECHOE;  // Disable erasure
+  tty.c_lflag &= ~ECHONL; // Disable new-line echo
+  tty.c_lflag &= ~ISIG;   // Disable interpretation of INTR, QUIT and SUSP
+  tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Turn off s/w flow ctrl
+  tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR |
+                   ICRNL); // Disable any special handling of received bytes
+
+  tty.c_oflag &= ~OPOST; // Prevent special interpretation of output bytes (e.g.
+                         // newline chars)
+  tty.c_oflag &=
+      ~ONLCR; // Prevent conversion of newline to carriage return/line feed
+
+  tty.c_cc[VTIME] = 30; // Wait for up to 3s (30 deciseconds), returning as soon
+                        // as any data is received.
+  tty.c_cc[VMIN] = 0;
+
+  // Set in/out baud rate to be 115200
+  cfsetispeed(&tty, B115200);
+  cfsetospeed(&tty, B115200);
+
+  // Save tty settings, also checking for error
+  if (tcsetattr(port_vapomatic, TCSANOW, &tty) != 0) {
+    printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
+    return 1;
+  }
+
   return 0;
 }
 

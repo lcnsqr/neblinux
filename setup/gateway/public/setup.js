@@ -176,3 +176,17 @@ ws.onmessage = function(event){
   document.querySelector('#state td[data-id="pid1"]').innerHTML = data.PID[1];
   document.querySelector('#state td[data-id="pid2"]').innerHTML = data.PID[2];
 }
+
+document.querySelector('form#prompt').addEventListener("submit", function(event){
+  event.preventDefault()
+	var command = this.querySelector('input[name="command"]').value;
+	if ( command.trim().length == 0 ) return
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', this.getAttribute("action")+"/"+command+"/"+Date.now());
+	xhr.onload = function() {
+		if (xhr.status !== 204) {
+			console.log('Request failed. Return code: ' + xhr.status);
+		}
+	}
+	xhr.send();
+})
