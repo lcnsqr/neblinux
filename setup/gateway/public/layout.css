@@ -1,9 +1,43 @@
-div#graphs {
-	display: flex;
-  justify-content: space-evenly;
+body {
+  font-family: 'PT Sans', sans-serif;
+  background-color: #fff;
+  color: #2d2d2d;
+  margin: 0;
+  font-size: 0.8em;
 }
 
-div#graphs > div {
-	width: 500px;
-	height: 500px;
+div#dashboard {
+  padding: 1em;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 1em;
+}
+
+div#middle > p {
+  text-align: center;
+}
+
+div#middle table {
+  width: 100%;
+}
+div#middle table tr td:nth-child(1){
+  width: 50%;
+  padding-right: 1em;
+  text-align: right;
+}
+div#middle table tr td:nth-child(2){
+  padding-left: 1em;
+}
+
+form#prompt {
+  display: flex;
+}
+form#prompt p:nth-child(1) {
+  flex-grow: 3;
+}
+form#prompt p:nth-child(1) input[type="text"] {
+  width: 90%;
+}
+form#prompt p:nth-child(2) {
+  flex-grow: 1;
 }

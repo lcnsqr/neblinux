@@ -10,17 +10,58 @@
 </head>
 <body>
 
-<div id="graphs">
+<div id="dashboard">
 
-<div>
-<canvas id="temp"></canvas>
+<div id="left">
+
+  <div>
+  <canvas id="temp"></canvas>
+  </div>
+
+  <div>
+  <canvas id="heat"></canvas>
+  </div>
+
 </div>
 
-<div>
-<canvas id="heat"></canvas>
+<div id="middle">
+
+  <p> <img src="/desenho.svg" alt="Vapomatic" > </p>
+
+  <div>
+  <table>
+  <tr><td>Ativo</td><td>Não</td></tr>
+  <tr><td>Fan</td><td>Não</td></tr>
+  <tr><td>Target</td><td>180</td></tr>
+  <tr><td>Interna</td><td>180</td></tr>
+  <tr><td>Externa</td><td>180</td></tr>
+  <tr><td>Sonda</td><td>180</td></tr>
+  <tr><td>Carga</td><td>180</td></tr>
+  </table>
+  </div>
+
+  <div>
+    <form id="prompt" action="/command">
+    <p> <input type="text" name="command" id="command" placeholder="Comando"> </p>
+    <p> <input type="submit" value="Amém"> </p>
+    </form>
+  </div>
+
 </div>
 
-</div> <!-- #graphs -->
+<div id="right">
+
+  <div>
+  <canvas id="calib"></canvas>
+  </div>
+
+  <div>
+  <canvas id="deriv"></canvas>
+  </div>
+
+</div>
+
+</div> <!-- #dashboard -->
 
 <script src="/chart.umd.js"></script>
 <script src="/setup.js"></script>

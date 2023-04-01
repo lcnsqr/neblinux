@@ -75,6 +75,75 @@ var heat = new Chart(document.getElementById('heat'), {
 	}
 });
 
+var calib = new Chart(document.getElementById('calib'), {
+	data: {
+		datasets: [
+      {
+        label: 'Interna',
+        type: 'scatter',
+        data: [{x: '0', y: 25},{x: '50', y: 30},{x: '150', y: 80},{x: '200', y: 100},{x: '255', y: 120}],
+        borderWidth: 1
+      },
+      {
+        label: 'Sonda',
+        type: 'scatter',
+        data: [{x: '0', y: 33},{x: '50', y: 35},{x: '150', y: 110},{x: '200', y: 221},{x: '255', y: 240}],
+        borderWidth: 1
+      }
+		]
+	},
+	options: {
+    aspectRatio: 1,
+    elements: {
+      point: {
+        radius: 5
+      }
+    },
+    plugins: {
+      title: {
+        display: true,
+        text: 'Calibragem'
+      }
+    },
+		scales: {
+			y: {
+				min: 0,
+				max: 400
+			}
+		}
+	}
+});
+
+
+var deriv = new Chart(document.getElementById('deriv'), {
+  type: 'bar',
+	data: {
+  labels: ['Interna', 'Sonda', 'Carga'],
+		datasets: [
+      {
+        label: 'Estabilidade recente',
+        data: [0.1, 0.3, -0.5],
+        borderWidth: 1
+      }
+		]
+	},
+	options: {
+    aspectRatio: 1,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Estabilidade'
+      }
+    },
+		scales: {
+			y: {
+				min: -1,
+				max: 1
+			}
+		}
+	}
+});
+
 // Conexão WebSocket
 ws = new WebSocket('ws://127.0.0.1:8888')
 
