@@ -192,7 +192,13 @@ void *pthread_socket(void *arg) {
 
       pthread_mutex_lock(&state_mut);
       snprintf(buffer, socket_buf_size,
-               "{\"ts\": %d, \"graph\":"
+               "{"
+               "\"elapsed\": %d,"
+               "\"on\": %d,"
+               "\"fan\": %d,"
+               "\"PID\": [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f],"
+               "\"ts\": %d,"
+               "\"graph\":"
                "{"
                "\"core\":[%s],"
                "\"probe\":[%s],"
@@ -201,8 +207,9 @@ void *pthread_socket(void *arg) {
                "\"heat\":[%s]"
                "}"
                "}",
-               state.ts, graph_core, graph_probe, graph_target, graph_ex,
-               graph_heat);
+               state.elapsed, state.on, state.fan, state.PID[0], state.PID[1],
+               state.PID[2], state.PID[3], state.PID[4], state.PID[5], state.ts,
+               graph_core, graph_probe, graph_target, graph_ex, graph_heat);
       pthread_mutex_unlock(&state_mut);
     }
 
@@ -318,7 +325,7 @@ void *pthread_rxtx(void *arg) {
 
   // Simular tempos anteriores
   for (int i = 0; i < GRAPH_POINTS; i++)
-    graph.ts[i] = -70 * 1e+3 + (float)i * 70 * 1e+3 / (float)GRAPH_POINTS;
+    graph.ts[i] = -120 * 1e+3 + (float)i * 120 * 1e+3 / (float)GRAPH_POINTS;
 
   memset(graph.core, 0, GRAPH_POINTS * sizeof(float));
   memset(graph.ex, 0, GRAPH_POINTS * sizeof(float));

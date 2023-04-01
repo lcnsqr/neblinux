@@ -17,15 +17,21 @@ div#middle > p {
   text-align: center;
 }
 
-div#middle table {
+div#middle #state {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 1em;
+}
+
+div#middle #state table {
   width: 100%;
 }
-div#middle table tr td:nth-child(1){
+div#middle #state table tr td:nth-child(1){
   width: 50%;
   padding-right: 1em;
   text-align: right;
 }
-div#middle table tr td:nth-child(2){
+div#middle #state table tr td:nth-child(2){
   padding-left: 1em;
 }
 

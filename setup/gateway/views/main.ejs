@@ -28,16 +28,23 @@
 
   <p> <img src="/desenho.svg" alt="Vapomatic" > </p>
 
-  <div>
-  <table>
-  <tr><td>Ativo</td><td>Não</td></tr>
-  <tr><td>Fan</td><td>Não</td></tr>
-  <tr><td>Target</td><td>180</td></tr>
-  <tr><td>Interna</td><td>180</td></tr>
-  <tr><td>Externa</td><td>180</td></tr>
-  <tr><td>Sonda</td><td>180</td></tr>
-  <tr><td>Carga</td><td>180</td></tr>
-  </table>
+  <div id="state">
+    <table>
+    <tr><td>Ativo</td><td data-id="on">Não</td></tr>
+    <tr><td>Tempo ativo</td><td data-id="elapsed">0</td></tr>
+    <tr><td>Fan</td><td data-id="fan">Não</td></tr>
+    <tr><td>Target</td><td data-id="target">0</td></tr>
+    <tr><td>Interna</td><td data-id="core">0</td></tr>
+    <tr><td>Externa</td><td data-id="ex">0</td></tr>
+    <tr><td>Sonda</td><td data-id="probe">0</td></tr>
+    </table>
+
+    <table>
+    <tr><td>PID[0]</td><td data-id="pid0">0</td></tr>
+    <tr><td>PID[1]</td><td data-id="pid1">0</td></tr>
+    <tr><td>PID[2]</td><td data-id="pid2">0</td></tr>
+    <tr><td>Carga</td><td data-id="heat">0</td></tr>
+    </table>
   </div>
 
   <div>
