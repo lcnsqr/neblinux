@@ -20,11 +20,8 @@ struct State {
   // Leitura ADC do termistor
   float analogTherm;
 
-  // Coeficientes do polinômio de segunda
-  // ordem que estima a temperatura na saída
-  // thCfs[0] : Coeficientes usados quando desativado
-  // thCfs[1] : Coeficientes usados quando ativado
-  float thCfs[2][3];
+  // Coeficientes do polinômio grau 3 que infere temperatura
+  float cTemp[4];
 
   // Indicador de encerramento
   float shut[2];

@@ -5,9 +5,8 @@
 
 // Estrutura para armazenar na EEPROM
 struct Settings {
-  float tempCore[3]; // Temperaturas internas na calibragem
-  float tempEx[3];   // Temperaturas aferidas na calibragem
-  float PID[3];      // Coeficientes PID
+  float cTemp[4];     // Coeficientes do polinômio grau 3 que infere temperatura
+  float cPID[3];      // Coeficientes PID
   bool shutEnabled;  // Desligamento automático ativo/inativo
   float tempTarget;  // Temperatura alvo padrão
 };

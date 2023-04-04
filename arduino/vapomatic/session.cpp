@@ -37,36 +37,29 @@ void Session::load() {
   // Temperatura alvo
   state.tempTarget = settings.tempTarget;
 
-  // thCfs[0] : Coeficientes temperatura usados quando desativado
-  state.thCfs[0][0] = 0;
-  state.thCfs[0][1] = 1.0;
-  state.thCfs[0][2] = 0;
+  // Coeficientes do polinômio grau 3 que infere temperatura
+  for (int i = 0; i <= 3; i++)
+    state.cTemp[i] = settings.cTemp[i];
 
-  // Quantidade de pontos de calibragem
-  // const int m = 3;
-  // Grau do polinômio interpolador
-  // const int n = 2;
-  // thCfs[1] : Coeficientes usados quando ativado
-  mat::leastsquares(3, 2, settings.tempCore, settings.tempEx, state.thCfs[1]);
 }
 
 void Session::save() { EEPROM.put(0, settings); }
 
 void Session::reset() {
+  // Coeficientes do polinômio grau 3 que infere temperatura
+
   // Temperaturas antes de calibrar
-  settings.tempCore[0] = 81.16;
-  settings.tempCore[1] = 105.49;
-  settings.tempCore[2] = 152.40;
-  settings.tempEx[0] = 150;
-  settings.tempEx[1] = 180;
-  settings.tempEx[2] = 200;
+  settings.cTemp[0] = -47.187500;
+  settings.cTemp[1] =   3.351562;
+  settings.cTemp[2] =  -0.011375;
+  settings.cTemp[2] =   0.000000;
 
   settings.tempTarget = 180;
 
   // Coeficientes PID
-  settings.PID[0] = 0.08;
-  settings.PID[1] = 0.0007;
-  settings.PID[2] = 0.06;
+  settings.cPID[0] = 0.08;
+  settings.cPID[1] = 0.0007;
+  settings.cPID[2] = 0.06;
 
   // Desligamento automático
   settings.shutEnabled = 1;
