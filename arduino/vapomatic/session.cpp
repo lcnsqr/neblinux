@@ -48,11 +48,11 @@ void Session::save() { EEPROM.put(0, settings); }
 void Session::reset() {
   // Coeficientes do polinômio grau 3 que infere temperatura
 
-  // Temperaturas antes de calibrar
-  settings.cTemp[0] = -47.187500;
-  settings.cTemp[1] =   3.351562;
-  settings.cTemp[2] =  -0.011375;
-  settings.cTemp[2] =   0.000000;
+  // Coeficientes da temperatura antes de calibrar
+  settings.cTemp[0] = -89.265625;
+  settings.cTemp[1] =   5.263916;
+  settings.cTemp[2] =  -0.035940;
+  settings.cTemp[3] =   0.000100;
 
   settings.tempTarget = 180;
 

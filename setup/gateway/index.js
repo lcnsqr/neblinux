@@ -18,10 +18,11 @@ const socketfile = '/tmp/vapomatic.sock'
 // EJS
 app.set('view engine', 'ejs')
 
+// Pontos de calibragem
 const calibPoints = 8
 var calibPointsValues = []
 for (var i = 0; i < calibPoints; i++)
-  calibPointsValues.push(Math.floor(255 * Math.sin(Math.PI * i/(calibPoints*2))))
+  calibPointsValues.push(10 + Math.floor(120 * Math.sin(Math.PI * i/(calibPoints*2))))
 
 app.get('/', (req, res) => {
   res.render('main', {title: "Vapomatic", calibPoints: calibPoints, calibPointsValues: calibPointsValues})
@@ -59,7 +60,6 @@ wss.on('connection', function connection(ws) {
     console.log('received: %s', data)
   })
 
-  /*
   setInterval(() => {
     // Obter sessão via unix socket
     const client = net.createConnection({path: socketfile})
@@ -70,7 +70,6 @@ wss.on('connection', function connection(ws) {
       client.end()
     })
   }, 250)
-  */
 
 
 })

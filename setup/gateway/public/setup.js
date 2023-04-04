@@ -1,12 +1,26 @@
 // Ponto de calibragem ativo
-var calibPoint = -1
-
+var calibIndex = -1
+var calibEnabled = 0
 var calibPointsLabels = []
 var calibPointsValues = []
 document.querySelectorAll("#calibPoints input[type='number']").forEach((p) => {
   calibPointsLabels.push(p.value)
   calibPointsValues.push(Number(p.value))
 })
+
+function exec(command){
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', "/command/"+command+"/"+Date.now())
+	xhr.onload = function() {
+		if (xhr.status === 204) {
+      //console.log('Request accepted')
+		}
+		else {
+			console.log('Request failed. Return code: ' + xhr.status)
+		}
+	}
+	xhr.send()
+}
 
 var tempChart = new Chart(document.getElementById('tempChart'), {
 	type: 'line',
@@ -91,14 +105,14 @@ var calibChart = new Chart(document.getElementById('calibChart'), {
 		datasets: [
       {
         label: 'Interna',
-        type: 'scatter',
-        data: calibPointsValues,
+        type: 'line',
+        data: [25,25,25,25,25,25,25,25],
         borderWidth: 1
       },
       {
         label: 'Sonda',
-        type: 'scatter',
-        data: calibPointsValues,
+        type: 'line',
+        data: [25,25,25,25,25,25,25,25],
         borderWidth: 1
       }
 		]
@@ -178,9 +192,9 @@ ws.onmessage = function(event){
   heatChart.update('none')
 
   // Calibragem
-  if ( calibPoint > -1 ){
-    calibChart.data.datasets[0].data[calibPoint] = data.graph.core[data.graph.core.length-1].y
-    calibChart.data.datasets[1].data[calibPoint] = data.graph.probe[data.graph.probe.length-1].y
+  if ( calibEnabled && document.querySelector('button#calibSwitch').dataset.state == "1" ){
+    calibChart.data.datasets[0].data[calibIndex] = data.graph.core[data.graph.core.length-1].y
+    calibChart.data.datasets[1].data[calibIndex] = data.graph.probe[data.graph.probe.length-1].y
     calibChart.update()
   }
 
@@ -189,12 +203,25 @@ ws.onmessage = function(event){
   document.querySelector('#state td[data-id="elapsed"]').innerHTML = data.elapsed;
 
   if ( data.fan != 0 ){
+    document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').forEach((p) => {
+      p.disabled = false
+    })
     document.querySelector('#state td[data-id="fan"]').innerHTML = "Sim"
-    document.querySelector('button#calibSwitch').disabled = false
+    document.querySelectorAll('.calibButton').forEach((b) => {
+      b.disabled = false
+    })
+    calibEnabled = 1
   }
   else {
+    if ( calibEnabled == 1 ) exec("heat 0")
+    document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').forEach((p) => {
+      p.disabled = true
+    })
     document.querySelector('#state td[data-id="fan"]').innerHTML = "Não"
-    document.querySelector('button#calibSwitch').disabled = true
+    document.querySelectorAll('.calibButton#calibSwitch').forEach((b) => {
+      b.disabled = true
+    })
+    calibEnabled = 0
   }
 
   document.querySelector('#state td[data-id="target"]').innerHTML = data.graph.target[data.graph.target.length-1].y;
@@ -213,17 +240,9 @@ document.querySelector('form#prompt').addEventListener("submit", function(event)
 	var command = this.querySelector('input[name="command"]').value
 	if ( command.trim().length == 0 ) return
 
-	var xhr = new XMLHttpRequest();
-	xhr.open('GET', this.getAttribute("action")+"/"+command+"/"+Date.now())
-	xhr.onload = function() {
-		if (xhr.status === 204) {
-      document.querySelector('form#prompt').reset()
-		}
-		else {
-			console.log('Request failed. Return code: ' + xhr.status)
-		}
-	}
-	xhr.send()
+  exec(command)
+  document.querySelector('form#prompt').reset()
+
 })
 
 document.querySelector('form#calibPoints').addEventListener("submit", function(event){
@@ -231,20 +250,38 @@ document.querySelector('form#calibPoints').addEventListener("submit", function(e
 })
 
 document.querySelector('button#calibSwitch').addEventListener("click", function(event){
+  if ( ! calibEnabled ) return
   if ( this.dataset.state == '1' ){
+    exec("heat 0")
     this.dataset.state = 0
     this.innerHTML = "Iniciar"
+    calibIndex = -1
   }
   else {
     this.dataset.state = 1
-    this.innerHTML = "Finalizar"
+    this.innerHTML = "Parar"
+    document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').forEach((p) => {
+      if ( p.checked ){
+        calibIndex = p.value
+        console.log(p.dataset.heat)
+        exec("heat "+p.dataset.heat)
+      }
+    })
   }
+})
+
+document.querySelector('button#calibSave').addEventListener("click", function(event){
+  console.log(calibChart.data.datasets[0].data)
+  console.log(calibChart.data.datasets[1].data)
 })
 
 document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').forEach((p) => {
   p.addEventListener("change", function(event){
-    if ( this.checked )
-      calibPoint = this.value
+    if ( document.querySelector('button#calibSwitch').dataset.state == "1" && this.checked ){
+      calibIndex = this.value
+      console.log(this.dataset.heat)
+      exec("heat "+this.dataset.heat)
+    }
   })
 })
 
@@ -253,7 +290,17 @@ document.querySelector('form#calibPoints div:first-child input[type="radio"]').c
 document.querySelectorAll('form#calibPoints input[type="number"]').forEach((p) => {
   p.addEventListener("change", function(event){
 
+    document.querySelector('form#calibPoints input[type="radio"][value="'+this.dataset.index+'"]').dataset.heat = this.value
+
+    if ( document.querySelector('button#calibSwitch').dataset.state == "1" 
+      && document.querySelector('form#calibPoints input[type="radio"][value="'+this.dataset.index+'"]').checked )
+    {
+      console.log(this.value)
+      exec("heat "+this.value)
+    }
+
     calibChart.data.labels[this.dataset.index] = this.value
+
     calibChart.update('none')
 
   })

@@ -58,6 +58,14 @@ struct {
   int i_heat;
 } graph;
 
+// Pontos de calibragem
+#define CALIB_POINTS 8
+struct {
+  float heat[CALIB_POINTS];
+  float tempCore[CALIB_POINTS];
+  float tempProbe[CALIB_POINTS];
+} calib;
+
 // Release memory used to parse the command line
 void tokens_cleanup(char **tokens) {
   for (int i = 0; tokens[i] != NULL; i++) {
@@ -390,6 +398,7 @@ void *pthread_socket(void *arg) {
                "\"elapsed\": %d,"
                "\"on\": %d,"
                "\"fan\": %d,"
+               "\"cTemp\": [%.6f, %.6f, %.6f, %.6f],"
                "\"PID\": [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f],"
                "\"ts\": %d,"
                "\"graph\":"
@@ -401,7 +410,8 @@ void *pthread_socket(void *arg) {
                "\"heat\":[%s]"
                "}"
                "}",
-               state.elapsed, state.on, state.fan, state.PID[0], state.PID[1],
+               state.elapsed, state.on, state.fan, state.cTemp[0], state.cTemp[1],
+               state.cTemp[2], state.cTemp[3], state.PID[0], state.PID[1],
                state.PID[2], state.PID[3], state.PID[4], state.PID[5], state.ts,
                graph_core, graph_probe, graph_target, graph_ex, graph_heat);
       pthread_mutex_unlock(&state_mut);

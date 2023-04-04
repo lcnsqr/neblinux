@@ -25,8 +25,8 @@ void Therm::action() {
 
 float Therm::celsiusPoly(float core) {
   return session->state.cTemp[0] + session->state.cTemp[1] * core +
-         session->state.cTemp[2] * pow(core, 2) +
-         session->state.cTemp[3] * pow(core, 3);
+         session->state.cTemp[2] * pow(core, 2.0) +
+         session->state.cTemp[3] * pow(core, 3.0);
 }
 
 float Therm::celsiusSteinhart(float thermistor) {

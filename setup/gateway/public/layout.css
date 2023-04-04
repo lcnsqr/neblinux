@@ -6,46 +6,42 @@ body {
   font-size: 0.8em;
 }
 
+h1 {
+  text-align: center;
+  margin: 2em 0 1em 0;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
 div#dashboard {
   padding: 1em;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  grid-gap: 1em;
+  grid-gap: 2em;
 }
 
-div#middle > p {
-  text-align: center;
+div#dashboard > div > div:nth-child(2) {
+  margin-top: 2em;
 }
 
-div#middle #state {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-gap: 1em;
-}
-
-div#middle #state table {
+#state table {
   width: 100%;
 }
-div#middle #state table tr td:nth-child(1){
+#state table tr td:nth-child(1){
   width: 50%;
   padding-right: 1em;
   text-align: right;
 }
-div#middle #state table tr td:nth-child(2){
+#state table tr td:nth-child(2){
   padding-left: 1em;
 }
 
 form#prompt {
   display: flex;
+  justify-content: space-evenly;
 }
-form#prompt p:nth-child(1) {
-  flex-grow: 3;
-}
-form#prompt p:nth-child(1) input[type="text"] {
-  width: 90%;
-}
-form#prompt p:nth-child(2) {
-  flex-grow: 1;
+form#prompt input[name="command"] {
+  width: 60%;
 }
 
 form#calibPoints {

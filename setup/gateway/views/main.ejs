@@ -22,35 +22,37 @@
   <canvas id="heatChart"></canvas>
   </div>
 
-</div>
+</div> <!-- #left -->
 
 <div id="middle">
 
-  <p> <img src="/desenho.svg" alt="Vapomatic" > </p>
+  <div>
+    <canvas id="calibChart"></canvas>
 
-  <div id="state">
-    <table>
-    <tr><td>Ativo</td><td data-id="on">Não</td></tr>
-    <tr><td>Tempo ativo</td><td data-id="elapsed">0</td></tr>
-    <tr><td>Fan</td><td data-id="fan">Não</td></tr>
-    <tr><td>Target</td><td data-id="target">0</td></tr>
-    <tr><td>Interna</td><td data-id="core">0</td></tr>
-    <tr><td>Externa</td><td data-id="ex">0</td></tr>
-    <tr><td>Sonda</td><td data-id="probe">0</td></tr>
-    </table>
+    <form id="calibPoints" action="/calib">
+<% calibPointsValues.forEach((point, index) => { %>
+    <div style="text-align: center;"> 
+      <input type="number" data-index="<%= index %>" name="cp<%= index %>" value="<%= point %>" min="0" max="255"> <br>
+      <input type="radio" data-heat="<%= point %>" value="<%= index %>" name="index"> 
+    </div>
+<% }) %>
+    </form>
 
-    <table>
-    <tr><td>PID[0]</td><td data-id="pid0">0</td></tr>
-    <tr><td>PID[1]</td><td data-id="pid1">0</td></tr>
-    <tr><td>PID[2]</td><td data-id="pid2">0</td></tr>
-    <tr><td>Carga</td><td data-id="heat">0</td></tr>
-    </table>
+    <div id="calibButtons">
+    <div>
+      <button disabled class="calibButton" id="calibSwitch" data-state="0" type="button">Calibrar</button>
+    </div>
+    <div>
+      <button disabled class="calibButton" id="calibSave" data-state="0" type="button">Salvar</button>
+    </div>
+    </div> <!-- #calibButtons -->
   </div>
 
   <div>
+    <h1>Executar comando</h1>
     <form id="prompt" action="/command">
-    <p> <input type="text" name="command" placeholder="Comando" list="commands"> </p>
-    <p> <input type="submit" value="Amém"> </p>
+    <input type="text" name="command" placeholder="Comando" list="commands">
+    <input type="submit" value="Amém">
     </form>
     <datalist id="commands">
       <option value="target">
@@ -62,37 +64,34 @@
     </datalist>
   </div>
 
-</div>
+</div> <!-- #middle -->
 
 <div id="right">
-
-  <div>
-    <canvas id="calibChart"></canvas>
-
-    <form id="calibPoints" action="/calib">
-<% calibPointsValues.forEach((point, index) => { %>
-    <div style="text-align: center;"> 
-      <input type="number" data-index="<%= index %>" name="cp<%= index %>" value="<%= point %>" min="0" max="255"> <br>
-      <input type="radio" value="<%= index %>" name="index"> 
-    </div>
-<% }) %>
-    </form>
-
-    <div id="calibButtons">
-    <div>
-      <button id="calibSwitch" data-state="0" type="button" disabled="true">Calibrar</button>
-    </div>
-    <div>
-      <button id="calibSave" data-state="0" type="button" disabled="true">Salvar</button>
-    </div>
-    </div> <!-- #calibButtons -->
-  </div>
 
   <div>
   <canvas id="derivChart"></canvas>
   </div>
 
-</div>
+  <h1>Estado da máquina</h1>
+  <div id="state">
+    <table>
+    <tbody>
+    <tr><td>Ativo</td><td data-id="on">Não</td></tr>
+    <tr><td>Tempo ativo</td><td data-id="elapsed">0</td></tr>
+    <tr><td>Fan</td><td data-id="fan">Não</td></tr>
+    <tr><td>Target</td><td data-id="target">0</td></tr>
+    <tr><td>Interna</td><td data-id="core">0</td></tr>
+    <tr><td>Externa</td><td data-id="ex">0</td></tr>
+    <tr><td>Sonda</td><td data-id="probe">0</td></tr>
+    <tr><td>PID[0]</td><td data-id="pid0">0</td></tr>
+    <tr><td>PID[1]</td><td data-id="pid1">0</td></tr>
+    <tr><td>PID[2]</td><td data-id="pid2">0</td></tr>
+    <tr><td>Carga</td><td data-id="heat">0</td></tr>
+    </tbody>
+    </table>
+  </div>
+
+</div> <!-- #right -->
 
 </div> <!-- #dashboard -->
 

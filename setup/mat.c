@@ -18,8 +18,9 @@ int mat_leastsquares(int m, int n, float x[], float y[], float c[]) {
   // Inversa
   float Ainv[n * n];
   // Inverter matriz (perde A)
-  if (mat_inv(n, A, Ainv))
-    return -1;
+  int ret = mat_inv(n, A, Ainv);
+  if (ret)
+    return ret;
 
   // RHS
   float b[n];
