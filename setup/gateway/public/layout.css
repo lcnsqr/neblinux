@@ -47,3 +47,21 @@ form#prompt p:nth-child(1) input[type="text"] {
 form#prompt p:nth-child(2) {
   flex-grow: 1;
 }
+
+form#calibPoints {
+  display: flex;
+  justify-content: center;
+  column-gap: 4px;
+}
+
+form#calibPoints input[type="number"] {
+  width: 3.5em;
+}
+
+div#calibButtons {
+  padding: 1em;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 1em;
+  justify-items: center;
+}

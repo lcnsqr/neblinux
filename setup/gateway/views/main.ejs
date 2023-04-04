@@ -15,11 +15,11 @@
 <div id="left">
 
   <div>
-  <canvas id="temp"></canvas>
+  <canvas id="tempChart"></canvas>
   </div>
 
   <div>
-  <canvas id="heat"></canvas>
+  <canvas id="heatChart"></canvas>
   </div>
 
 </div>
@@ -49,9 +49,17 @@
 
   <div>
     <form id="prompt" action="/command">
-    <p> <input type="text" name="command" placeholder="Comando"> </p>
+    <p> <input type="text" name="command" placeholder="Comando" list="commands"> </p>
     <p> <input type="submit" value="Amém"> </p>
     </form>
+    <datalist id="commands">
+      <option value="target">
+      <option value="on">
+      <option value="off">
+      <option value="fan">
+      <option value="heat">
+      <option value="pid">
+    </datalist>
   </div>
 
 </div>
@@ -59,11 +67,29 @@
 <div id="right">
 
   <div>
-  <canvas id="calib"></canvas>
+    <canvas id="calibChart"></canvas>
+
+    <form id="calibPoints" action="/calib">
+<% calibPointsValues.forEach((point, index) => { %>
+    <div style="text-align: center;"> 
+      <input type="number" data-index="<%= index %>" name="cp<%= index %>" value="<%= point %>" min="0" max="255"> <br>
+      <input type="radio" value="<%= index %>" name="index"> 
+    </div>
+<% }) %>
+    </form>
+
+    <div id="calibButtons">
+    <div>
+      <button id="calibSwitch" data-state="0" type="button" disabled="true">Calibrar</button>
+    </div>
+    <div>
+      <button id="calibSave" data-state="0" type="button" disabled="true">Salvar</button>
+    </div>
+    </div> <!-- #calibButtons -->
   </div>
 
   <div>
-  <canvas id="deriv"></canvas>
+  <canvas id="derivChart"></canvas>
   </div>
 
 </div>
