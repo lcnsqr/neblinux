@@ -24,16 +24,26 @@ div#dashboard > div > div:nth-child(2) {
   margin-top: 2em;
 }
 
+#state {
+  display: flex;
+  justify-content: center;
+}
+
 #state table {
-  width: 100%;
+  width: 80%;
 }
 #state table tr td:nth-child(1){
   width: 50%;
-  padding-right: 1em;
+  padding-right: 0.5em;
   text-align: right;
 }
+
+#state table tr:nth-child( 2n+1) {
+  background-color: #eeeeec;
+}
+
 #state table tr td:nth-child(2){
-  padding-left: 1em;
+  padding-left: 0.5em;
 }
 
 form#prompt {
