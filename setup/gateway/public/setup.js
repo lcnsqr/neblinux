@@ -166,8 +166,8 @@ var derivChart = new Chart(document.getElementById('derivChart'), {
     },
 		scales: {
 			y: {
-				min: -1,
-				max: 1
+				min: -0.25,
+				max: 0.25
 			}
 		}
 	}
