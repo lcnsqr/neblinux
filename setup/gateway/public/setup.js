@@ -150,8 +150,8 @@ var derivChart = new Chart(document.getElementById('derivChart'), {
   labels: ['Interna', 'Sonda', 'Carga'],
 		datasets: [
       {
-        label: 'Estabilidade recente',
-        data: [0.1, 0.3, -0.5],
+        label: 'Estável se próximo de zero',
+        data: [0, 0, 0],
         borderWidth: 1
       }
 		]
@@ -161,7 +161,7 @@ var derivChart = new Chart(document.getElementById('derivChart'), {
     plugins: {
       title: {
         display: true,
-        text: 'Estabilidade'
+        text: 'Estabilidade recente'
       }
     },
 		scales: {
@@ -197,6 +197,10 @@ ws.onmessage = function(event){
     calibChart.data.datasets[1].data[calibIndex] = data.graph.probe[data.graph.probe.length-1].y
     calibChart.update()
   }
+
+  // Estabilidade recente
+  derivChart.data.datasets[0].data = [data.deriv.core, data.deriv.probe, data.deriv.heat]
+  derivChart.update('none')
 
   // Estado
   document.querySelector('#state td[data-id="on"]').innerHTML = (data.on != 0) ? "Sim" : "Não";

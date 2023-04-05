@@ -59,12 +59,10 @@ struct {
 } graph;
 
 // Pontos de calibragem
-#define CALIB_POINTS 8
-struct {
-  float heat[CALIB_POINTS];
-  float tempCore[CALIB_POINTS];
-  float tempProbe[CALIB_POINTS];
-} calib;
+#define CALIB_POINTS 9
+
+// Regressão linear nos 20 pontos recentes
+#define TAIL_POINTS 20
 
 // Release memory used to parse the command line
 void tokens_cleanup(char **tokens) {
@@ -260,6 +258,51 @@ int exec(char *cmdline) {
   return 0;
 }
 
+// Computar regressão linear nos pontos recentes
+void regression(float line_core[], float line_probe[], float line_heat[]) {
+
+  // Regressão nos pontos dos últimos segundos
+  static const float y_temp_max = 400.0;
+  static const float y_heat_max = 255.0;
+
+  float tail_x[TAIL_POINTS];
+  float tail_core[TAIL_POINTS];
+  float tail_probe[TAIL_POINTS];
+  float tail_heat[TAIL_POINTS];
+
+  for (int i = 0; i < TAIL_POINTS; i++)
+    tail_x[i] = (float)i / (float)TAIL_POINTS;
+
+  pthread_mutex_lock(&graph_mut);
+
+  for (int j = 0; j < TAIL_POINTS; j++) {
+    tail_core[j] =
+        graph.core[(graph.i_core + (GRAPH_POINTS - TAIL_POINTS) + j) %
+                   GRAPH_POINTS] /
+        y_temp_max;
+    tail_probe[j] =
+        graph.probe[(graph.i_probe + (GRAPH_POINTS - TAIL_POINTS) + j) %
+                    GRAPH_POINTS] /
+        y_temp_max;
+    tail_heat[j] =
+        graph.heat[(graph.i_heat + (GRAPH_POINTS - TAIL_POINTS) + j) %
+                   GRAPH_POINTS] /
+        y_heat_max;
+  }
+
+  pthread_mutex_unlock(&graph_mut);
+
+  // Regressão linear core
+  mat_leastsquares(TAIL_POINTS, 1, tail_x, tail_core, line_core);
+
+  // Regressão linear sonda
+  mat_leastsquares(TAIL_POINTS, 1, tail_x, tail_probe, line_probe);
+
+  // Regressão linear aquecimento
+  mat_leastsquares(TAIL_POINTS, 1, tail_x, tail_heat, line_heat);
+
+}
+
 // Comunicação via socket
 void *pthread_socket(void *arg) {
   struct sockaddr_un name;
@@ -282,6 +325,11 @@ void *pthread_socket(void *arg) {
   memset(graph_ex, 0, 16384);
   char graph_heat[16384];
   memset(graph_heat, 0, 16384);
+
+  // Coeficientes de estabilidade
+  float line_core[2];
+  float line_probe[2];
+  float line_heat[2];
 
   /*
    * In case the program exited inadvertently on the last run,
@@ -392,6 +440,8 @@ void *pthread_socket(void *arg) {
       }
       pthread_mutex_unlock(&graph_mut);
 
+      regression(line_core, line_probe, line_heat);
+
       pthread_mutex_lock(&state_mut);
       snprintf(buffer, socket_buf_size,
                "{"
@@ -408,12 +458,19 @@ void *pthread_socket(void *arg) {
                "\"target\":[%s],"
                "\"ex\":[%s],"
                "\"heat\":[%s]"
+               "},"
+               "\"deriv\":"
+               "{"
+               "\"core\":%.6f,"
+               "\"probe\":%.6f,"
+               "\"heat\":%.6f"
                "}"
                "}",
                state.elapsed, state.on, state.fan, state.cTemp[0], state.cTemp[1],
                state.cTemp[2], state.cTemp[3], state.PID[0], state.PID[1],
                state.PID[2], state.PID[3], state.PID[4], state.PID[5], state.ts,
-               graph_core, graph_probe, graph_target, graph_ex, graph_heat);
+               graph_core, graph_probe, graph_target, graph_ex, graph_heat,
+               line_core[1], line_probe[1], line_heat[1]);
       pthread_mutex_unlock(&state_mut);
     }
     else {
@@ -444,83 +501,6 @@ void *pthread_socket(void *arg) {
 
   pthread_exit((void *)NULL);
 }
-
-// Computar regressão linear nos pontos recentes
-/*
-void *pthread_regression(void *arg) {
-
-  static const int tail_points = 24;
-  // Regressão nos pontos dos últimos segundos
-  static const int tail_time = 5;
-  static const float y_temp_max = 400.0;
-  static const float y_heat_max = 255.0;
-
-  // Nos testes, o slope estável será < 1e-3 = 0.001 no domínio e imagem
-  // normalizadis
-
-  float tail_x[tail_points];
-
-  float tail_core[tail_points];
-  float tail_core_line[tail_points];
-
-  float tail_probe[tail_points];
-  float tail_probe_line[tail_points];
-
-  float tail_heat[tail_points];
-  float tail_heat_line[tail_points];
-
-  for (int i = 0; i < tail_points; i++)
-    tail_x[i] = (float)i / (float)tail_points;
-
-  float coefs_core[2];
-  float coefs_probe[2];
-  float coefs_heat[2];
-
-  while (1) {
-
-    usleep(GRAPH_PAUSE);
-
-    pthread_mutex_lock(&graph_mut);
-
-    for (int j = 0; j < tail_points; j++) {
-      tail_core[j] =
-          graph.core[(graph.i_core + (GRAPH_POINTS - tail_points) + j) %
-                     GRAPH_POINTS] /
-          y_temp_max;
-      tail_probe[j] =
-          graph.probe[(graph.i_probe + (GRAPH_POINTS - tail_points) + j) %
-                      GRAPH_POINTS] /
-          y_temp_max;
-      tail_heat[j] =
-          graph.heat[(graph.i_heat + (GRAPH_POINTS - tail_points) + j) %
-                     GRAPH_POINTS] /
-          y_heat_max;
-    }
-
-    pthread_mutex_unlock(&graph_mut);
-
-    // Regressão linear core
-    mat_leastsquares(tail_points, 1, tail_x, tail_core, coefs_core);
-
-    // Regressão linear sonda
-    mat_leastsquares(tail_points, 1, tail_x, tail_probe, coefs_probe);
-
-    // Regressão linear aquecimento
-    mat_leastsquares(tail_points, 1, tail_x, tail_heat, coefs_heat);
-
-    // Retas core e sonda e aquecimento
-    for (int j = 0; j < tail_points; j++) {
-      tail_core_line[j] = coefs_core[0] + coefs_core[1] * tail_x[j];
-      tail_probe_line[j] = coefs_probe[0] + coefs_probe[1] * tail_x[j];
-      tail_heat_line[j] = coefs_heat[0] + coefs_heat[1] * tail_x[j];
-    }
-
-  }
-
-  pthread_exit((void *)NULL);
-}
-
-*/
 
 // Comunicação com o aparelho
 void *pthread_rxtx(void *arg) {
@@ -763,19 +743,6 @@ int main(int argc, char **argv) {
     exit(-1);
   }
 
-  // Linear regression
-  /*
-  pthread_t pthread_regression_id;
-
-  pthread_return = pthread_create(&pthread_regression_id, NULL,
-                                  &pthread_regression, (void *)NULL);
-  if (pthread_return != 0) {
-    fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
-            pthread_return);
-    exit(-1);
-  }
-  */
-
   // socket thread
   pthread_t pthread_socket_id;
   pthread_return =
@@ -831,9 +798,6 @@ int main(int argc, char **argv) {
     // Release cmdline memory
     free(cmdline);
   }
-
-  // Stop regression
-  // pthread_kill(pthread_regression_id, 15);
 
   // End serial communication with device
   close(port_vapomatic);
