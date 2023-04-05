@@ -106,13 +106,13 @@ var calibChart = new Chart(document.getElementById('calibChart'), {
       {
         label: 'Interna',
         type: 'line',
-        data: [25,25,25,25,25,25,25,25],
+        data: [41.4774, 50.478, 67.1353, 89.0274, 111.3144, 135.9429, 159.0067, 170.4296],
         borderWidth: 1
       },
       {
         label: 'Sonda',
         type: 'line',
-        data: [25,25,25,25,25,25,25,25],
+        data: [58.6422, 97.5441, 128.6569, 156.2304, 178.1863, 199.7745, 215.4559, 225.4804],
         borderWidth: 1
       }
 		]
