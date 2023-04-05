@@ -413,6 +413,7 @@ void *pthread_socket(void *arg) {
 
       // Eixo x em segundos (negativos) contados pelo timestamp
       float x = 0;
+      float y = 0;
 
       // Gerar sequências em texto
       pthread_mutex_lock(&graph_mut);
@@ -422,20 +423,32 @@ void *pthread_socket(void *arg) {
             graph.ts[(graph.i_ts + GRAPH_POINTS - 1) % GRAPH_POINTS];
         x *= 1e-3;
 
-        sprintf(graph_core + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
-                graph.core[(graph.i_core + j) % GRAPH_POINTS],
+        // Tratar erros no cálculo do tempo
+        if ( x < -60.0 || x > 0 ) x = -60.0 + (float)j * 0.5;
+
+        y = graph.core[(graph.i_core + j) % GRAPH_POINTS];
+        if ( y < -60.0 || y > 1000.0 ) y = 0;
+        sprintf(graph_core + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x, y,
                 (j == GRAPH_POINTS - 1) ? " " : ",");
-        sprintf(graph_probe + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
-                graph.probe[(graph.i_probe + j) % GRAPH_POINTS],
+
+        y = graph.probe[(graph.i_probe + j) % GRAPH_POINTS];
+        if ( y < -60.0 || y > 1000.0 ) y = 0;
+        sprintf(graph_probe + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x, y,
                 (j == GRAPH_POINTS - 1) ? " " : ",");
-        sprintf(graph_target + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
-                graph.target[(graph.i_target + j) % GRAPH_POINTS],
+
+        y = graph.target[(graph.i_target + j) % GRAPH_POINTS];
+        if ( y < -60.0 || y > 1000.0 ) y = 0;
+        sprintf(graph_target + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x, y,
                 (j == GRAPH_POINTS - 1) ? " " : ",");
-        sprintf(graph_ex + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
-                graph.ex[(graph.i_ex + j) % GRAPH_POINTS],
+
+        y = graph.ex[(graph.i_ex + j) % GRAPH_POINTS];
+        if ( y < -60.0 || y > 1000.0 ) y = 0;
+        sprintf(graph_ex + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x, y,
                 (j == GRAPH_POINTS - 1) ? " " : ",");
-        sprintf(graph_heat + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
-                graph.heat[(graph.i_heat + j) % GRAPH_POINTS],
+
+        y = graph.heat[(graph.i_heat + j) % GRAPH_POINTS];
+        if ( y < -60.0 || y > 1000.0 ) y = 0;
+        sprintf(graph_heat + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x, y,
                 (j == GRAPH_POINTS - 1) ? " " : ",");
       }
       pthread_mutex_unlock(&graph_mut);
@@ -513,7 +526,7 @@ void *pthread_rxtx(void *arg) {
 
   // Simular tempos anteriores
   for (int i = 0; i < GRAPH_POINTS; i++)
-    graph.ts[i] = -600 * 1e+3 + (float)i * 600 * 1e+3 / (float)GRAPH_POINTS;
+    graph.ts[i] = -60 * 1e+3 + (float)i * 60 * 1e+3 / (float)GRAPH_POINTS;
 
   memset(graph.core, 0, GRAPH_POINTS * sizeof(float));
   memset(graph.ex, 0, GRAPH_POINTS * sizeof(float));
