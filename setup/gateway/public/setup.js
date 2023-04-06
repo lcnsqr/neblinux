@@ -106,13 +106,13 @@ var calibChart = new Chart(document.getElementById('calibChart'), {
       {
         label: 'Interna',
         type: 'line',
-        data: [41.4774, 50.478, 67.1353, 89.0274, 111.3144, 135.9429, 159.0067, 170.4296],
+        data: [32.2471, 37.9274, 51.0331, 69.5364, 89.4187, 106.5293, 118.3279, 124.3729],
         borderWidth: 1
       },
       {
         label: 'Sonda',
         type: 'line',
-        data: [58.6422, 97.5441, 128.6569, 156.2304, 178.1863, 199.7745, 215.4559, 225.4804],
+        data: [41.6422, 66.5441, 97.1569, 123.9804, 151.1863, 169.0245, 182.7059, 195.9804],
         borderWidth: 1
       }
 		]
@@ -150,7 +150,7 @@ var derivChart = new Chart(document.getElementById('derivChart'), {
   labels: ['Interna', 'Sonda', 'Carga'],
 		datasets: [
       {
-        label: 'Estável se próximo de zero',
+        label: 'Estável se próximo a zero',
         data: [0, 0, 0],
         borderWidth: 1
       }
@@ -166,8 +166,8 @@ var derivChart = new Chart(document.getElementById('derivChart'), {
     },
 		scales: {
 			y: {
-				min: -0.25,
-				max: 0.25
+				min: -0.1,
+				max: 0.1
 			}
 		}
 	}
