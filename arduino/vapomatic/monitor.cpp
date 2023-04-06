@@ -57,7 +57,12 @@ void Monitor::action() {
     delay(100);
     // Modificar estado do aparelho a partir da estrutura enviada
     session->state.tempTarget = stateIn.tempTarget;
-    session->state.on = stateIn.on;
+    if ( stateIn.on == 1 && session->state.on != true ){
+      session->start();
+    }
+    if ( stateIn.on != 1 && session->state.on == true ){
+      session->stop();
+    }
     session->state.fan = stateIn.fan;
     session->state.PID[5] = (float)stateIn.PID_enabled;
     if (session->state.PID[5] == 0)
