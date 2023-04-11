@@ -60,6 +60,10 @@ struct {
 
 // Pontos de calibragem
 #define CALIB_POINTS 9
+float calibCore[CALIB_POINTS];
+float calibProbe[CALIB_POINTS];
+// Coeficientes do polinômio interpolador de grau 3
+#define CALIB_COEFS 4
 
 // Regressão linear nos 20 pontos recentes
 #define TAIL_POINTS 20
@@ -100,6 +104,46 @@ int exec(char *cmdline) {
   /*
    * Builtin commands
    */
+
+  // Calibragem: Temperaturas internas e da sonda
+  if (!strcmp("calib", tokens[0])) {
+
+    // Ponto fixo
+    calibCore[0] = 25.0;
+    calibProbe[0] = 25.0;
+    for (int i = 1; i < CALIB_POINTS; i++){
+      calibCore[i] = atof(tokens[i]);
+      calibProbe[i] = atof(tokens[i+CALIB_POINTS-1]);
+    }
+
+    // Change state
+    pthread_mutex_lock(&state_mut);
+    mat_leastsquares(CALIB_POINTS, CALIB_COEFS - 1, calibCore, calibProbe, stateOut.cTemp);
+    state_change = 1;
+    pthread_mutex_unlock(&state_mut);
+
+    printf("\n");
+    for (int i = 0; i < CALIB_POINTS; i++)
+      printf("%f → %f\n", calibCore[i], calibProbe[i]);
+
+    printf("Coeficientes\n");
+    for (int i = 0; i < CALIB_COEFS; i++){
+      printf("%f\n", stateOut.cTemp[i]);
+    }
+
+    printf("Função em x\n");
+    float r = 0;
+    for (int j = 0; j < CALIB_POINTS; j++){
+      for (int i = 0; i < CALIB_COEFS; i++){
+        r += stateOut.cTemp[i] * pow(calibCore[j], i);
+      }
+      printf("%f %f\n", calibCore[j], r);
+      r = 0;
+    }
+
+    tokens_cleanup(tokens);
+    return 0;
+  }
 
   // Set target
   if (!strcmp("target", tokens[0])) {
@@ -549,6 +593,8 @@ void *pthread_rxtx(void *arg) {
       write(*port, (char *)&stateOut, sizeof(struct StateIO));
       state_change = 0;
       usleep(TX_PAUSE);
+      // Evitar atualizar coeficientes novamente
+      stateOut.cTemp[0] = 0;
     }
 
     pthread_mutex_unlock(&state_mut);
@@ -713,6 +759,10 @@ int main(int argc, char **argv) {
   stateOut.fan = 0;
   stateOut.PID_enabled = 1;
   stateOut.heat = 0;
+  stateOut.cTemp[0] = 0;
+  stateOut.cTemp[1] = 0;
+  stateOut.cTemp[2] = 0;
+  stateOut.cTemp[3] = 0;
 
   // Open the serial port. Change device path as needed (currently set to an
   // standard FTDI USB-UART cable type device)

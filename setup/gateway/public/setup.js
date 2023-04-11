@@ -106,13 +106,13 @@ var calibChart = new Chart(document.getElementById('calibChart'), {
       {
         label: 'Interna',
         type: 'line',
-        data: [32.2471, 37.9274, 51.0331, 69.5364, 89.4187, 106.5293, 118.3279, 124.3729],
+        data: [ 31.0717, 40.1702, 53.7266, 70.8701, 90.0546, 111.3144, 126.8766, 142.917 ],
         borderWidth: 1
       },
       {
         label: 'Sonda',
         type: 'line',
-        data: [41.6422, 66.5441, 97.1569, 123.9804, 151.1863, 169.0245, 182.7059, 195.9804],
+        data: [ 54.8922, 103.0441, 153.4069, 196.9804, 241.6863, 279.2745, 302.7059, 325.7304 ],
         borderWidth: 1
       }
 		]
@@ -237,6 +237,11 @@ ws.onmessage = function(event){
   document.querySelector('#state td[data-id="pid0"]').innerHTML = data.PID[0];
   document.querySelector('#state td[data-id="pid1"]').innerHTML = data.PID[1];
   document.querySelector('#state td[data-id="pid2"]').innerHTML = data.PID[2];
+
+  document.querySelector('#state td[data-id="cTemp0"]').innerHTML = data.cTemp[0];
+  document.querySelector('#state td[data-id="cTemp1"]').innerHTML = data.cTemp[1];
+  document.querySelector('#state td[data-id="cTemp2"]').innerHTML = data.cTemp[2];
+  document.querySelector('#state td[data-id="cTemp3"]').innerHTML = data.cTemp[3];
 }
 
 document.querySelector('form#prompt').addEventListener("submit", function(event){
@@ -275,8 +280,17 @@ document.querySelector('button#calibSwitch').addEventListener("click", function(
 })
 
 document.querySelector('button#calibSave').addEventListener("click", function(event){
-  console.log(calibChart.data.datasets[0].data)
-  console.log(calibChart.data.datasets[1].data)
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', "/calib?core="+calibChart.data.datasets[0].data.join(' ')+"&probe="+calibChart.data.datasets[1].data.join(' '))
+	xhr.onload = function() {
+		if (xhr.status === 204) {
+      //console.log('Request accepted')
+		}
+		else {
+			console.log('Request failed. Return code: ' + xhr.status)
+		}
+	}
+	xhr.send()
 })
 
 document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').forEach((p) => {

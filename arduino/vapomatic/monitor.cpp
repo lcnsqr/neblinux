@@ -68,6 +68,14 @@ void Monitor::action() {
     if (session->state.PID[5] == 0)
       session->state.PID[4] = stateIn.heat;
     session->changed = true;
+
+    // Coeficientes temperatura
+    if ( stateIn.cTemp[0] != 0 ){
+      session->state.cTemp[0] = stateIn.cTemp[0];
+      session->state.cTemp[1] = stateIn.cTemp[1];
+      session->state.cTemp[2] = stateIn.cTemp[2];
+      session->state.cTemp[3] = stateIn.cTemp[3];
+    }
   }
 
   // Temperatura atual

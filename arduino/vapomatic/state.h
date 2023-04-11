@@ -58,6 +58,9 @@ struct StateIO {
 
   // Valor no atuador
   uint32_t heat;
+
+  // Coeficientes do polinômio grau 3 que infere temperatura
+  float cTemp[4];
 };
 
 #endif

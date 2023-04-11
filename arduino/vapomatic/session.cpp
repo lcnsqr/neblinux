@@ -49,10 +49,10 @@ void Session::reset() {
   // Coeficientes do polinômio grau 3 que infere temperatura
 
   // Coeficientes da temperatura antes de calibrar
-  settings.cTemp[0] = -96.484375;
-  settings.cTemp[1] =   5.983643;
-  settings.cTemp[2] =  -0.053619;
-  settings.cTemp[3] =   0.000196;
+  settings.cTemp[0] = -56.339844;
+  settings.cTemp[1] =   4.008545;
+  settings.cTemp[2] =  -0.020069;
+  settings.cTemp[3] =   0.000046;
 
   settings.tempTarget = 180;
 

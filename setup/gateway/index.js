@@ -28,10 +28,18 @@ app.get('/', (req, res) => {
   res.render('main', {title: "Vapomatic", calibPoints: calibPoints, calibPointsValues: calibPointsValues})
 })
 
+app.get('/calib', (req, res) => {
+  // Mesclar leituras e enviar comando via unix socket
+  const client = net.createConnection({path: socketfile})
+  client.write('calib '+req.query.core+' '+req.query.probe)
+  client.on('data', (data) => {
+  // Apenas fechar conexão por socket e ignorar resposta
+    client.end()
+  })
+  res.sendStatus(204)
+})
+
 app.get('/command/:command/:timestamp', (req, res) => {
-  // Avaliar procedimento de calibragem
-  // calib 0 do → Aquecer no calor do ponto 0
-  // calib 0 done → Registrar temperaturas core e probe do ponto 0 e zerar calor
   // Enviar comando via unix socket
   const client = net.createConnection({path: socketfile})
   client.write(req.params.command)
