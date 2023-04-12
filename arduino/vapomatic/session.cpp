@@ -17,12 +17,13 @@ Session::Session() {
 
   state.elapsed = 0;
 
+  state.PID_enabled = 1;
+
   state.PID[0] = 0;
   state.PID[1] = 0;
   state.PID[2] = 0;
   state.PID[3] = 0;
   state.PID[4] = 0;
-  state.PID[5] = 1;
 
   state.shut[0] = 0;
   state.shut[1] = 0;
@@ -41,25 +42,43 @@ void Session::load() {
   for (int i = 0; i <= 3; i++)
     state.cTemp[i] = settings.cTemp[i];
 
+  // Coeficientes de ponderação do PID
+  for (int i = 0; i < 3; i++)
+    state.cPID[i] = settings.cPID[i];
+
 }
 
-void Session::save() { EEPROM.put(0, settings); }
+void Session::save() {
+  // Temperatura alvo
+  settings.tempTarget = state.tempTarget;
+
+  // Desligamento automático
+  //settings.shutEnabled = state.shutEnabled;
+
+  // Coeficientes do polinômio grau 3 que infere temperatura
+  for (int i = 0; i <= 3; i++)
+    settings.cTemp[i] = state.cTemp[i];
+
+  // Coeficientes de ponderação do PID
+  for (int i = 0; i < 3; i++)
+    settings.cPID[i] = state.cPID[i];
+
+  EEPROM.put(0, settings);
+}
 
 void Session::reset() {
   // Coeficientes do polinômio grau 3 que infere temperatura
+  state.cTemp[0] = -56.339844;
+  state.cTemp[1] =   4.008545;
+  state.cTemp[2] =  -0.020069;
+  state.cTemp[3] =   0.000046;
 
-  // Coeficientes da temperatura antes de calibrar
-  settings.cTemp[0] = -56.339844;
-  settings.cTemp[1] =   4.008545;
-  settings.cTemp[2] =  -0.020069;
-  settings.cTemp[3] =   0.000046;
-
-  settings.tempTarget = 180;
+  state.tempTarget = 180;
 
   // Coeficientes PID
-  settings.cPID[0] = 0.08;
-  settings.cPID[1] = 0.0007;
-  settings.cPID[2] = 0.06;
+  state.cPID[0] = 0.06;
+  state.cPID[1] = 0.0007;
+  state.cPID[2] = 0.06;
 
   // Desligamento automático
   settings.shutEnabled = 1;

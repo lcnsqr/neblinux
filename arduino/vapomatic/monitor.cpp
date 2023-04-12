@@ -51,21 +51,28 @@ void Monitor::action() {
   }
 
   if (Serial.available() > 0) {
+
     // Receber mudanças no estado enviadas pelo utilitário de setup
     Serial.readBytes((char *)&(stateIn), sizeof(struct StateIO));
+
     // Aguardar recolhimento completo
     delay(100);
+
     // Modificar estado do aparelho a partir da estrutura enviada
     session->state.tempTarget = stateIn.tempTarget;
     if ( stateIn.on == 1 && session->state.on != true ){
       session->start();
     }
+
     if ( stateIn.on != 1 && session->state.on == true ){
       session->stop();
     }
+
     session->state.fan = stateIn.fan;
-    session->state.PID[5] = (float)stateIn.PID_enabled;
-    if (session->state.PID[5] == 0)
+
+    session->state.PID_enabled = (float)stateIn.PID_enabled;
+
+    if (session->state.PID_enabled == 0)
       session->state.PID[4] = stateIn.heat;
     session->changed = true;
 
@@ -75,6 +82,13 @@ void Monitor::action() {
       session->state.cTemp[1] = stateIn.cTemp[1];
       session->state.cTemp[2] = stateIn.cTemp[2];
       session->state.cTemp[3] = stateIn.cTemp[3];
+    }
+
+    // Coeficientes PID
+    if ( stateIn.cPID[1] != 0 ){
+      session->state.cPID[0] = stateIn.cPID[0];
+      session->state.cPID[1] = stateIn.cPID[1];
+      session->state.cPID[2] = stateIn.cPID[2];
     }
   }
 

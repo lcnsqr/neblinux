@@ -111,14 +111,15 @@ int exec(char *cmdline) {
     // Ponto fixo
     calibCore[0] = 25.0;
     calibProbe[0] = 25.0;
-    for (int i = 1; i < CALIB_POINTS; i++){
+    for (int i = 1; i < CALIB_POINTS; i++) {
       calibCore[i] = atof(tokens[i]);
-      calibProbe[i] = atof(tokens[i+CALIB_POINTS-1]);
+      calibProbe[i] = atof(tokens[i + CALIB_POINTS - 1]);
     }
 
     // Change state
     pthread_mutex_lock(&state_mut);
-    mat_leastsquares(CALIB_POINTS, CALIB_COEFS - 1, calibCore, calibProbe, stateOut.cTemp);
+    mat_leastsquares(CALIB_POINTS, CALIB_COEFS - 1, calibCore, calibProbe,
+                     stateOut.cTemp);
     state_change = 1;
     pthread_mutex_unlock(&state_mut);
 
@@ -127,14 +128,14 @@ int exec(char *cmdline) {
       printf("%f → %f\n", calibCore[i], calibProbe[i]);
 
     printf("Coeficientes\n");
-    for (int i = 0; i < CALIB_COEFS; i++){
+    for (int i = 0; i < CALIB_COEFS; i++) {
       printf("%f\n", stateOut.cTemp[i]);
     }
 
     printf("Função em x\n");
     float r = 0;
-    for (int j = 0; j < CALIB_POINTS; j++){
-      for (int i = 0; i < CALIB_COEFS; i++){
+    for (int j = 0; j < CALIB_POINTS; j++) {
+      for (int i = 0; i < CALIB_COEFS; i++) {
         r += stateOut.cTemp[i] * pow(calibCore[j], i);
       }
       printf("%f %f\n", calibCore[j], r);
@@ -344,7 +345,6 @@ void regression(float line_core[], float line_probe[], float line_heat[]) {
 
   // Regressão linear aquecimento
   mat_leastsquares(TAIL_POINTS, 1, tail_x, tail_heat, line_heat);
-
 }
 
 // Comunicação via socket
@@ -468,30 +468,36 @@ void *pthread_socket(void *arg) {
         x *= 1e-3;
 
         // Tratar erros no cálculo do tempo
-        if ( x < -60.0 || x > 0 ) x = -60.0 + (float)j * 0.5;
+        if (x < -60.0 || x > 0)
+          x = -60.0 + (float)j * 0.5;
 
         y = graph.core[(graph.i_core + j) % GRAPH_POINTS];
-        if ( y < -60.0 || y > 1000.0 ) y = 0;
+        if (y < -60.0 || y > 1000.0)
+          y = 0;
         sprintf(graph_core + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x, y,
                 (j == GRAPH_POINTS - 1) ? " " : ",");
 
         y = graph.probe[(graph.i_probe + j) % GRAPH_POINTS];
-        if ( y < -60.0 || y > 1000.0 ) y = 0;
+        if (y < -60.0 || y > 1000.0)
+          y = 0;
         sprintf(graph_probe + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x, y,
                 (j == GRAPH_POINTS - 1) ? " " : ",");
 
         y = graph.target[(graph.i_target + j) % GRAPH_POINTS];
-        if ( y < -60.0 || y > 1000.0 ) y = 0;
-        sprintf(graph_target + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x, y,
-                (j == GRAPH_POINTS - 1) ? " " : ",");
+        if (y < -60.0 || y > 1000.0)
+          y = 0;
+        sprintf(graph_target + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x,
+                y, (j == GRAPH_POINTS - 1) ? " " : ",");
 
         y = graph.ex[(graph.i_ex + j) % GRAPH_POINTS];
-        if ( y < -60.0 || y > 1000.0 ) y = 0;
+        if (y < -60.0 || y > 1000.0)
+          y = 0;
         sprintf(graph_ex + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x, y,
                 (j == GRAPH_POINTS - 1) ? " " : ",");
 
         y = graph.heat[(graph.i_heat + j) % GRAPH_POINTS];
-        if ( y < -60.0 || y > 1000.0 ) y = 0;
+        if (y < -60.0 || y > 1000.0)
+          y = 0;
         sprintf(graph_heat + j * 34, "{\"x\":\"%10.4f\",\"y\":%10.4f}%s", x, y,
                 (j == GRAPH_POINTS - 1) ? " " : ",");
       }
@@ -506,7 +512,9 @@ void *pthread_socket(void *arg) {
                "\"on\": %d,"
                "\"fan\": %d,"
                "\"cTemp\": [%.6f, %.6f, %.6f, %.6f],"
-               "\"PID\": [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f],"
+               "\"PID\": [%.2f, %.2f, %.2f, %.2f, %.2f],"
+               "\"PID_enabled\": %d,"
+               "\"cPID\": [%.8f, %.8f, %.8f],"
                "\"ts\": %d,"
                "\"graph\":"
                "{"
@@ -523,14 +531,14 @@ void *pthread_socket(void *arg) {
                "\"heat\":%.6f"
                "}"
                "}",
-               state.elapsed, state.on, state.fan, state.cTemp[0], state.cTemp[1],
-               state.cTemp[2], state.cTemp[3], state.PID[0], state.PID[1],
-               state.PID[2], state.PID[3], state.PID[4], state.PID[5], state.ts,
-               graph_core, graph_probe, graph_target, graph_ex, graph_heat,
-               line_core[1], line_probe[1], line_heat[1]);
+               state.elapsed, state.on, state.fan, state.cTemp[0],
+               state.cTemp[1], state.cTemp[2], state.cTemp[3], state.PID[0],
+               state.PID[1], state.PID[2], state.PID[3], state.PID[4],
+               state.PID_enabled, state.cPID[0], state.cPID[1], state.cPID[2],
+               state.ts, graph_core, graph_probe, graph_target, graph_ex,
+               graph_heat, line_core[1], line_probe[1], line_heat[1]);
       pthread_mutex_unlock(&state_mut);
-    }
-    else {
+    } else {
       // Se não for solicitação do estado, executar comando
       exec(buffer);
     }
@@ -595,6 +603,7 @@ void *pthread_rxtx(void *arg) {
       usleep(TX_PAUSE);
       // Evitar atualizar coeficientes novamente
       stateOut.cTemp[0] = 0;
+      stateOut.cPID[1] = 0;
     }
 
     pthread_mutex_unlock(&state_mut);
@@ -622,7 +631,7 @@ void *pthread_rxtx(void *arg) {
     stateOut.tempTarget = state.tempTarget;
     stateOut.on = state.on;
     stateOut.fan = state.fan;
-    stateOut.PID_enabled = (uint32_t)state.PID[5];
+    stateOut.PID_enabled = state.PID_enabled;
     stateOut.heat = (uint32_t)state.PID[4];
     */
 
