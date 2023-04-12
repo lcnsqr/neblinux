@@ -245,14 +245,14 @@ ws.onmessage = function(event){
     document.querySelector('#state td[data-id="pid_enabled"]').innerHTML = "Não";
   }
 
-  document.querySelector('#state td[data-id="cTemp0"]').innerHTML = data.cTemp[0];
-  document.querySelector('#state td[data-id="cTemp1"]').innerHTML = data.cTemp[1];
-  document.querySelector('#state td[data-id="cTemp2"]').innerHTML = data.cTemp[2];
-  document.querySelector('#state td[data-id="cTemp3"]').innerHTML = data.cTemp[3];
+  document.querySelector('#settings td[data-id="cTemp0"]').innerHTML = data.cTemp[0];
+  document.querySelector('#settings td[data-id="cTemp1"]').innerHTML = data.cTemp[1];
+  document.querySelector('#settings td[data-id="cTemp2"]').innerHTML = data.cTemp[2];
+  document.querySelector('#settings td[data-id="cTemp3"]').innerHTML = data.cTemp[3];
 
-  document.querySelector('#state td[data-id="cPID0"]').innerHTML = data.cPID[0];
-  document.querySelector('#state td[data-id="cPID1"]').innerHTML = data.cPID[1];
-  document.querySelector('#state td[data-id="cPID2"]').innerHTML = data.cPID[2];
+  document.querySelector('#settings td[data-id="cPID0"]').innerHTML = data.cPID[0];
+  document.querySelector('#settings td[data-id="cPID1"]').innerHTML = data.cPID[1];
+  document.querySelector('#settings td[data-id="cPID2"]').innerHTML = data.cPID[2];
 }
 
 document.querySelector('form#prompt').addEventListener("submit", function(event){
