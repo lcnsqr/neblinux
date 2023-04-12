@@ -146,6 +146,21 @@ int exec(char *cmdline) {
     return 0;
   }
 
+  // Salvar definições na EEPROM
+  if (!strcmp("store", tokens[0])) {
+
+    // Change state
+    pthread_mutex_lock(&state_mut);
+    stateOut.store = 1;
+    state_change = 1;
+    pthread_mutex_unlock(&state_mut);
+
+    printf("%s\n", tokens[0]);
+
+    tokens_cleanup(tokens);
+    return 0;
+  }
+
   // Set target
   if (!strcmp("target", tokens[0])) {
 
@@ -591,6 +606,24 @@ void *pthread_rxtx(void *arg) {
   graph.i_target = 0;
   graph.i_heat = 0;
 
+  // Valores de segurança para a estrutura de controle
+  stateOut.tempTarget = 180.0;
+  stateOut.on = 0;
+  stateOut.fan = 0;
+  stateOut.PID_enabled = 1;
+  stateOut.heat = 0;
+  stateOut.cTemp[0] = 0;
+  stateOut.cTemp[1] = 0;
+  stateOut.cTemp[2] = 0;
+  stateOut.cTemp[3] = 0;
+  stateOut.cPID[0] = 0;
+  stateOut.cPID[1] = 0;
+  stateOut.cPID[2] = 0;
+  stateOut.store = 0;
+
+  // Substituir valores somente na primeira leitura
+  int first_rx = 1;
+
   while (rx_bytes >= 0) {
 
     // Send changed state
@@ -604,6 +637,7 @@ void *pthread_rxtx(void *arg) {
       // Evitar atualizar coeficientes novamente
       stateOut.cTemp[0] = 0;
       stateOut.cPID[1] = 0;
+      stateOut.store = 0;
     }
 
     pthread_mutex_unlock(&state_mut);
@@ -626,14 +660,11 @@ void *pthread_rxtx(void *arg) {
         state.PID[4] = 0;
     }
 
-    // Atualizar stateOut
-    /*
-    stateOut.tempTarget = state.tempTarget;
-    stateOut.on = state.on;
-    stateOut.fan = state.fan;
-    stateOut.PID_enabled = state.PID_enabled;
-    stateOut.heat = (uint32_t)state.PID[4];
-    */
+    // Atualizar stateOut na primeira leitura
+    if ( first_rx == 1 ) {
+      stateOut.tempTarget = state.tempTarget;
+      first_rx = 0;
+    }
 
     pthread_mutex_unlock(&state_mut);
 
@@ -761,17 +792,6 @@ int main(int argc, char **argv) {
 
   // Resetar estado
   memset(&state, 0, sizeof(struct State));
-
-  // Valores padrão para a estrutura de controle
-  stateOut.tempTarget = 180.0;
-  stateOut.on = 0;
-  stateOut.fan = 0;
-  stateOut.PID_enabled = 1;
-  stateOut.heat = 0;
-  stateOut.cTemp[0] = 0;
-  stateOut.cTemp[1] = 0;
-  stateOut.cTemp[2] = 0;
-  stateOut.cTemp[3] = 0;
 
   // Open the serial port. Change device path as needed (currently set to an
   // standard FTDI USB-UART cable type device)

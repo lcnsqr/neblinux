@@ -69,6 +69,10 @@ struct StateIO {
 
   // Coeficientes de ponderação do PID
   float cPID[3];
+
+  // Armazenar definições na EEPROM
+  uint32_t store;
+
 };
 
 #endif

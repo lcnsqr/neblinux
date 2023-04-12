@@ -90,6 +90,12 @@ void Monitor::action() {
       session->state.cPID[1] = stateIn.cPID[1];
       session->state.cPID[2] = stateIn.cPID[2];
     }
+
+    // Gravar definições na EEPROM
+    if ( stateIn.store == 1 ){
+      session->save();
+      stateIn.store = 0;
+    }
   }
 
   // Temperatura atual
