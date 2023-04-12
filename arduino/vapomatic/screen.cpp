@@ -200,10 +200,10 @@ void scrSetup::show() {
       else
         display->setDrawColor(1);
       if (i == 2) {
-        // Auto shutdown
+        // Auto stop
         String label =
             String(labels[i]) +
-            String((session->settings.shutEnabled) ? "Sim " : "Não ");
+            String((session->state.autostop) ? "Sim " : "Não ");
         display->drawUTF8(
             (int)(round((float)(128 - display->getUTF8Width(label.c_str())) /
                         2.0)),
@@ -238,7 +238,7 @@ Screen *scrSetup::btTop() {
     return screens[1];
   } else if (highlight == 2) {
     // Alternar desligamento automático
-    session->settings.shutEnabled = !session->settings.shutEnabled;
+    session->state.autostop = !session->state.autostop;
     session->save();
     session->changed = true;
   } else if (highlight == 3) {

@@ -240,6 +240,22 @@ int exec(char *cmdline) {
     return 0;
   }
 
+  // Autostop disable/enable
+  if (!strcmp("autostop", tokens[0])) {
+
+    // Change state
+    pthread_mutex_lock(&state_mut);
+    stateOut.autostop =
+        (!strcmp("on", tokens[1]) || !strcmp("1", tokens[1])) ? 1 : 0;
+    state_change = 1;
+    pthread_mutex_unlock(&state_mut);
+
+    printf("%s = %d\n", tokens[0], (int)stateOut.autostop);
+
+    tokens_cleanup(tokens);
+    return 0;
+  }
+
   // Coeficientes de ponderação do PID
   if (!strcmp("cpid", tokens[0])) {
 
@@ -543,6 +559,7 @@ void *pthread_socket(void *arg) {
                "\"elapsed\": %d,"
                "\"on\": %d,"
                "\"fan\": %d,"
+               "\"autostop\": %d,"
                "\"cTemp\": [%.6f, %.6f, %.6f, %.6f],"
                "\"PID\": [%.2f, %.2f, %.2f, %.2f, %.2f],"
                "\"PID_enabled\": %d,"
@@ -563,7 +580,7 @@ void *pthread_socket(void *arg) {
                "\"heat\":%.6f"
                "}"
                "}",
-               state.elapsed, state.on, state.fan, state.cTemp[0],
+               state.elapsed, state.on, state.fan, state.autostop, state.cTemp[0],
                state.cTemp[1], state.cTemp[2], state.cTemp[3], state.PID[0],
                state.PID[1], state.PID[2], state.PID[3], state.PID[4],
                state.PID_enabled, state.cPID[0], state.cPID[1], state.cPID[2],
@@ -637,6 +654,7 @@ void *pthread_rxtx(void *arg) {
   stateOut.cPID[1] = 0;
   stateOut.cPID[2] = 0;
   stateOut.store = 0;
+  stateOut.autostop = 0;
 
   // Substituir valores somente na primeira leitura
   int first_rx = 1;

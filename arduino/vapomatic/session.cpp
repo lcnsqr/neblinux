@@ -25,8 +25,9 @@ Session::Session() {
   state.PID[3] = 0;
   state.PID[4] = 0;
 
-  state.shut[0] = 0;
-  state.shut[1] = 0;
+  state.autostop = 1;
+  state.cStop[0] = 0;
+  state.cStop[1] = 0;
   
   state.ts = 0;
 }
@@ -46,6 +47,8 @@ void Session::load() {
   for (int i = 0; i < 3; i++)
     state.cPID[i] = settings.cPID[i];
 
+  // Desligamento automático
+  state.autostop = settings.autostop;
 }
 
 void Session::save() {
@@ -53,7 +56,7 @@ void Session::save() {
   settings.tempTarget = state.tempTarget;
 
   // Desligamento automático
-  //settings.shutEnabled = state.shutEnabled;
+  settings.autostop = state.autostop;
 
   // Coeficientes do polinômio grau 3 que infere temperatura
   for (int i = 0; i <= 3; i++)
@@ -76,12 +79,12 @@ void Session::reset() {
   state.tempTarget = 180;
 
   // Coeficientes PID
-  state.cPID[0] = 0.06;
+  state.cPID[0] = 0.04;
   state.cPID[1] = 0.0007;
   state.cPID[2] = 0.06;
 
   // Desligamento automático
-  settings.shutEnabled = 1;
+  state.autostop = 1;
 
   save();
   load();

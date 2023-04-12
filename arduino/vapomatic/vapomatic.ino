@@ -5,7 +5,7 @@
 #include "rotary.h"
 #include "screen.h"
 #include "session.h"
-#include "shutdown.h"
+#include "autostop.h"
 #include "state.h"
 #include "task.h"
 #include "therm.h"
@@ -34,7 +34,7 @@ Fan fan(7, &session, 75);
 // Para de encher automaticamente
 // Três pontos amostrais separados por 3.5s
 // O declive importante aparece num intervalo ~ 10s
-Shutdown shutdown(&session, 3500);
+Autostop autostop(&session, 3500);
 
 void setup() {
 
@@ -51,7 +51,7 @@ void setup() {
   tasks.tasks[1] = &monitor;
   tasks.tasks[2] = &fan;
   tasks.tasks[3] = &heater;
-  tasks.tasks[4] = &shutdown;
+  tasks.tasks[4] = &autostop;
 }
 
 void loop() { tasks.run(); }

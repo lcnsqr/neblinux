@@ -70,7 +70,9 @@ void Monitor::action() {
 
     session->state.fan = stateIn.fan;
 
-    session->state.PID_enabled = (float)stateIn.PID_enabled;
+    session->state.PID_enabled = stateIn.PID_enabled;
+
+    session->state.autostop = stateIn.autostop;
 
     if (session->state.PID_enabled == 0)
       session->state.PID[4] = stateIn.heat;
@@ -124,8 +126,8 @@ void Monitor::action() {
   }
 
   // Detector de encerramento
-  if (session->state.shut[1] != local.state.shut[1]) {
-    local.state.shut[1] = session->state.shut[1];
+  if (session->state.cStop[1] != local.state.cStop[1]) {
+    local.state.cStop[1] = session->state.cStop[1];
     session->changed = true;
   }
 

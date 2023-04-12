@@ -23,8 +23,11 @@ struct State {
   // Coeficientes do polinômio grau 3 que infere temperatura
   float cTemp[4];
 
+  // Parar automaticamente
+  uint32_t autostop;
+
   // Indicador de encerramento
-  float shut[2];
+  float cStop[2];
 
   // On/off state change
   uint32_t on;
@@ -69,6 +72,9 @@ struct StateIO {
 
   // Coeficientes de ponderação do PID
   float cPID[3];
+
+  // Parar automaticamente
+  uint32_t autostop;
 
   // Armazenar definições na EEPROM
   uint32_t store;

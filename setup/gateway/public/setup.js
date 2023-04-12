@@ -78,7 +78,6 @@ var heatChart = new Chart(document.getElementById('heatChart'), {
 		]
 	},
 	options: {
-    aspectRatio: 1,
     elements: {
       point: {
         radius: 0
@@ -118,7 +117,6 @@ var calibChart = new Chart(document.getElementById('calibChart'), {
 		]
 	},
 	options: {
-    aspectRatio: 1,
     elements: {
       point: {
         radius: 5
@@ -157,7 +155,6 @@ var derivChart = new Chart(document.getElementById('derivChart'), {
 		]
 	},
 	options: {
-    aspectRatio: 1,
     plugins: {
       title: {
         display: true,
@@ -243,6 +240,13 @@ ws.onmessage = function(event){
   }
   else {
     document.querySelector('#state td[data-id="pid_enabled"]').innerHTML = "Não";
+  }
+
+  if ( data.autostop != 0 ){
+    document.querySelector('#state td[data-id="autostop"]').innerHTML = "Sim";
+  }
+  else {
+    document.querySelector('#state td[data-id="autostop"]').innerHTML = "Não";
   }
 
   document.querySelector('#settings td[data-id="cTemp0"]').innerHTML = data.cTemp[0];

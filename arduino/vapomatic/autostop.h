@@ -1,13 +1,13 @@
-#ifndef Shutdown_h
-#define Shutdown_h
+#ifndef Autostop_h
+#define Autostop_h
 
 #include "session.h"
 #include "task.h"
 
-class Shutdown : public Task {
+class Autostop : public Task {
 
 public:
-  Shutdown(Session *session, unsigned long wait);
+  Autostop(Session *session, unsigned long wait);
 
   void action();
 

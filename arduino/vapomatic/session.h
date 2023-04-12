@@ -7,7 +7,7 @@
 struct Settings {
   float cTemp[4];     // Coeficientes do polinômio grau 3 que infere temperatura
   float cPID[3];      // Coeficientes PID
-  bool shutEnabled;  // Desligamento automático ativo/inativo
+  bool autostop;  // Desligamento automático ativo/inativo
   float tempTarget;  // Temperatura alvo padrão
 };
 

@@ -1,10 +1,10 @@
-#include "shutdown.h"
+#include "autostop.h"
 #include "mat.h"
 #include "session.h"
 #include "task.h"
 #include <Arduino.h>
 
-Shutdown::Shutdown(Session *session, unsigned long wait)
+Autostop::Autostop(Session *session, unsigned long wait)
     : Task(wait), session(session) {
 
   for (int i = 0; i < pts; ++i) {
@@ -13,9 +13,9 @@ Shutdown::Shutdown(Session *session, unsigned long wait)
   }
 }
 
-void Shutdown::action() {
+void Autostop::action() {
 
-  if (!(session->running() && session->settings.shutEnabled))
+  if (!(session->running() && session->state.autostop))
     return;
 
   for (int i = 1; i < pts; ++i)
@@ -26,10 +26,10 @@ void Shutdown::action() {
 
   // Pontos correspondem às últimas leituras de temperatura.
   // Polinômio interpolador para regressão de primeira ordem.
-  mat::leastsquares(pts, 1, x, y, session->state.shut);
+  mat::leastsquares(pts, 1, x, y, session->state.cStop);
 
   // Desligar se detectado queda íngreme na carga após 60s.
-  if (session->state.shut[1] < slope && session->state.elapsed > minsec) {
+  if (session->state.cStop[1] < slope && session->state.elapsed > minsec) {
     session->stop();
   }
 }
