@@ -240,6 +240,23 @@ int exec(char *cmdline) {
     return 0;
   }
 
+  // Coeficientes de ponderação do PID
+  if (!strcmp("cpid", tokens[0])) {
+
+    // Change state
+    pthread_mutex_lock(&state_mut);
+    stateOut.cPID[0] = atof(tokens[1]);
+    stateOut.cPID[1] = atof(tokens[2]);
+    stateOut.cPID[2] = atof(tokens[3]);
+    state_change = 1;
+    pthread_mutex_unlock(&state_mut);
+
+    printf("%s %.8f %.8f %.8f\n", tokens[0], stateOut.cPID[0], stateOut.cPID[1], stateOut.cPID[2]);
+
+    tokens_cleanup(tokens);
+    return 0;
+  }
+
   // Heater value (0-255)
   if (!strcmp("heat", tokens[0])) {
 
