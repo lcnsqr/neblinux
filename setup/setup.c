@@ -146,6 +146,24 @@ int exec(char *cmdline) {
     return 0;
   }
 
+  // Coeficientes de temperatura direto sem calibrar
+  if (!strcmp("ctemp", tokens[0])) {
+
+    // Change state
+    pthread_mutex_lock(&state_mut);
+    stateOut.cTemp[0] = atof(tokens[1]);
+    stateOut.cTemp[1] = atof(tokens[2]);
+    stateOut.cTemp[2] = atof(tokens[3]);
+    stateOut.cTemp[3] = atof(tokens[4]);
+    state_change = 1;
+    pthread_mutex_unlock(&state_mut);
+
+    printf("%s %.8f %.8f %.8f %.8f\n", tokens[0], stateOut.cTemp[0], stateOut.cTemp[1], stateOut.cTemp[2], stateOut.cTemp[3]);
+
+    tokens_cleanup(tokens);
+    return 0;
+  }
+
   // Salvar definições na EEPROM
   if (!strcmp("store", tokens[0])) {
 
