@@ -42,6 +42,9 @@ pthread_mutex_t state_mut = PTHREAD_MUTEX_INITIALIZER;
 // mutex do histórico de temperaturas
 pthread_mutex_t graph_mut = PTHREAD_MUTEX_INITIALIZER;
 
+// Última temperatura da sonda
+float temp_probe;
+
 // Sequences for graphs
 struct {
   float ts[GRAPH_POINTS];
@@ -651,12 +654,14 @@ void *pthread_rxtx(void *arg) {
   memset(graph.ex, 0, GRAPH_POINTS * sizeof(float));
   memset(graph.target, 0, GRAPH_POINTS * sizeof(float));
   memset(graph.heat, 0, GRAPH_POINTS * sizeof(float));
+  memset(graph.probe, 0, GRAPH_POINTS * sizeof(float));
 
   graph.i_ts = 0;
   graph.i_core = 0;
   graph.i_ex = 0;
   graph.i_target = 0;
   graph.i_heat = 0;
+  graph.i_probe = 0;
 
   // Valores de segurança para a estrutura de controle
   stateOut.tempTarget = 180.0;
@@ -738,6 +743,9 @@ void *pthread_rxtx(void *arg) {
     graph.heat[graph.i_heat] = state.PID[4];
     graph.i_heat = (graph.i_heat + 1) % GRAPH_POINTS;
 
+    graph.probe[graph.i_probe] = temp_probe;
+    graph.i_probe = (graph.i_probe + 1) % GRAPH_POINTS;
+
     pthread_mutex_unlock(&graph_mut);
 
     usleep(RX_PAUSE);
@@ -754,8 +762,6 @@ void *pthread_rx_probe(void *arg) {
   int rx_bytes = 0;
 
   float rx;
-  memset(graph.probe, 0, GRAPH_POINTS * sizeof(float));
-  graph.i_probe = 0;
 
   // Ganho na resistência causa um desvio na leitura da sonda
   const float drift_max = 10.0;
@@ -775,9 +781,9 @@ void *pthread_rx_probe(void *arg) {
     pthread_mutex_unlock(&state_mut);
 
     pthread_mutex_lock(&graph_mut);
+    temp_probe = rx + drift;
 
-    graph.probe[graph.i_probe] = rx + drift;
-    graph.i_probe = (graph.i_probe + 1) % GRAPH_POINTS;
+    printf("%f\n", temp_probe);
 
     pthread_mutex_unlock(&graph_mut);
 
@@ -825,9 +831,9 @@ int init_tty(int port_vapomatic) {
                         // as any data is received.
   tty.c_cc[VMIN] = 0;
 
-  // Set in/out baud rate to be 115200
-  cfsetispeed(&tty, B115200);
-  cfsetospeed(&tty, B115200);
+  // Set in/out baud rate to be 9600
+  cfsetispeed(&tty, B9600);
+  cfsetospeed(&tty, B9600);
 
   // Save tty settings, also checking for error
   if (tcsetattr(port_vapomatic, TCSANOW, &tty) != 0) {

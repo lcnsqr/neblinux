@@ -9,7 +9,13 @@ Therm::Therm(MAX6675 *thermocouple, unsigned long wait)
     }
 
 void Therm::action() {
-  float temp = thermocouple->readCelsius();
-  Serial.write((char*)&temp, sizeof(float));
-  delay(100);
+  // Comunicação serial
+  serial_now = millis();
+  if (serial_now - serial_before >= serial_wait) {
+    // Enviar temperatura para o utilitário de setup
+    float temp = thermocouple->readCelsius();
+    Serial.write((char*)&temp, sizeof(float));
+    serial_before = serial_now;
+  }
+
 }
