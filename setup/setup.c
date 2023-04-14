@@ -782,9 +782,6 @@ void *pthread_rx_probe(void *arg) {
 
     pthread_mutex_lock(&graph_mut);
     temp_probe = rx + drift;
-
-    printf("%f\n", temp_probe);
-
     pthread_mutex_unlock(&graph_mut);
 
     usleep(RX_PAUSE);
