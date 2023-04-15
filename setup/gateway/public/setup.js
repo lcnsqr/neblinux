@@ -203,6 +203,8 @@ ws.onmessage = function(event){
   document.querySelector('#state td[data-id="on"]').innerHTML = (data.on != 0) ? "Sim" : "Não";
   document.querySelector('#state td[data-id="elapsed"]').innerHTML = data.elapsed;
 
+  document.querySelector('#state td[data-id="tempstep"]').innerHTML = data.tempStep;
+
   if ( data.fan != 0 ){
     document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').forEach((p) => {
       p.disabled = false

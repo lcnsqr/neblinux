@@ -49,9 +49,8 @@ struct State {
   // timestamp
   uint32_t ts;
 
-
   // Rotary temperature step
-  int tempStep;
+  uint32_t tempStep;
 };
 
 // Estrutura de comando via porta serial
@@ -79,6 +78,9 @@ struct StateIO {
 
   // Parar automaticamente
   uint32_t autostop;
+
+  // Rotary temperature step
+  uint32_t tempStep;
 
   // Armazenar definições na EEPROM
   uint32_t store;

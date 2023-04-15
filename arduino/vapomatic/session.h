@@ -9,6 +9,7 @@ struct Settings {
   float cPID[3];      // Coeficientes PID
   bool autostop;  // Desligamento automático ativo/inativo
   float tempTarget;  // Temperatura alvo padrão
+  uint32_t tempStep;  // Tamanho do passo do giro
 };
 
 // Estado e IPC

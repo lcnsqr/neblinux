@@ -186,7 +186,7 @@ void scrSetup::show() {
 
   // Texto dos itens
   const char *labels[4] = {" Parar sozinho? ", " Passo do giro  ",
-                           " # serial ", " 000001 "};
+                           " Número serial: ", " 000001 "};
 
   String strVal;
 
@@ -221,7 +221,7 @@ void scrSetup::show() {
         else
           display->setDrawColor(1);
 
-        strVal = String(session->state.tempStep) + String(" ");
+        strVal = String(" ") + String(session->state.tempStep) + String(" ");
         display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()), (i + 1) * 13, strVal.c_str());
 
       } else
@@ -260,7 +260,6 @@ Screen *scrSetup::btTop() {
   if (highlight == 0) {
     // Alternar desligamento automático
     session->state.autostop = !session->state.autostop;
-    session->save();
     session->changed = true;
   } else if (highlight == 1) {
     // Ajustar passo do giro
@@ -275,6 +274,7 @@ Screen *scrSetup::btTop() {
 }
 
 Screen *scrSetup::btFront() {
+  session->save();
   // Chamar a tela definida em leave
   session->changed = true;
   return leave;

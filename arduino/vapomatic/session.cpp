@@ -51,6 +51,9 @@ void Session::load() {
 
   // Desligamento automático
   state.autostop = settings.autostop;
+
+  // Passo do giro
+  state.tempStep = settings.tempStep;
 }
 
 void Session::save() {
@@ -59,6 +62,9 @@ void Session::save() {
 
   // Desligamento automático
   settings.autostop = state.autostop;
+
+  // Passo do giro
+  settings.tempStep = state.tempStep;
 
   // Coeficientes do polinômio grau 3 que infere temperatura
   for (int i = 0; i <= 3; i++)
@@ -87,6 +93,9 @@ void Session::reset() {
 
   // Desligamento automático
   state.autostop = 1;
+
+  // Passo do giro
+  state.tempStep = 10;
 
   save();
   load();

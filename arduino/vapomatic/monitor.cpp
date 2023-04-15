@@ -74,6 +74,8 @@ void Monitor::action() {
 
     session->state.autostop = stateIn.autostop;
 
+    session->state.tempStep = stateIn.tempStep;
+
     if (session->state.PID_enabled == 0)
       session->state.PID[4] = stateIn.heat;
     session->changed = true;
