@@ -53,39 +53,7 @@ public:
   // Itens na tela
   int nitems;
   int highlight;
-};
-
-/*
-class scrCalib : public Screen {
-public:
-  scrCalib(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display);
-  void show();
-  void rotate(const char forward);
-  Screen *btTop();
-  Screen *btFront();
-
-  // Itens na tela
-  int nitems;
-  int highlight;
-  int edit;
-
-  // Valores de tempTarget para cada estágio da calibragem
-  const int calibTarget[3] = {150, 180, 200};
-};
-
-class scrPID : public Screen {
-public:
-  scrPID(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display);
-  void show();
-  void rotate(const char forward);
-  Screen *btTop();
-  Screen *btFront();
-
-  // Itens na tela
-  int nitems;
-  int highlight;
   int edit;
 };
-*/
 
 #endif

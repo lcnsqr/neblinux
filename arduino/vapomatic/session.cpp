@@ -30,6 +30,8 @@ Session::Session() {
   state.cStop[1] = 0;
   
   state.ts = 0;
+
+  state.tempStep = 10;
 }
 
 void Session::load() {

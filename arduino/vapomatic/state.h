@@ -48,6 +48,10 @@ struct State {
 
   // timestamp
   uint32_t ts;
+
+
+  // Rotary temperature step
+  int tempStep;
 };
 
 // Estrutura de comando via porta serial

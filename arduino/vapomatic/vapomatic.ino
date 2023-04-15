@@ -23,8 +23,6 @@ U8G2_SH1106_128X64_NONAME_2_HW_I2C display(U8G2_R2, U8X8_PIN_NONE);
 // Telas da UI
 scrMain uiMain(&session, &display);
 scrSetup uiSetup(&session, &display);
-// scrCalib uiCalib(&session, &display);
-// scrPID uiPID(&session, &display);
 // Monitoramento de eventos
 Monitor monitor(&session, &uiMain, 4, 8, 25);
 // Callback de eventos do rotary encoder
@@ -44,7 +42,17 @@ void setup() {
   session.load();
 
   // Definições de UI
-  setupUI();
+  // Qual tela chamar com botão frontal na tela principal
+  uiMain.leave = &uiSetup;
+
+  // Tela de setup
+  uiSetup.nitems = 4;
+  uiSetup.highlight = 0;
+  uiSetup.edit = -1;
+  uiSetup.leave = &uiMain;
+
+  // Subir display
+  display.begin();
 
   // Serviços (alterar quantidade em task.h)
   tasks.tasks[0] = &therm;
@@ -55,37 +63,3 @@ void setup() {
 }
 
 void loop() { tasks.run(); }
-
-void setupUI() {
-
-  // Qual tela chamar com botão frontal na tela principal
-  uiMain.leave = &uiSetup;
-
-  /**
-   * Tela de setup
-   */
-  uiSetup.nitems = 4;
-  // uiSetup.screens[0] = &uiCalib;
-  // uiSetup.screens[1] = &uiPID;
-  uiSetup.highlight = 0;
-  uiSetup.leave = &uiMain;
-
-  /**
-   * Tela de calibragem
-   */
-  // uiCalib.nitems = 3;
-  // uiCalib.highlight = 0;
-  // uiCalib.edit = -1;
-  // uiCalib.leave = &uiSetup;
-
-  /**
-   * Configurações do PID
-   */
-  // uiPID.nitems = 3;
-  // uiPID.highlight = 0;
-  // uiPID.edit = -1;
-  // uiPID.leave = &uiSetup;
-
-  // Subir display
-  display.begin();
-}
