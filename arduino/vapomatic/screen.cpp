@@ -2,6 +2,7 @@
 #include "display.h"
 #include "mat.h"
 #include "session.h"
+#include "id.h"
 
 Screen::Screen(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
     : session(session), display(display) {
@@ -186,7 +187,7 @@ void scrSetup::show() {
 
   // Texto dos itens
   const char *labels[4] = {" Parar sozinho? ", " Passo do giro  ",
-                           " Número serial: ", " 000001 "};
+                           " Número serial: ", SERIAL};
 
   String strVal;
 
@@ -279,92 +280,3 @@ Screen *scrSetup::btFront() {
   session->changed = true;
   return leave;
 }
-
-///***
-// * Tela para alterar coeficientes do PID
-// */
-// scrPID::scrPID(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
-//    : Screen(session, display) {}
-//
-// void scrPID::show() {
-//
-//  // Texto dos itens
-//  const char *labels[3] = {"P", "I", "D"};
-//
-//  // Valor formatado
-//  String strVal;
-//
-//  // 9 pixel height
-//  display->setFont(u8g2_font_6x13_mf);
-//
-//  display->firstPage();
-//  do {
-//
-//    display->setDrawColor(1);
-//    h1Setup(strVal);
-//
-//    for (int i = 0; i < nitems; ++i) {
-//      display->setDrawColor(1);
-//      strVal = String(session->state.PID[i]);
-//      display->drawUTF8(0, 15 + (i + 1) * 13, strVal.c_str());
-//
-//      // Mudar cor se item iluminado
-//      if (highlight == i && edit < 0)
-//        display->setDrawColor(0);
-//      else
-//        display->setDrawColor(1);
-//      display->drawUTF8(
-//          (int)(round((float)(128 - display->getUTF8Width(labels[i])) / 2.0)),
-//          15 + (i + 1) * 13, labels[i]);
-//
-//      strVal = String(session->settings.PID[i], 4);
-//
-//      if (highlight == i && edit == i)
-//        display->setDrawColor(0);
-//      else
-//        display->setDrawColor(1);
-//      display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
-//                        15 + (i + 1) * 13, strVal.c_str());
-//    }
-//
-//  } while (display->nextPage());
-//}
-//
-// void scrPID::rotate(const char forward) {
-//  if (forward) {
-//    if (edit < 0) {
-//      // Nenhum item sendo editado, iluminar item posterior
-//      highlight = (highlight + 1) % nitems;
-//    } else {
-//      // Ajustar coeficiente
-//      session->settings.PID[edit] += (edit == 1) ? 1e-4 : 1e-2;
-//    }
-//  } else {
-//    if (edit < 0) {
-//      // Nenhum item sendo editado, iluminar item anterior
-//      if (--highlight < 0)
-//        highlight = nitems - 1;
-//    } else {
-//      // Ajustar coeficiente
-//      session->settings.PID[edit] -= (edit == 1) ? 1e-4 : 1e-2;
-//    }
-//  }
-//}
-//
-// Screen *scrPID::btTop() {
-//
-//  if (edit < 0) {
-//    edit = highlight;
-//  } else {
-//    // Sair da edição
-//    edit = -1;
-//  }
-//  return this;
-//}
-//
-// Screen *scrPID::btFront() {
-//  session->save();
-//  // Chamar a tela definida em leave
-//  session->changed = true;
-//  return leave;
-//}
