@@ -1,6 +1,5 @@
 #include "screen.h"
 #include "display.h"
-#include "mat.h"
 #include "session.h"
 #include "id.h"
 
@@ -73,10 +72,13 @@ void scrMain::splash() {
 
 void scrMain::show() {
 
-  if (millis() < 2000) {
+  if (session->state.splash) {
     splash();
     return;
   }
+
+  // Evitar ficar parado na splash screen até que algum evento ocorra
+  session->changed = true;
 
   // String para exibir labels e valores
   String str;

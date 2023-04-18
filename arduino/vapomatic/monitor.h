@@ -22,8 +22,17 @@ public:
 
 private:
   Session *session;
-  Session local;
 
+  // Cópia local do tempo em segundos em atividade
+  int32_t elapsedLocal;
+
+  // Cópia local da temperatura no exaustor
+  float tempEx;
+
+  // Cópia local do movimento do rotary
+  long int encoderLocal;
+
+  // Tela ativa
   Screen *screen;
 
   // Botão superior

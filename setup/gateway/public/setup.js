@@ -250,6 +250,8 @@ ws.onmessage = function(event){
   else {
     document.querySelector('#state td[data-id="autostop"]').innerHTML = "Não";
   }
+  document.querySelector('#state td[data-id="sstop0"]').innerHTML = data.sStop[0];
+  document.querySelector('#state td[data-id="sstop1"]').innerHTML = data.sStop[1];
 
   document.querySelector('#settings td[data-id="cTemp0"]').innerHTML = data.cTemp[0];
   document.querySelector('#settings td[data-id="cTemp1"]').innerHTML = data.cTemp[1];
@@ -259,6 +261,9 @@ ws.onmessage = function(event){
   document.querySelector('#settings td[data-id="cPID0"]').innerHTML = data.cPID[0];
   document.querySelector('#settings td[data-id="cPID1"]').innerHTML = data.cPID[1];
   document.querySelector('#settings td[data-id="cPID2"]').innerHTML = data.cPID[2];
+
+  document.querySelector('#settings td[data-id="cstop0"]').innerHTML = data.cStop[0];
+  document.querySelector('#settings td[data-id="cstop1"]').innerHTML = data.cStop[1];
 }
 
 document.querySelector('form#prompt').addEventListener("submit", function(event){

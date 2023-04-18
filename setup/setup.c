@@ -292,6 +292,22 @@ int exec(char *cmdline) {
     return 0;
   }
 
+  // Limiares da parada automática
+  if (!strcmp("cstop", tokens[0])) {
+
+    // Change state
+    pthread_mutex_lock(&state_mut);
+    stateOut.cStop[0] = atof(tokens[1]);
+    stateOut.cStop[1] = atof(tokens[2]);
+    state_change = 1;
+    pthread_mutex_unlock(&state_mut);
+
+    printf("%s %.8f %.8f\n", tokens[0], stateOut.cStop[0], stateOut.cStop[1]);
+
+    tokens_cleanup(tokens);
+    return 0;
+  }
+
   // Coeficientes de ponderação do PID
   if (!strcmp("cpid", tokens[0])) {
 
@@ -390,10 +406,6 @@ int exec(char *cmdline) {
 // Computar regressão linear nos pontos recentes
 void regression(float line_core[], float line_probe[], float line_heat[]) {
 
-  // Regressão nos pontos dos últimos segundos
-  static const float y_temp_max = 400.0;
-  static const float y_heat_max = 255.0;
-
   float tail_x[TAIL_POINTS];
   float tail_core[TAIL_POINTS];
   float tail_probe[TAIL_POINTS];
@@ -408,15 +420,15 @@ void regression(float line_core[], float line_probe[], float line_heat[]) {
     tail_core[j] =
         graph.core[(graph.i_core + (GRAPH_POINTS - TAIL_POINTS) + j) %
                    GRAPH_POINTS] /
-        y_temp_max;
+        TEMP_MAX;
     tail_probe[j] =
         graph.probe[(graph.i_probe + (GRAPH_POINTS - TAIL_POINTS) + j) %
                     GRAPH_POINTS] /
-        y_temp_max;
+        TEMP_MAX;
     tail_heat[j] =
         graph.heat[(graph.i_heat + (GRAPH_POINTS - TAIL_POINTS) + j) %
                    GRAPH_POINTS] /
-        y_heat_max;
+        HEAT_MAX;
   }
 
   pthread_mutex_unlock(&graph_mut);
@@ -596,11 +608,13 @@ void *pthread_socket(void *arg) {
                "\"tempStep\": %d,"
                "\"on\": %d,"
                "\"fan\": %d,"
-               "\"autostop\": %d,"
                "\"cTemp\": [%.6f, %.6f, %.6f, %.6f],"
                "\"PID\": [%.2f, %.2f, %.2f, %.2f, %.2f],"
                "\"PID_enabled\": %d,"
                "\"cPID\": [%.8f, %.8f, %.8f],"
+               "\"autostop\": %d,"
+               "\"cStop\": [%.6f, %.6f],"
+               "\"sStop\": [%.6f, %.6f],"
                "\"ts\": %d,"
                "\"graph\":"
                "{"
@@ -617,10 +631,11 @@ void *pthread_socket(void *arg) {
                "\"heat\":%.6f"
                "}"
                "}",
-               state.elapsed, state.tempStep, state.on, state.fan, state.autostop, state.cTemp[0],
+               state.elapsed, state.tempStep, state.on, state.fan, state.cTemp[0],
                state.cTemp[1], state.cTemp[2], state.cTemp[3], state.PID[0],
                state.PID[1], state.PID[2], state.PID[3], state.PID[4],
                state.PID_enabled, state.cPID[0], state.cPID[1], state.cPID[2],
+               state.autostop, state.cStop[0], state.cStop[1], state.sStop[0], state.sStop[1],
                state.ts, graph_core, graph_probe, graph_target, graph_ex,
                graph_heat, line_core[1], line_probe[1], line_heat[1]);
       pthread_mutex_unlock(&state_mut);

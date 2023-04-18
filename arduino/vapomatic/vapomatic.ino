@@ -30,9 +30,7 @@ Rotary rotary;
 // Controle da ventoinha
 Fan fan(7, &session, 75);
 // Para de encher automaticamente
-// Três pontos amostrais separados por 3.5s
-// O declive importante aparece num intervalo ~ 10s
-Autostop autostop(&session, 3500);
+Autostop autostop(&session, 2000);
 
 void setup() {
 

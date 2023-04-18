@@ -10,8 +10,9 @@ Monitor::Monitor(Session *session, Screen *screen, int btTop, int btFront,
     : Task(wait), session(session), screen(screen), btTop(btTop),
       btFront(btFront) {
 
-  // Cópia local da sessão
-  local = *session;
+  // Cópias locais se variáveis de sessão
+  tempEx = session->state.tempEx;
+  elapsed = session->state.elapsed;
 
   // Botão superior
   pinMode(btTop, INPUT);
@@ -36,10 +37,6 @@ Monitor::Monitor(Session *session, Screen *screen, int btTop, int btFront,
 }
 
 void Monitor::action() {
-
-  // Avaliar se informações na sessão a serem
-  // exibidas mudaram em relação à cópia local.
-  // Se sim, atualizar a tela.
 
   // Comunicação serial
   serial_now = millis();
@@ -78,7 +75,6 @@ void Monitor::action() {
 
     if (session->state.PID_enabled == 0)
       session->state.PID[4] = stateIn.heat;
-    session->changed = true;
 
     // Coeficientes temperatura
     if ( stateIn.cTemp[0] != 0 ){
@@ -95,17 +91,28 @@ void Monitor::action() {
       session->state.cPID[2] = stateIn.cPID[2];
     }
 
+    // Limiares de parada
+    if ( stateIn.cStop[1] != 0 ){
+      session->state.cStop[0] = stateIn.cStop[0];
+      session->state.cStop[1] = stateIn.cStop[1];
+    }
+
     // Gravar definições na EEPROM
     if ( stateIn.store == 1 ){
       session->save();
       stateIn.store = 0;
     }
+
+    session->changed = true;
   }
 
+  // Avaliar se informações na sessão a serem
+  // exibidas mudaram em relação à cópia local.
+  // Se sim, atualizar a tela.
+
   // Temperatura atual
-  if ((int)session->state.tempCore != (int)local.state.tempCore ||
-      (int)session->state.tempEx != (int)local.state.tempEx) {
-    local.state.tempCore = session->state.tempCore;
+  if ((int)session->state.tempEx != (int)tempEx) {
+    tempEx = session->state.tempEx;
     session->changed = true;
   }
 
@@ -115,21 +122,15 @@ void Monitor::action() {
     if (counting) {
       started = millis();
       session->state.elapsed = 0;
-      elapsed = 0;
+      elapsedLocal = 0;
     }
   }
   if (counting) {
     elapsed = millis() - started;
     session->state.elapsed = elapsed / 1000;
   }
-  if (session->state.elapsed != local.state.elapsed) {
-    local.state.elapsed = session->state.elapsed;
-    session->changed = true;
-  }
-
-  // Detector de encerramento
-  if (session->state.cStop[1] != local.state.cStop[1]) {
-    local.state.cStop[1] = session->state.cStop[1];
+  if (session->state.elapsed != elapsedLocal) {
+    elapsedLocal = session->state.elapsed;
     session->changed = true;
   }
 
@@ -137,23 +138,33 @@ void Monitor::action() {
   // A ação do botão pode alterar a tela atual.
   btTopSt[0] = btTopSt[1]; // Copiar estado anterior do botão superior
   btTopSt[1] = (digitalRead(btTop) == LOW) ? 1 : 0; // LOW é pressionado
-  if (btTopSt[0] == 1 && btTopSt[1] == 0)
+  if (btTopSt[0] == 1 && btTopSt[1] == 0){
     screen = screen->btTop();  // Botão pra cima
+    session->changed = true;
+  }
   btFrontSt[0] = btFrontSt[1]; // Copiar estador anterior do botão frontal
   btFrontSt[1] = (digitalRead(btFront) == LOW) ? 1 : 0; // LOW é pressionado
-  if (btFrontSt[0] == 1 && btFrontSt[1] == 0)
+  if (btFrontSt[0] == 1 && btFrontSt[1] == 0){
     screen = screen->btFront(); // Botão pra cima
+    session->changed = true;
+  }
 
   // Resposta ao rotary também depende da tela atual.
   // O estado está em *encoderMove* no caso do rotary encoder.
-  if (encoderMove >= local.encoder + 4) {
-    local.encoder = encoderMove;
+  if (encoderMove >= encoderLocal + 4) {
+    encoderLocal = encoderMove;
     screen->rotate(1);
     session->changed = true;
   }
-  if (encoderMove <= local.encoder - 4) {
-    local.encoder = encoderMove;
+  if (encoderMove <= encoderLocal - 4) {
+    encoderLocal = encoderMove;
     screen->rotate(0);
+    session->changed = true;
+  }
+
+  if (millis() > 2000 && millis() < 2100){
+    // Ocultar splash screen
+    session->state.splash = 0;
     session->changed = true;
   }
 

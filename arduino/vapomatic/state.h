@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+// Máximos para normalização dos domínios de temperatura e carga
+#define TEMP_MAX 400.0
+#define HEAT_MAX 255.0
+
 // Estrutura para o estado da sessão
 struct State {
   // Marca inicial do dataframe para transmissão serial
@@ -26,7 +30,10 @@ struct State {
   // Parar automaticamente
   uint32_t autostop;
 
-  // Indicador de encerramento
+  // Coeficientes das retas de temperatura e carga para encerramento
+  float sStop[2];
+
+  // Limiares de encerramento
   float cStop[2];
 
   // On/off state change
@@ -51,6 +58,10 @@ struct State {
 
   // Rotary temperature step
   uint32_t tempStep;
+
+  // Exibir splash screen
+  uint32_t splash;
+
 };
 
 // Estrutura de comando via porta serial
@@ -78,12 +89,19 @@ struct StateIO {
 
   // Parar automaticamente
   uint32_t autostop;
+  // Limiares de parada
+  float cStop[2];
+  // Coeficientes das retas para temperatura e carga
+  float sStop[2];
 
   // Rotary temperature step
   uint32_t tempStep;
 
   // Armazenar definições na EEPROM
   uint32_t store;
+
+  // Exibir splash screen
+  uint32_t splash;
 
 };
 

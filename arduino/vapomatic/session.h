@@ -8,6 +8,7 @@ struct Settings {
   float cTemp[4];     // Coeficientes do polinômio grau 3 que infere temperatura
   float cPID[3];      // Coeficientes PID
   bool autostop;  // Desligamento automático ativo/inativo
+  float cStop[2];      // Limiares de parada dos coeficientes de reta para temperatura e carga
   float tempTarget;  // Temperatura alvo padrão
   uint32_t tempStep;  // Tamanho do passo do giro
 };
@@ -34,9 +35,6 @@ public:
 
   // Sinalizar mudança na sessão
   bool changed;
-
-  // Rotary variável auxiliar
-  long int encoder;
 
   // Acionar / parar
   void start();
