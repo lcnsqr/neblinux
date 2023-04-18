@@ -34,6 +34,11 @@ Monitor::Monitor(Session *session, Screen *screen, int btTop, int btFront,
 
   // Contagem de tempo para transmissão serial
   serial_before = millis();
+
+  // Resetar caso botão frontal esteja pressionado ao ligar
+  if ( digitalRead(btFront) == LOW )
+    session->reset();
+
 }
 
 void Monitor::action() {
