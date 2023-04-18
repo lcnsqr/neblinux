@@ -93,7 +93,7 @@ void Session::reset() {
 
   // Coeficientes PID
   state.cPID[0] = 0.04;
-  state.cPID[1] = 0.0007;
+  state.cPID[1] = 0.0001;
   state.cPID[2] = 0.06;
 
   // Desligamento automático
