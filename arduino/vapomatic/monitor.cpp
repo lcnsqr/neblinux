@@ -67,6 +67,8 @@ void Monitor::action() {
 
     session->state.fan = stateIn.fan;
 
+    session->state.splash = stateIn.splash;
+
     session->state.PID_enabled = stateIn.PID_enabled;
 
     session->state.autostop = stateIn.autostop;

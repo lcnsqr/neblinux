@@ -244,6 +244,22 @@ int exec(char *cmdline) {
     return 0;
   }
 
+  // Mostrar splash screen
+  if (!strcmp("splash", tokens[0])) {
+
+    // Change state
+    pthread_mutex_lock(&state_mut);
+    stateOut.splash =
+        (!strcmp("on", tokens[1]) || !strcmp("1", tokens[1])) ? 1 : 0;
+    state_change = 1;
+    pthread_mutex_unlock(&state_mut);
+
+    printf("%s = %d\n", tokens[0], (int)stateOut.splash);
+
+    tokens_cleanup(tokens);
+    return 0;
+  }
+
   // Fan control
   if (!strcmp("fan", tokens[0])) {
 
@@ -709,6 +725,8 @@ void *pthread_rxtx(void *arg) {
   stateOut.cPID[2] = 0;
   stateOut.store = 0;
   stateOut.autostop = 0;
+  stateOut.cStop[0] = 0;
+  stateOut.cStop[1] = 0;
 
   // Substituir valores somente na primeira leitura
   int first_rx = 1;
@@ -727,6 +745,7 @@ void *pthread_rxtx(void *arg) {
       stateOut.cTemp[0] = 0;
       stateOut.cPID[1] = 0;
       stateOut.store = 0;
+      stateOut.cStop[1] = 0;
     }
 
     pthread_mutex_unlock(&state_mut);
