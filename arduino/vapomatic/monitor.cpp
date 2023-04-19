@@ -61,7 +61,12 @@ void Monitor::action() {
     delay(100);
 
     // Modificar estado do aparelho a partir da estrutura enviada
+
+    if ( session->state.tempTarget != stateIn.tempTarget )
+      session->state.targetLastChange = millis() / 1000;
+
     session->state.tempTarget = stateIn.tempTarget;
+
     if ( stateIn.on == 1 && session->state.on != true ){
       session->start();
     }

@@ -32,6 +32,8 @@ Session::Session() {
 
   state.tempStep = 10;
 
+  state.targetLastChange = 0;
+
   state.splash = 1;
 }
 

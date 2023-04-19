@@ -36,9 +36,10 @@ public:
   float s[2];
 
   // Mínimo tempo decorrido
-  static const int minsec = 60;
-  // Declive negativo importante na carga indica enchimento
-  static const float slope = -0.4;
+  static const int minSec = 60;
+
+  // Mínimo tempo decorrido após última mudança no target
+  static const int targetMinSec = 10;
 
 private:
   Session *session;

@@ -161,6 +161,7 @@ void scrMain::rotate(const char forward) {
       return;
     session->state.tempTarget -= session->state.tempStep;
   }
+  session->state.targetLastChange = millis() / 1000;
 }
 
 Screen *scrMain::btTop() {

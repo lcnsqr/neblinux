@@ -59,6 +59,9 @@ struct State {
   // Rotary temperature step
   uint32_t tempStep;
 
+  // timestamp da última mudança no target
+  uint32_t targetLastChange;
+
   // Exibir splash screen
   uint32_t splash;
 
