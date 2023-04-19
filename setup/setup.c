@@ -712,6 +712,7 @@ void *pthread_rxtx(void *arg) {
 
   // Valores de segurança para a estrutura de controle
   stateOut.tempTarget = 180.0;
+  stateOut.tempStep = 10;
   stateOut.on = 0;
   stateOut.fan = 0;
   stateOut.PID_enabled = 1;
@@ -771,6 +772,8 @@ void *pthread_rxtx(void *arg) {
     // Atualizar stateOut na primeira leitura
     if ( first_rx == 1 ) {
       stateOut.tempTarget = state.tempTarget;
+      stateOut.tempStep = state.tempStep;
+      stateOut.autostop = state.autostop;
       first_rx = 0;
     }
 
