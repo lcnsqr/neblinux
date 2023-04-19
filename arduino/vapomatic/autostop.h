@@ -38,6 +38,9 @@ public:
   // Mínimo tempo decorrido
   static const int minSec = 60;
 
+  // Constante de decaimento dos limiares de parada
+  float decay;
+
   // Mínimo tempo decorrido após última mudança no target
   static const int targetMinSec = 10;
 

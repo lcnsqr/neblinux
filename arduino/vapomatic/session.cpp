@@ -100,9 +100,10 @@ void Session::reset() {
 
   // Desligamento automático
   state.autostop = 1;
-  // Limiares de parada
-  state.cStop[0] = 0.005;
-  state.cStop[1] = -0.03;
+
+  // Limiares de parada a um minuto
+  state.cStop[0] = 0.01;
+  state.cStop[1] = -0.05;
 
   // Passo do giro
   state.tempStep = 10;
