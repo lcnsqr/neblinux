@@ -21,7 +21,7 @@ Autostop::Autostop(Session *session, unsigned long wait)
   s[1] = 0;
 
   // Constante de decaimento
-  decay = -log(0.5);
+  decay = -log(0.4);
 }
 
 void Autostop::action() {
