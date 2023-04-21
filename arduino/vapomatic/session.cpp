@@ -103,7 +103,7 @@ void Session::reset() {
 
   // Limiares de parada a um minuto
   state.cStop[0] = 0.01;
-  state.cStop[1] = -0.05;
+  state.cStop[1] = -0.075;
 
   // Passo do giro
   state.tempStep = 10;
