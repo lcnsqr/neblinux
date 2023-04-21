@@ -245,6 +245,7 @@ void scrSetup::rotate(const char forward) {
       // Ajustar passo do giro
       if ( session->state.tempStep == 5 ) session->state.tempStep = 10;
       if ( session->state.tempStep == 1 ) session->state.tempStep = 5;
+      if ( session->state.tempStep <= 0 ) session->state.tempStep = 1;
     }
   } else {
     if (edit < 0) {
@@ -255,6 +256,7 @@ void scrSetup::rotate(const char forward) {
       // Ajustar passo do giro
       if ( session->state.tempStep == 5 ) session->state.tempStep = 1;
       if ( session->state.tempStep == 10 ) session->state.tempStep = 5;
+      if ( session->state.tempStep >= 11 ) session->state.tempStep = 10;
     }
   }
 }
