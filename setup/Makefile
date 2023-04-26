@@ -3,10 +3,13 @@ FLAGS = -Wall
 
 all : setup
 
-setup : setup.o mat.o
+setup : setup.o serial.o mat.o
 	$(CC) -o $@ $^ -lreadline -pthread -lm $(FLAGS)
 
 setup.o : setup.c
+	$(CC) -c -o $@ $^ $(FLAGS)
+
+serial.o : serial.c
 	$(CC) -c -o $@ $^ $(FLAGS)
 
 mat.o : mat.c
@@ -14,4 +17,4 @@ mat.o : mat.c
 
 
 clean :
-	rm setup setup.o mat.o
+	rm setup setup.o mat.o serial.o

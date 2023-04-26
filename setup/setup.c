@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <termios.h>
+#include "serial.h"
 
 #include <pthread.h>
 #include <stdlib.h>
@@ -28,6 +29,10 @@ uint8_t state_change = 0;
 
 // mutex de acesso ao estado
 pthread_mutex_t state_mut = PTHREAD_MUTEX_INITIALIZER;
+
+// Portas para comunicação serial
+int port_vapomatic;
+int port_probe;
 
 // Intervalo entre comunicações na porta serial (microsegundos)
 #define RX_PAUSE 200e+3
@@ -687,8 +692,6 @@ void *pthread_socket(void *arg) {
 // Comunicação com o aparelho
 void *pthread_rxtx(void *arg) {
 
-  int *port = (int *)arg;
-
   int rx_bytes = 0;
 
   int32_t header = 0x0000;
@@ -738,8 +741,8 @@ void *pthread_rxtx(void *arg) {
 
     pthread_mutex_lock(&state_mut);
 
-    if (state_change) {
-      write(*port, (char *)&stateOut, sizeof(struct StateIO));
+    if (state_change && port_vapomatic >= 0) {
+      write(port_vapomatic, (char *)&stateOut, sizeof(struct StateIO));
       state_change = 0;
       usleep(TX_PAUSE);
       // Evitar atualizar coeficientes novamente
@@ -752,17 +755,17 @@ void *pthread_rxtx(void *arg) {
     pthread_mutex_unlock(&state_mut);
 
     // Skip to the begining of the dataframe
-    while (rx_bytes >= 0 && header != 0xffff)
-      rx_bytes = read(*port, (char *)&header, 4);
+    while (rx_bytes >= 0 && header != 0xffff && port_vapomatic >= 0)
+      rx_bytes = read(port_vapomatic, (char *)&header, 4);
 
     // Reset header
     header = 0x0000;
 
     // Read the remaining dataframe
     pthread_mutex_lock(&state_mut);
-    if (!state_change) {
+    if (!state_change && port_vapomatic >= 0) {
       for (int b = 4; b < sizeof(struct State); b += 4)
-        rx_bytes = read(*port, (char *)&state + b, 4);
+        rx_bytes = read(port_vapomatic, (char *)&state + b, 4);
       // Ignorar carga de aquecimento nos primeiros milisegundos
       // Artefatos no início da comunicação serial podem aparentar picos
       if (state.ts < 5000)
@@ -810,8 +813,6 @@ void *pthread_rxtx(void *arg) {
 // Leitura da sonda
 void *pthread_rx_probe(void *arg) {
 
-  int *port = (int *)arg;
-
   int rx_bytes = 0;
 
   float rx;
@@ -823,7 +824,8 @@ void *pthread_rx_probe(void *arg) {
   while (rx_bytes >= 0) {
 
     rx = 0;
-    rx_bytes = read(*port, (char *)&rx, sizeof(float));
+    if ( port_probe >= 0 )
+      rx_bytes = read(port_probe, (char *)&rx, sizeof(float));
 
     if (rx_bytes != sizeof(float))
       continue;
@@ -843,90 +845,34 @@ void *pthread_rx_probe(void *arg) {
   pthread_exit((void *)NULL);
 }
 
-int init_tty(int port_vapomatic) {
-  // Create new termios struct, we call it 'tty' for convention
-  struct termios tty;
-
-  // Read in existing settings, and handle any error
-  if (tcgetattr(port_vapomatic, &tty) != 0) {
-    printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
-    return 1;
-  }
-
-  tty.c_cflag &= ~PARENB; // Clear parity bit, disabling parity (most common)
-  tty.c_cflag &= ~CSTOPB; // Clear stop field, only one stop bit used in
-                          // communication (most common)
-  tty.c_cflag &= ~CSIZE;  // Clear all bits that set the data size
-  tty.c_cflag |= CS8;     // 8 bits per byte (most common)
-  tty.c_cflag &=
-      ~CRTSCTS; // Disable RTS/CTS hardware flow control (most common)
-  tty.c_cflag |=
-      CREAD | CLOCAL; // Turn on READ & ignore ctrl lines (CLOCAL = 1)
-
-  tty.c_lflag &= ~ICANON;
-  tty.c_lflag &= ~ECHO;   // Disable echo
-  tty.c_lflag &= ~ECHOE;  // Disable erasure
-  tty.c_lflag &= ~ECHONL; // Disable new-line echo
-  tty.c_lflag &= ~ISIG;   // Disable interpretation of INTR, QUIT and SUSP
-  tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Turn off s/w flow ctrl
-  tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR |
-                   ICRNL); // Disable any special handling of received bytes
-
-  tty.c_oflag &= ~OPOST; // Prevent special interpretation of output bytes (e.g.
-                         // newline chars)
-  tty.c_oflag &=
-      ~ONLCR; // Prevent conversion of newline to carriage return/line feed
-
-  tty.c_cc[VTIME] = 30; // Wait for up to 3s (30 deciseconds), returning as soon
-                        // as any data is received.
-  tty.c_cc[VMIN] = 0;
-
-  // Set in/out baud rate to be 9600
-  cfsetispeed(&tty, B9600);
-  cfsetospeed(&tty, B9600);
-
-  // Save tty settings, also checking for error
-  if (tcsetattr(port_vapomatic, TCSANOW, &tty) != 0) {
-    printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
-    return 1;
-  }
-
-  return 0;
-}
-
 int main(int argc, char **argv) {
-
-  const char serial_vapomatic[] = "/dev/ttyUSB0";
-  const char serial_probe[] = "/dev/ttyACM0";
 
   // Resetar estado
   memset(&state, 0, sizeof(struct State));
 
-  // Open the serial port. Change device path as needed (currently set to an
-  // standard FTDI USB-UART cable type device)
-  int port_vapomatic = open(serial_vapomatic, O_RDWR);
-  int port_probe = open(serial_probe, O_RDWR);
+  const char serial_vapomatic[] = "/dev/ttyUSB0";
+  const char serial_probe[] = "/dev/ttyACM0";
+
+  port_vapomatic = open(serial_vapomatic, O_RDWR);
+  port_probe = open(serial_probe, O_RDWR);
 
   int init_tty_return = init_tty(port_vapomatic);
   if (init_tty_return != 0) {
     fprintf(stderr, "ERROR; return code from init_tty() on %s is %d\n",
             serial_vapomatic, init_tty_return);
-    exit(-1);
   }
 
   init_tty_return = init_tty(port_probe);
   if (init_tty_return != 0) {
     fprintf(stderr, "ERROR; return code from init_tty() on %s is %d\n",
             serial_probe, init_tty_return);
-    exit(-1);
   }
 
   // RXTX thread
   pthread_t pthread_rxtx_id;
   int pthread_return;
 
-  pthread_return = pthread_create(&pthread_rxtx_id, NULL, &pthread_rxtx,
-                                  (void *)&port_vapomatic);
+  pthread_return = pthread_create(&pthread_rxtx_id, NULL, &pthread_rxtx, (void *)NULL);
   if (pthread_return != 0) {
     fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
             pthread_return);
@@ -936,8 +882,7 @@ int main(int argc, char **argv) {
   // RX probe thread
   pthread_t pthread_rx_probe_id;
 
-  pthread_return = pthread_create(&pthread_rx_probe_id, NULL, &pthread_rx_probe,
-                                  (void *)&port_probe);
+  pthread_return = pthread_create(&pthread_rx_probe_id, NULL, &pthread_rx_probe, (void *)NULL);
   if (pthread_return != 0) {
     fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
             pthread_return);
@@ -1006,7 +951,6 @@ int main(int argc, char **argv) {
   if (pthread_return != 0) {
     fprintf(stderr, "ERROR; return code from pthread_join() is %d\n",
             pthread_return);
-    exit(-1);
   }
 
   // End serial communication with probe
@@ -1015,7 +959,6 @@ int main(int argc, char **argv) {
   if (pthread_return != 0) {
     fprintf(stderr, "ERROR; return code from pthread_join() is %d\n",
             pthread_return);
-    exit(-1);
   }
 
   // Kill socket thread
