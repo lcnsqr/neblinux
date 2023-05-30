@@ -36,7 +36,7 @@ public:
   float s[2];
 
   // Mínimo tempo decorrido
-  static const int minSec = 60;
+  static const int minSec = 40;
 
   // Constante de decaimento dos limiares de parada
   float decay;
