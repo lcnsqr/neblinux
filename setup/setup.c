@@ -818,7 +818,7 @@ void *pthread_rx_probe(void *arg) {
   float rx;
 
   // Ganho na resistência causa um desvio na leitura da sonda
-  const float drift_max = 10.0;
+  const float drift_max = 0.0;
   float drift = 0.0;
 
   while (rx_bytes >= 0) {
