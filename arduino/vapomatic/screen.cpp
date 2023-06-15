@@ -17,6 +17,10 @@ void Screen::h1Setup(String &str) {
       str.c_str());
 }
 
+void Screen::clear() {
+  display->clear();
+}
+
 /***
  * Tela principal
  */
