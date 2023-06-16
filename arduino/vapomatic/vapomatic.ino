@@ -28,7 +28,7 @@ Monitor monitor(&session, &uiMain, 4, 8, 25);
 // Callback de eventos do rotary encoder
 Rotary rotary;
 // Controle da ventoinha
-Fan fan(7, &session, 75);
+Fan fan(9, &session, 75);
 // Para de encher automaticamente
 Autostop autostop(&session, 2000);
 
