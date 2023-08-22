@@ -65,6 +65,9 @@ struct State {
   // Exibir splash screen
   uint32_t splash;
 
+  // Serial
+  uint32_t serial;
+
 };
 
 // Estrutura de comando via porta serial
@@ -105,6 +108,9 @@ struct StateIO {
 
   // Exibir splash screen
   uint32_t splash;
+
+  // Serial
+  uint32_t serial;
 
 };
 

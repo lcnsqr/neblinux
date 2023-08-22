@@ -11,6 +11,7 @@ struct Settings {
   float cStop[2];      // Limiares de parada dos coeficientes de reta para temperatura e carga
   float tempTarget;  // Temperatura alvo padrão
   uint32_t tempStep;  // Tamanho do passo do giro
+  uint32_t serial;  // Serial
 };
 
 // Estado e IPC

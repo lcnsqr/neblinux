@@ -88,6 +88,8 @@ void Monitor::action() {
 
     session->state.tempStep = stateIn.tempStep;
 
+    session->state.serial = stateIn.serial;
+
     if (session->state.PID_enabled == 0)
       session->state.PID[4] = stateIn.heat;
 

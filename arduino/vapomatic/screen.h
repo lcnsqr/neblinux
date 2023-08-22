@@ -50,9 +50,6 @@ public:
   Screen *btTop();
   Screen *btFront();
 
-  // Telas para itens
-  Screen *screens[2];
-
   // Itens na tela
   int nitems;
   int highlight;
