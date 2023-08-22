@@ -32,6 +32,8 @@ Session::Session() {
 
   state.tempStep = 10;
 
+  state.serial = 0;
+
   state.targetLastChange = 0;
 
   state.splash = 1;
@@ -59,6 +61,9 @@ void Session::load() {
 
   // Passo do giro
   state.tempStep = settings.tempStep;
+
+  // Serial do aparelho
+  state.serial = settings.serial;
 }
 
 void Session::save() {
@@ -72,6 +77,9 @@ void Session::save() {
 
   // Passo do giro
   settings.tempStep = state.tempStep;
+
+  // Serial do aparelho
+  settings.serial = state.serial;
 
   // Coeficientes do polinômio grau 3 que infere temperatura
   for (int i = 0; i <= 3; i++)

@@ -1,7 +1,6 @@
 #include "screen.h"
 #include "display.h"
 #include "session.h"
-#include "id.h"
 
 Screen::Screen(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
     : session(session), display(display) {
@@ -193,8 +192,8 @@ scrSetup::scrSetup(Session *session,
 void scrSetup::show() {
 
   // Texto dos itens
-  const char *labels[4] = {" Parar sozinho? ", " Passo do giro  ",
-                           " Número serial: ", SERIAL};
+  const char *labels[3] = {" Parar sozinho? ", " Passo do giro  ",
+                           " Número serial: "};
 
   String strVal;
 
@@ -232,8 +231,14 @@ void scrSetup::show() {
         strVal = String(" ") + String(session->state.tempStep) + String(" ");
         display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()), (i + 1) * 13, strVal.c_str());
 
-      } else
+      } else if ( i == 2 ) {
+        // Label serial
         display->drawUTF8( (int)(round((float)(128 - display->getUTF8Width(labels[i])) / 2.0)), (i + 1) * 13, labels[i]);
+      } else if ( i == 3 ) {
+        // Serial
+        strVal = String(" ") + String(session->state.serial) + String(" ");
+        display->drawUTF8( (int)(round((float)(128 - display->getUTF8Width(strVal.c_str())) / 2.0)), (i + 1) * 13, strVal.c_str());
+      }
 
     }
 
