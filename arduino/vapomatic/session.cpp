@@ -14,7 +14,7 @@ Session::Session() {
   state.tempTarget = 0;
 
   state.on = false;
-  state.fan = false;
+  state.fan = 255;
 
   state.elapsed = 0;
 

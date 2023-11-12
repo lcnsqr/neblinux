@@ -301,8 +301,7 @@ int exec(char *cmdline) {
 
     // Change state
     pthread_mutex_lock(&state_mut);
-    stateOut.fan =
-        (!strcmp("on", tokens[1]) || !strcmp("1", tokens[1])) ? 1 : 0;
+    stateOut.fan = atoi(tokens[1]);
     state_change = 1;
     pthread_mutex_unlock(&state_mut);
 
@@ -749,7 +748,7 @@ void *pthread_rxtx(void *arg) {
   stateOut.tempTarget = 180.0;
   stateOut.tempStep = 10;
   stateOut.on = 0;
-  stateOut.fan = 0;
+  stateOut.fan = 255;
   stateOut.PID_enabled = 1;
   stateOut.heat = 0;
   stateOut.cTemp[0] = 0;
