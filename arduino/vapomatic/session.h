@@ -43,6 +43,9 @@ public:
 
   // Ativo?
   bool running();
+
+  // Comunicação serial?
+  bool serialCom;
 };
 
 #endif

@@ -103,6 +103,9 @@ struct StateIO {
   // Rotary temperature step
   uint32_t tempStep;
 
+  // Resetar definições na EEPROM
+  uint32_t reset;
+
   // Armazenar definições na EEPROM
   uint32_t store;
 

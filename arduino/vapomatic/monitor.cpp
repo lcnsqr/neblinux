@@ -35,9 +35,9 @@ Monitor::Monitor(Session *session, Screen *screen, int btTop, int btFront,
   // Contagem de tempo para transmissão serial
   serial_before = millis();
 
-  // Resetar caso botão frontal esteja pressionado ao ligar
+  // Ativar comunicação serial caso botão frontal esteja pressionado ao ligar
   if ( digitalRead(btFront) == LOW )
-    session->reset();
+    session->serialCom = true;
 
   // Screensaver
   standby = 0;
@@ -48,14 +48,14 @@ void Monitor::action() {
 
   // Comunicação serial
   serial_now = millis();
-  if (serial_now - serial_before >= serial_wait) {
+  if (serial_now - serial_before >= serial_wait && session->serialCom) {
     // Enviar estado para o utilitário de setup
     session->state.ts = millis();
     Serial.write((char *)&(session->state), sizeof(struct State));
     serial_before = serial_now;
   }
 
-  if (Serial.available() > 0) {
+  if (Serial.available() > 0 && session->serialCom) {
 
     // Receber mudanças no estado enviadas pelo utilitário de setup
     Serial.readBytes((char *)&(stateIn), sizeof(struct StateIO));
@@ -112,6 +112,12 @@ void Monitor::action() {
     if ( stateIn.cStop[1] != 0 ){
       session->state.cStop[0] = stateIn.cStop[0];
       session->state.cStop[1] = stateIn.cStop[1];
+    }
+
+    // Resetar definições
+    if ( stateIn.reset == 1 ){
+      session->reset();
+      stateIn.reset = 0;
     }
 
     // Gravar definições na EEPROM

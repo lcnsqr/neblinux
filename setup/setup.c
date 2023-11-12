@@ -173,6 +173,21 @@ int exec(char *cmdline) {
     return 0;
   }
 
+  // Resetar para definições padrão
+  if (!strcmp("reset", tokens[0])) {
+
+    // Change state
+    pthread_mutex_lock(&state_mut);
+    stateOut.reset = 1;
+    state_change = 1;
+    pthread_mutex_unlock(&state_mut);
+
+    printf("%s\n", tokens[0]);
+
+    tokens_cleanup(tokens);
+    return 0;
+  }
+
   // Salvar definições na EEPROM
   if (!strcmp("store", tokens[0])) {
 
@@ -745,6 +760,7 @@ void *pthread_rxtx(void *arg) {
   stateOut.cPID[1] = 0;
   stateOut.cPID[2] = 0;
   stateOut.store = 0;
+  stateOut.reset = 0;
   stateOut.autostop = 0;
   stateOut.cStop[0] = 0;
   stateOut.cStop[1] = 0;
@@ -766,6 +782,7 @@ void *pthread_rxtx(void *arg) {
       stateOut.cTemp[0] = 0;
       stateOut.cPID[1] = 0;
       stateOut.store = 0;
+      stateOut.reset = 0;
       stateOut.cStop[1] = 0;
     }
 

@@ -5,6 +5,8 @@ Session::Session() {
 
   changed = false;
 
+  serialCom = false;
+
   state.header = 0xffff;
 
   state.tempCore = 0;
@@ -116,8 +118,12 @@ void Session::reset() {
   // Passo do giro
   state.tempStep = 10;
 
+  // Ativar comunicação serial
+  serialCom = true;
+
   save();
   load();
+
 }
 
 void Session::start() {
