@@ -39,7 +39,7 @@ struct State {
   // On/off state change
   uint32_t on;
 
-  // Independent fan control
+  // Fan load
   uint32_t fan;
 
   // Coeficientes de ponderação do PID
@@ -78,7 +78,7 @@ struct StateIO {
   // On/off state change
   uint32_t on;
 
-  // Independent fan control
+  // Fan load
   uint32_t fan;
 
   // Ligar/desligar PID

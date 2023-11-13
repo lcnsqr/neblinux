@@ -71,6 +71,9 @@ void Session::load() {
 
   // Serial do aparelho
   state.serial = settings.serial;
+
+  // Fan load
+  state.fan = settings.fan;
 }
 
 void Session::save() {
@@ -95,6 +98,9 @@ void Session::save() {
   // Coeficientes de ponderação do PID
   for (int i = 0; i < 3; i++)
     settings.cPID[i] = state.cPID[i];
+
+  // Fan load
+  settings.fan = state.fan;
 
   EEPROM.put(0, settings);
 }
@@ -122,6 +128,9 @@ void Session::reset() {
 
   // Passo do giro
   state.tempStep = 10;
+
+  // Fan load
+  state.fan = 255;
 
   // Ativar comunicação serial
   serialCom = true;

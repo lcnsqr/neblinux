@@ -201,15 +201,12 @@ ws.onmessage = function(event){
 
   // Estado
   document.querySelector('#state td[data-id="on"]').innerHTML = (data.on != 0) ? "Sim" : "Não";
-  document.querySelector('#state td[data-id="elapsed"]').innerHTML = data.elapsed;
 
-  document.querySelector('#state td[data-id="tempstep"]').innerHTML = data.tempStep;
-
-  if ( data.fan != 0 ){
+  // Liberar calibragem
+  if ( data.on != 0 && data.PID_enabled == 0 ){
     document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').forEach((p) => {
       p.disabled = false
     })
-    document.querySelector('#state td[data-id="fan"]').innerHTML = "Sim"
     document.querySelectorAll('.calibButton').forEach((b) => {
       b.disabled = false
     })
@@ -220,12 +217,18 @@ ws.onmessage = function(event){
     document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').forEach((p) => {
       p.disabled = true
     })
-    document.querySelector('#state td[data-id="fan"]').innerHTML = "Não"
     document.querySelectorAll('.calibButton#calibSwitch').forEach((b) => {
       b.disabled = true
     })
     calibEnabled = 0
   }
+
+
+  document.querySelector('#state td[data-id="fan"]').innerHTML = data.fan;
+
+  document.querySelector('#state td[data-id="elapsed"]').innerHTML = data.elapsed;
+
+  document.querySelector('#state td[data-id="tempstep"]').innerHTML = data.tempStep;
 
   document.querySelector('#state td[data-id="target"]').innerHTML = data.graph.target[data.graph.target.length-1].y;
   document.querySelector('#state td[data-id="core"]').innerHTML = data.graph.core[data.graph.core.length-1].y;
