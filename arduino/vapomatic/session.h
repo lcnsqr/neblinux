@@ -33,7 +33,7 @@ public:
 
   // Mínimo e máximo aquecimento
   static const float tempMin = 20.0;
-  static const float tempMax = 220.0;
+  static const float tempMax = 210.0;
 
   // Sinalizar mudança na sessão
   bool changed;
