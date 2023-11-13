@@ -7,6 +7,11 @@ Session::Session() {
 
   serialCom = false;
 
+  ss.pos[0] = 64;
+  ss.pos[1] = 32;
+  ss.dir[0] = 1;
+  ss.dir[1] = -1;
+
   state.header = 0xffff;
 
   state.tempCore = 0;

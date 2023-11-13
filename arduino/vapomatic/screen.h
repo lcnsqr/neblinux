@@ -27,6 +27,9 @@ public:
   // Apagar tela
   void clear();
 
+  // Screen saver
+  void saver();
+
 protected:
   Session *session;
   U8G2_SH1106_128X64_NONAME_2_HW_I2C *display;

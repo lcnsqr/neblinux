@@ -207,10 +207,9 @@ void Monitor::action() {
     session->changed = true;
   }
 
-  // Escurecer tela se sem interação
   if ( millis() - standby_idle_since > standby_max_idle_time ) {
     standby = 1;
-    screen->clear();
+    screen->saver();
   }
 
   if (session->changed && ! standby) {
