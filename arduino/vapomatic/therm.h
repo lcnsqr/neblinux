@@ -14,7 +14,7 @@ public:
   float celsiusSteinhart(float thermistor);
 
   // R1 Value
-  static const float r1 = 95000.0;
+  static const float r1 = 100000.0;
 
   // Thermistor nominal value
   static const float thermNominal = 100000.0;
