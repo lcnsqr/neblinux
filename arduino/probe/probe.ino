@@ -1,6 +1,6 @@
+#include "max6675.h"
 #include "task.h"
 #include "therm.h"
-#include "max6675.h"
 
 // Loop de serviços
 Tasks tasks;

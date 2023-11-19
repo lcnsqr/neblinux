@@ -1,3 +1,4 @@
+#include "autostop.h"
 #include "display.h"
 #include "fan.h"
 #include "heater.h"
@@ -5,7 +6,6 @@
 #include "rotary.h"
 #include "screen.h"
 #include "session.h"
-#include "autostop.h"
 #include "state.h"
 #include "task.h"
 #include "therm.h"

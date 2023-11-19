@@ -1,8 +1,8 @@
-#include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <termios.h>
+#include <stdio.h>
 #include <string.h>
+#include <termios.h>
 
 #include "serial.h"
 

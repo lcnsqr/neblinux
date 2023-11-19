@@ -34,7 +34,7 @@ Session::Session() {
   state.autostop = 1;
   state.sStop[0] = 0;
   state.sStop[1] = 0;
-  
+
   state.ts = 0;
 
   state.tempStep = 10;
@@ -108,9 +108,9 @@ void Session::save() {
 void Session::reset() {
   // Coeficientes do polinômio grau 3 que infere temperatura
   state.cTemp[0] = -56.339844;
-  state.cTemp[1] =   4.008545;
-  state.cTemp[2] =  -0.020069;
-  state.cTemp[3] =   0.000046;
+  state.cTemp[1] = 4.008545;
+  state.cTemp[2] = -0.020069;
+  state.cTemp[3] = 0.000046;
 
   state.tempTarget = 180;
 
@@ -137,7 +137,6 @@ void Session::reset() {
 
   save();
   load();
-
 }
 
 void Session::start() {

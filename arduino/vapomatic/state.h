@@ -67,7 +67,6 @@ struct State {
 
   // Serial
   uint32_t serial;
-
 };
 
 // Estrutura de comando via porta serial
@@ -114,7 +113,6 @@ struct StateIO {
 
   // Serial
   uint32_t serial;
-
 };
 
 #endif

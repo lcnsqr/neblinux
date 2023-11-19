@@ -5,14 +5,15 @@
 
 // Estrutura para armazenar na EEPROM
 struct Settings {
-  float cTemp[4];     // Coeficientes do polinômio grau 3 que infere temperatura
-  float cPID[3];      // Coeficientes PID
-  bool autostop;  // Desligamento automático ativo/inativo
-  float cStop[2];      // Limiares de parada dos coeficientes de reta para temperatura e carga
+  float cTemp[4];    // Coeficientes do polinômio grau 3 que infere temperatura
+  float cPID[3];     // Coeficientes PID
+  bool autostop;     // Desligamento automático ativo/inativo
+  float cStop[2];    // Limiares de parada dos coeficientes de reta para
+                     // temperatura e carga
   float tempTarget;  // Temperatura alvo padrão
-  uint32_t tempStep;  // Tamanho do passo do giro
-  uint32_t serial;  // Serial
-  uint32_t fan;  // Velocidade do fan (100-255)
+  uint32_t tempStep; // Tamanho do passo do giro
+  uint32_t serial;   // Serial
+  uint32_t fan;      // Velocidade do fan (100-255)
 };
 
 // Estado e IPC
@@ -53,7 +54,6 @@ public:
     int pos[2];
     int dir[2];
   } ss;
-
 };
 
 #endif

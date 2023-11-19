@@ -36,7 +36,7 @@ Monitor::Monitor(Session *session, Screen *screen, int btTop, int btFront,
   serial_before = millis();
 
   // Ativar comunicação serial caso botão frontal esteja pressionado ao ligar
-  if ( digitalRead(btFront) == LOW )
+  if (digitalRead(btFront) == LOW)
     session->serialCom = true;
 
   // Screensaver
@@ -65,16 +65,16 @@ void Monitor::action() {
 
     // Modificar estado do aparelho a partir da estrutura enviada
 
-    if ( session->state.tempTarget != stateIn.tempTarget )
+    if (session->state.tempTarget != stateIn.tempTarget)
       session->state.targetLastChange = millis() / 1000;
 
     session->state.tempTarget = stateIn.tempTarget;
 
-    if ( stateIn.on == 1 && session->state.on != true ){
+    if (stateIn.on == 1 && session->state.on != true) {
       session->start();
     }
 
-    if ( stateIn.on != 1 && session->state.on == true ){
+    if (stateIn.on != 1 && session->state.on == true) {
       session->stop();
     }
 
@@ -94,7 +94,7 @@ void Monitor::action() {
       session->state.PID[4] = stateIn.heat;
 
     // Coeficientes temperatura
-    if ( stateIn.cTemp[0] != 0 ){
+    if (stateIn.cTemp[0] != 0) {
       session->state.cTemp[0] = stateIn.cTemp[0];
       session->state.cTemp[1] = stateIn.cTemp[1];
       session->state.cTemp[2] = stateIn.cTemp[2];
@@ -102,26 +102,26 @@ void Monitor::action() {
     }
 
     // Coeficientes PID
-    if ( stateIn.cPID[1] != 0 ){
+    if (stateIn.cPID[1] != 0) {
       session->state.cPID[0] = stateIn.cPID[0];
       session->state.cPID[1] = stateIn.cPID[1];
       session->state.cPID[2] = stateIn.cPID[2];
     }
 
     // Limiares de parada
-    if ( stateIn.cStop[1] != 0 ){
+    if (stateIn.cStop[1] != 0) {
       session->state.cStop[0] = stateIn.cStop[0];
       session->state.cStop[1] = stateIn.cStop[1];
     }
 
     // Resetar definições
-    if ( stateIn.reset == 1 ){
+    if (stateIn.reset == 1) {
       session->reset();
       stateIn.reset = 0;
     }
 
     // Gravar definições na EEPROM
-    if ( stateIn.store == 1 ){
+    if (stateIn.store == 1) {
       session->save();
       stateIn.store = 0;
     }
@@ -161,9 +161,9 @@ void Monitor::action() {
   // A ação do botão pode alterar a tela atual.
   btTopSt[0] = btTopSt[1]; // Copiar estado anterior do botão superior
   btTopSt[1] = (digitalRead(btTop) == LOW) ? 1 : 0; // LOW é pressionado
-  if (btTopSt[0] == 1 && btTopSt[1] == 0){
-    if ( ! standby ){
-      screen = screen->btTop();  // Botão pra cima
+  if (btTopSt[0] == 1 && btTopSt[1] == 0) {
+    if (!standby) {
+      screen = screen->btTop(); // Botão pra cima
     }
     session->changed = true;
     standby_idle_since = millis();
@@ -171,8 +171,8 @@ void Monitor::action() {
   }
   btFrontSt[0] = btFrontSt[1]; // Copiar estador anterior do botão frontal
   btFrontSt[1] = (digitalRead(btFront) == LOW) ? 1 : 0; // LOW é pressionado
-  if (btFrontSt[0] == 1 && btFrontSt[1] == 0){
-    if ( ! standby ){
+  if (btFrontSt[0] == 1 && btFrontSt[1] == 0) {
+    if (!standby) {
       screen = screen->btFront(); // Botão pra cima
     }
     session->changed = true;
@@ -183,7 +183,7 @@ void Monitor::action() {
   // Resposta ao rotary também depende da tela atual.
   // O estado está em *encoderMove* no caso do rotary encoder.
   if (encoderMove >= encoderLocal + 4) {
-    if ( ! standby ){
+    if (!standby) {
       encoderLocal = encoderMove;
       screen->rotate(1);
     }
@@ -192,7 +192,7 @@ void Monitor::action() {
     standby = 0;
   }
   if (encoderMove <= encoderLocal - 4) {
-    if ( ! standby ){
+    if (!standby) {
       encoderLocal = encoderMove;
       screen->rotate(0);
     }
@@ -201,18 +201,18 @@ void Monitor::action() {
     standby = 0;
   }
 
-  if (millis() > 2000 && millis() < 2100){
+  if (millis() > 2000 && millis() < 2100) {
     // Ocultar splash screen
     session->state.splash = 0;
     session->changed = true;
   }
 
-  if ( millis() - standby_idle_since > standby_max_idle_time ) {
+  if (millis() - standby_idle_since > standby_max_idle_time) {
     standby = 1;
     screen->saver();
   }
 
-  if (session->changed && ! standby) {
+  if (session->changed && !standby) {
     // Exibir mudanças na tela ativa
     screen->show();
     // Mudanças exibidas

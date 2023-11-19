@@ -16,9 +16,7 @@ void Screen::h1Setup(String &str) {
       str.c_str());
 }
 
-void Screen::clear() {
-  display->clear();
-}
+void Screen::clear() { display->clear(); }
 
 void Screen::saver() {
 
@@ -29,22 +27,23 @@ void Screen::saver() {
 
   } while (display->nextPage());
 
-  if ( (session->ss.pos[0] + session->ss.dir[0]) <= 0 || (session->ss.pos[0] + session->ss.dir[0]) >= display->getDisplayWidth() )
+  if ((session->ss.pos[0] + session->ss.dir[0]) <= 0 ||
+      (session->ss.pos[0] + session->ss.dir[0]) >= display->getDisplayWidth())
     session->ss.dir[0] *= -1;
 
-  if ( (session->ss.pos[1] + session->ss.dir[1]) <= 0 || (session->ss.pos[1] + session->ss.dir[1]) >= display->getDisplayHeight() )
+  if ((session->ss.pos[1] + session->ss.dir[1]) <= 0 ||
+      (session->ss.pos[1] + session->ss.dir[1]) >= display->getDisplayHeight())
     session->ss.dir[1] *= -1;
 
   session->ss.pos[0] += session->ss.dir[0];
   session->ss.pos[1] += session->ss.dir[1];
 
   // Mudar direção
-  if ( millis() % 51 == 0 ){
+  if (millis() % 51 == 0) {
     int d1 = -session->ss.dir[1];
     session->ss.dir[1] = session->ss.dir[0];
     session->ss.dir[0] = d1;
   }
-
 }
 
 /***
@@ -243,9 +242,10 @@ void scrSetup::show() {
         display->drawUTF8(0, (i + 1) * 13, labels[i]);
         strVal = String((session->state.autostop) ? "Sim " : "Não ");
         display->setDrawColor(1);
-        display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()), (i + 1) * 13, strVal.c_str());
+        display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
+                          (i + 1) * 13, strVal.c_str());
 
-      } else if ( i == 1 ) {
+      } else if (i == 1) {
 
         // Passo do giro
         display->drawUTF8(0, (i + 1) * 13, labels[i]);
@@ -256,17 +256,22 @@ void scrSetup::show() {
           display->setDrawColor(1);
 
         strVal = String(" ") + String(session->state.tempStep) + String(" ");
-        display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()), (i + 1) * 13, strVal.c_str());
+        display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
+                          (i + 1) * 13, strVal.c_str());
 
-      } else if ( i == 2 ) {
+      } else if (i == 2) {
         // Label serial
-        display->drawUTF8( (int)(round((float)(128 - display->getUTF8Width(labels[i])) / 2.0)), (i + 1) * 13, labels[i]);
-      } else if ( i == 3 ) {
+        display->drawUTF8(
+            (int)(round((float)(128 - display->getUTF8Width(labels[i])) / 2.0)),
+            (i + 1) * 13, labels[i]);
+      } else if (i == 3) {
         // Serial
         strVal = String(" ") + String(session->state.serial) + String(" ");
-        display->drawUTF8( (int)(round((float)(128 - display->getUTF8Width(strVal.c_str())) / 2.0)), (i + 1) * 13, strVal.c_str());
+        display->drawUTF8(
+            (int)(round((float)(128 - display->getUTF8Width(strVal.c_str())) /
+                        2.0)),
+            (i + 1) * 13, strVal.c_str());
       }
-
     }
 
   } while (display->nextPage());
@@ -277,11 +282,14 @@ void scrSetup::rotate(const char forward) {
     if (edit < 0) {
       // Nenhum item sendo editado, iluminar item posterior
       highlight = (highlight + 1) % (nitems - 2);
-    } else if ( edit == 1 ) {
+    } else if (edit == 1) {
       // Ajustar passo do giro
-      if ( session->state.tempStep == 5 ) session->state.tempStep = 10;
-      if ( session->state.tempStep == 1 ) session->state.tempStep = 5;
-      if ( session->state.tempStep <= 0 ) session->state.tempStep = 1;
+      if (session->state.tempStep == 5)
+        session->state.tempStep = 10;
+      if (session->state.tempStep == 1)
+        session->state.tempStep = 5;
+      if (session->state.tempStep <= 0)
+        session->state.tempStep = 1;
     }
   } else {
     if (edit < 0) {
@@ -290,9 +298,12 @@ void scrSetup::rotate(const char forward) {
         highlight = (nitems - 2) - 1;
     } else {
       // Ajustar passo do giro
-      if ( session->state.tempStep == 5 ) session->state.tempStep = 1;
-      if ( session->state.tempStep == 10 ) session->state.tempStep = 5;
-      if ( session->state.tempStep >= 11 ) session->state.tempStep = 10;
+      if (session->state.tempStep == 5)
+        session->state.tempStep = 1;
+      if (session->state.tempStep == 10)
+        session->state.tempStep = 5;
+      if (session->state.tempStep >= 11)
+        session->state.tempStep = 10;
     }
   }
 }

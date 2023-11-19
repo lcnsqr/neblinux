@@ -1,8 +1,8 @@
 #ifndef Therm_h
 #define Therm_h
 
-#include "task.h"
 #include "max6675.h"
+#include "task.h"
 
 class Therm : public Task {
 
@@ -16,8 +16,6 @@ public:
   // Intervalo de transmissão serial
   static const float serial_wait = 250;
   long int serial_before, serial_now;
-
 };
 
 #endif
-

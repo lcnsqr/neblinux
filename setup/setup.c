@@ -10,10 +10,10 @@
 #include <readline/history.h>
 #include <readline/readline.h>
 
+#include "serial.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <termios.h>
-#include "serial.h"
 
 #include <pthread.h>
 #include <stdlib.h>
@@ -167,7 +167,8 @@ int exec(char *cmdline) {
     state_change = 1;
     pthread_mutex_unlock(&state_mut);
 
-    printf("%s %.8f %.8f %.8f %.8f\n", tokens[0], stateOut.cTemp[0], stateOut.cTemp[1], stateOut.cTemp[2], stateOut.cTemp[3]);
+    printf("%s %.8f %.8f %.8f %.8f\n", tokens[0], stateOut.cTemp[0],
+           stateOut.cTemp[1], stateOut.cTemp[2], stateOut.cTemp[3]);
 
     tokens_cleanup(tokens);
     return 0;
@@ -370,7 +371,8 @@ int exec(char *cmdline) {
     state_change = 1;
     pthread_mutex_unlock(&state_mut);
 
-    printf("%s %.8f %.8f %.8f\n", tokens[0], stateOut.cPID[0], stateOut.cPID[1], stateOut.cPID[2]);
+    printf("%s %.8f %.8f %.8f\n", tokens[0], stateOut.cPID[0], stateOut.cPID[1],
+           stateOut.cPID[2]);
 
     tokens_cleanup(tokens);
     return 0;
@@ -683,13 +685,14 @@ void *pthread_socket(void *arg) {
                "\"heat\":%.6f"
                "}"
                "}",
-               state.elapsed, state.serial, state.tempStep, state.on, state.fan, state.cTemp[0],
-               state.cTemp[1], state.cTemp[2], state.cTemp[3], state.PID[0],
-               state.PID[1], state.PID[2], state.PID[3], state.PID[4],
-               state.PID_enabled, state.cPID[0], state.cPID[1], state.cPID[2],
-               state.autostop, state.cStop[0], state.cStop[1], state.sStop[0], state.sStop[1],
-               state.ts, graph_core, graph_probe, graph_target, graph_ex,
-               graph_heat, line_core[1], line_probe[1], line_heat[1]);
+               state.elapsed, state.serial, state.tempStep, state.on, state.fan,
+               state.cTemp[0], state.cTemp[1], state.cTemp[2], state.cTemp[3],
+               state.PID[0], state.PID[1], state.PID[2], state.PID[3],
+               state.PID[4], state.PID_enabled, state.cPID[0], state.cPID[1],
+               state.cPID[2], state.autostop, state.cStop[0], state.cStop[1],
+               state.sStop[0], state.sStop[1], state.ts, graph_core,
+               graph_probe, graph_target, graph_ex, graph_heat, line_core[1],
+               line_probe[1], line_heat[1]);
       pthread_mutex_unlock(&state_mut);
     } else {
       // Se não for solicitação do estado, executar comando
@@ -806,7 +809,7 @@ void *pthread_rxtx(void *arg) {
     }
 
     // Atualizar stateOut na primeira leitura
-    if ( first_rx == 1 ) {
+    if (first_rx == 1) {
       stateOut.tempTarget = state.tempTarget;
       stateOut.tempStep = state.tempStep;
       stateOut.autostop = state.autostop;
@@ -857,7 +860,7 @@ void *pthread_rx_probe(void *arg) {
   while (rx_bytes >= 0) {
 
     rx = 0;
-    if ( port_probe >= 0 )
+    if (port_probe >= 0)
       rx_bytes = read(port_probe, (char *)&rx, sizeof(float));
 
     if (rx_bytes != sizeof(float))
@@ -905,7 +908,8 @@ int main(int argc, char **argv) {
   pthread_t pthread_rxtx_id;
   int pthread_return;
 
-  pthread_return = pthread_create(&pthread_rxtx_id, NULL, &pthread_rxtx, (void *)NULL);
+  pthread_return =
+      pthread_create(&pthread_rxtx_id, NULL, &pthread_rxtx, (void *)NULL);
   if (pthread_return != 0) {
     fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
             pthread_return);
@@ -915,7 +919,8 @@ int main(int argc, char **argv) {
   // RX probe thread
   pthread_t pthread_rx_probe_id;
 
-  pthread_return = pthread_create(&pthread_rx_probe_id, NULL, &pthread_rx_probe, (void *)NULL);
+  pthread_return = pthread_create(&pthread_rx_probe_id, NULL, &pthread_rx_probe,
+                                  (void *)NULL);
   if (pthread_return != 0) {
     fprintf(stderr, "ERROR; return code from pthread_create() is %d\n",
             pthread_return);
