@@ -33,12 +33,6 @@ void Screen::saver() {
 
   for ( int p = 0; p < 2; p++ ){
 
-    if (millis() % 431 == 0) {
-      dir = -session->ss.dir[p][1];
-      session->ss.dir[p][1] = session->ss.dir[p][0];
-      session->ss.dir[p][0] = dir;
-    }
-
     session->ss.dir[p][0] *= (session->ss.pos[p][0] + session->ss.dir[p][0] > 2 &&
       session->ss.pos[p][0] + session->ss.dir[p][0] < display->getDisplayWidth()) ? 1 : -1;
     session->ss.pos[p][0] += session->ss.dir[p][0];
@@ -49,6 +43,12 @@ void Screen::saver() {
     if (millis() % 433 == 0) {
       dir = session->ss.dir[p][1];
       session->ss.dir[p][1] = -session->ss.dir[p][0];
+      session->ss.dir[p][0] = dir;
+    }
+
+    if (millis() % 431 == 0) {
+      dir = -session->ss.dir[p][1];
+      session->ss.dir[p][1] = session->ss.dir[p][0];
       session->ss.dir[p][0] = dir;
     }
 
