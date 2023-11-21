@@ -23,26 +23,30 @@ void Screen::saver() {
   display->firstPage();
   do {
 
-    display->drawDisc(session->ss.pos[0], session->ss.pos[1], 1);
+    display->drawDisc(session->ss.pos[0][0], session->ss.pos[0][1], 1);
+    display->drawDisc(session->ss.pos[1][0], session->ss.pos[1][1], 1);
 
   } while (display->nextPage());
 
-  if ((session->ss.pos[0] + session->ss.dir[0]) <= 0 ||
-      (session->ss.pos[0] + session->ss.dir[0]) >= display->getDisplayWidth())
-    session->ss.dir[0] *= -1;
+  // Dimensão auxiliar na rotação da direção
+  int dir;
 
-  if ((session->ss.pos[1] + session->ss.dir[1]) <= 0 ||
-      (session->ss.pos[1] + session->ss.dir[1]) >= display->getDisplayHeight())
-    session->ss.dir[1] *= -1;
+  for ( int p = 0; p < 2; p++ ){
+    session->ss.dir[p][0] *= (session->ss.pos[p][0] + session->ss.dir[p][0] < display->getDisplayWidth()) ? 1 : -1;
+    session->ss.pos[p][0] += session->ss.dir[p][0];
+    session->ss.dir[p][1] *= (session->ss.pos[p][1] + session->ss.dir[p][1] < display->getDisplayHeight()) ? 1 : -1;
+    session->ss.pos[p][1] += session->ss.dir[p][1];
 
-  session->ss.pos[0] += session->ss.dir[0];
-  session->ss.pos[1] += session->ss.dir[1];
-
-  // Mudar direção
-  if (millis() % 51 == 0) {
-    int d1 = -session->ss.dir[1];
-    session->ss.dir[1] = session->ss.dir[0];
-    session->ss.dir[0] = d1;
+    if (millis() % 31 == 0) {
+      dir = -session->ss.dir[p][1];
+      session->ss.dir[p][1] = session->ss.dir[p][0];
+      session->ss.dir[p][0] = dir;
+    }
+    if (millis() % 23 == 0) {
+      dir = session->ss.dir[p][1];
+      session->ss.dir[p][1] = -session->ss.dir[p][0];
+      session->ss.dir[p][0] = dir;
+    }
   }
 }
 
