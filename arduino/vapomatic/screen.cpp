@@ -32,21 +32,26 @@ void Screen::saver() {
   int dir;
 
   for ( int p = 0; p < 2; p++ ){
-    session->ss.dir[p][0] *= (session->ss.pos[p][0] + session->ss.dir[p][0] < display->getDisplayWidth()) ? 1 : -1;
-    session->ss.pos[p][0] += session->ss.dir[p][0];
-    session->ss.dir[p][1] *= (session->ss.pos[p][1] + session->ss.dir[p][1] < display->getDisplayHeight()) ? 1 : -1;
-    session->ss.pos[p][1] += session->ss.dir[p][1];
 
-    if (millis() % 31 == 0) {
+    if (millis() % 431 == 0) {
       dir = -session->ss.dir[p][1];
       session->ss.dir[p][1] = session->ss.dir[p][0];
       session->ss.dir[p][0] = dir;
     }
-    if (millis() % 23 == 0) {
+
+    session->ss.dir[p][0] *= (session->ss.pos[p][0] + session->ss.dir[p][0] > 2 &&
+      session->ss.pos[p][0] + session->ss.dir[p][0] < display->getDisplayWidth()) ? 1 : -1;
+    session->ss.pos[p][0] += session->ss.dir[p][0];
+    session->ss.dir[p][1] *= (session->ss.pos[p][1] + session->ss.dir[p][1] > 2 &&
+      session->ss.pos[p][1] + session->ss.dir[p][1] < display->getDisplayHeight()) ? 1 : -1;
+    session->ss.pos[p][1] += session->ss.dir[p][1];
+
+    if (millis() % 433 == 0) {
       dir = session->ss.dir[p][1];
       session->ss.dir[p][1] = -session->ss.dir[p][0];
       session->ss.dir[p][0] = dir;
     }
+
   }
 }
 
