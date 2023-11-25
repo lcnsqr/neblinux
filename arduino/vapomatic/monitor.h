@@ -24,7 +24,7 @@ private:
   Session *session;
 
   // Intervalo do protetor de tela
-  int32_t standby_max_idle_time = 300000;
+  static const int32_t standby_max_idle_time = 300000;
   int32_t standby_idle_since;
   uint8_t standby;
 

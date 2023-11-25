@@ -51,8 +51,8 @@ public:
 
   // Estado da proteção de tela
   struct {
-    int pos[2][2];
-    int dir[2][2];
+    int pos[2];
+    int dir[2];
   } ss;
 };
 
