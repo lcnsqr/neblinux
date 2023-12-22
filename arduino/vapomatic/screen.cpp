@@ -7,15 +7,6 @@ Screen::Screen(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
   leave = NULL;
 }
 
-void Screen::h1Setup(String &str) {
-  str = String((int)session->state.PID[4]) + " / " +
-        String((int)session->state.tempCore) + " °C / " +
-        String((int)session->state.tempEx) + " °C";
-  display->drawUTF8(
-      (int)(round((float)(128 - display->getUTF8Width(str.c_str())) / 2.0)), 13,
-      str.c_str());
-}
-
 void Screen::clear() { display->clear(); }
 
 void Screen::saver() {
@@ -87,17 +78,17 @@ void scrMain::splash() {
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
   // 9 pixel height
-  display->setFont(u8g2_font_6x13_mf);
+  display->setFont(u8g2_font_6x13_mr);
   display->setDrawColor(1);
 
   String str;
+  str = String("VAPOMATIC");
 
   display->firstPage();
   do {
 
     display->drawXBMP(40, 0, 48, 48, logo_bits);
 
-    str = String("VAPOMATIC");
     display->drawUTF8(
         (int)(round((float)(128 - display->getUTF8Width(str.c_str())) / 2.0)),
         62, str.c_str());
@@ -128,7 +119,7 @@ void scrMain::show() {
   do {
 
     // 9 pixel height
-    display->setFont(u8g2_font_6x13_mf);
+    display->setFont(u8g2_font_6x13_mr);
     display->setDrawColor(1);
 
     // Labels
@@ -165,9 +156,9 @@ void scrMain::show() {
     display->drawStr(76, 34, str.c_str());
 
     // 9 pixel height
-    display->setFont(u8g2_font_6x13_mf);
+    display->setFont(u8g2_font_6x13_mr);
 
-    str = String("°C");
+    str = String("'C");
     display->drawUTF8(
         (int)(round((float)(128 - display->getUTF8Width(str.c_str())) / 2.0)),
         46, str.c_str());
@@ -225,12 +216,12 @@ void scrSetup::show() {
 
   // Texto dos itens
   const char *labels[3] = {" Parar sozinho? ", " Passo do giro  ",
-                           " Número serial: "};
+                           " Serial: "};
 
   String strVal;
 
   // 9 pixel height
-  display->setFont(u8g2_font_6x13_mf);
+  display->setFont(u8g2_font_6x13_mr);
 
   display->firstPage();
   do {
@@ -246,7 +237,7 @@ void scrSetup::show() {
 
         // Auto stop
         display->drawUTF8(0, (i + 1) * 13, labels[i]);
-        strVal = String((session->state.autostop) ? "Sim " : "Não ");
+        strVal = String((session->state.autostop) ? "S " : "N ");
         display->setDrawColor(1);
         display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
                           (i + 1) * 13, strVal.c_str());

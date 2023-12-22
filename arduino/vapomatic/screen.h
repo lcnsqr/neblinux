@@ -3,6 +3,7 @@
 
 #include "display.h"
 #include "session.h"
+#include <avr/pgmspace.h>
 
 class Screen {
 public:
@@ -20,9 +21,6 @@ public:
 
   // Tela exibida ao pressionar botão central
   Screen *leave;
-
-  // Elementos comuns de UI
-  void h1Setup(String &str);
 
   // Apagar tela
   void clear();
