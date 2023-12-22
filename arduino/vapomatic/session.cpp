@@ -39,7 +39,8 @@ Session::Session() {
 
   state.tempStep = 10;
 
-  state.serial = 0;
+  // Descanso de tela
+  state.screensaver = 1;
 
   state.targetLastChange = 0;
 
@@ -69,8 +70,8 @@ void Session::load() {
   // Passo do giro
   state.tempStep = settings.tempStep;
 
-  // Serial do aparelho
-  state.serial = settings.serial;
+  // Permitir descanso de tela
+  state.screensaver = settings.screensaver;
 
   // Fan load
   state.fan = settings.fan;
@@ -88,8 +89,8 @@ void Session::save() {
   // Passo do giro
   settings.tempStep = state.tempStep;
 
-  // Serial do aparelho
-  settings.serial = state.serial;
+  // Descanso de tela
+  settings.screensaver = state.screensaver;
 
   // Coeficientes do polinômio grau 3 que infere temperatura
   for (int i = 0; i <= 3; i++)
@@ -131,6 +132,9 @@ void Session::reset() {
 
   // Fan load
   state.fan = 255;
+
+  // Descanso de tela
+  state.screensaver = 1;
 
   // Ativar comunicação serial
   serialCom = true;

@@ -12,7 +12,7 @@ struct Settings {
                      // temperatura e carga
   float tempTarget;  // Temperatura alvo padrão
   uint32_t tempStep; // Tamanho do passo do giro
-  uint32_t serial;   // Serial
+  uint32_t screensaver;  // Usar descanso de tela ou não
   uint32_t fan;      // Velocidade do fan (100-255)
 };
 

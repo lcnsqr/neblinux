@@ -44,7 +44,6 @@ void setup() {
   uiMain.leave = &uiSetup;
 
   // Tela de setup
-  uiSetup.nitems = 4;
   uiSetup.highlight = 0;
   uiSetup.edit = -1;
   uiSetup.leave = &uiMain;

@@ -65,8 +65,8 @@ struct State {
   // Exibir splash screen
   uint32_t splash;
 
-  // Serial
-  uint32_t serial;
+  // Descanso de tela (modo de espera)
+  uint32_t screensaver;
 };
 
 // Estrutura de comando via porta serial
@@ -111,8 +111,8 @@ struct StateIO {
   // Exibir splash screen
   uint32_t splash;
 
-  // Serial
-  uint32_t serial;
+  // Standby (desncanso de tela)
+  uint32_t screensaver;
 };
 
 #endif

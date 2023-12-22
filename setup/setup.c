@@ -204,16 +204,16 @@ int exec(char *cmdline) {
     return 0;
   }
 
-  // Set serial
-  if (!strcmp("serial", tokens[0])) {
+  // Habilitar descanso de tela
+  if (!strcmp("screensaver", tokens[0])) {
 
     // Change state
     pthread_mutex_lock(&state_mut);
-    stateOut.serial = atoi(tokens[1]);
+    stateOut.screensaver = atoi(tokens[1]);
     state_change = 1;
     pthread_mutex_unlock(&state_mut);
 
-    printf("%s = %d\n", tokens[0], (int)stateOut.serial);
+    printf("%s = %d\n", tokens[0], (int)stateOut.screensaver);
 
     tokens_cleanup(tokens);
     return 0;
@@ -658,7 +658,7 @@ void *pthread_socket(void *arg) {
       snprintf(buffer, socket_buf_size,
                "{"
                "\"elapsed\": %d,"
-               "\"serial\": %d,"
+               "\"screensaver\": %d,"
                "\"tempStep\": %d,"
                "\"on\": %d,"
                "\"fan\": %d,"
@@ -685,7 +685,7 @@ void *pthread_socket(void *arg) {
                "\"heat\":%.6f"
                "}"
                "}",
-               state.elapsed, state.serial, state.tempStep, state.on, state.fan,
+               state.elapsed, state.screensaver, state.tempStep, state.on, state.fan,
                state.cTemp[0], state.cTemp[1], state.cTemp[2], state.cTemp[3],
                state.PID[0], state.PID[1], state.PID[2], state.PID[3],
                state.PID[4], state.PID_enabled, state.cPID[0], state.cPID[1],

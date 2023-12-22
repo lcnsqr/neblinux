@@ -215,8 +215,8 @@ scrSetup::scrSetup(Session *session,
 void scrSetup::show() {
 
   // Texto dos itens
-  const char *labels[3] = {" Parar sozinho? ", " Passo do giro  ",
-                           " Serial: "};
+  const char *labels[3] = {" Parar sozinho? ", " Passo do giro:  ",
+                           " Descanso de tela? "};
 
   String strVal;
 
@@ -257,17 +257,15 @@ void scrSetup::show() {
                           (i + 1) * 13, strVal.c_str());
 
       } else if (i == 2) {
-        // Label serial
-        display->drawUTF8(
-            (int)(round((float)(128 - display->getUTF8Width(labels[i])) / 2.0)),
-            (i + 1) * 13, labels[i]);
-      } else if (i == 3) {
-        // Serial
-        strVal = String(" ") + String(session->state.serial) + String(" ");
-        display->drawUTF8(
-            (int)(round((float)(128 - display->getUTF8Width(strVal.c_str())) /
-                        2.0)),
-            (i + 1) * 13, strVal.c_str());
+
+
+        // Descanso de tela
+        display->drawUTF8(0, (i + 1) * 13, labels[i]);
+        strVal = String((session->state.screensaver) ? "S " : "N ");
+        display->setDrawColor(1);
+        display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
+                          (i + 1) * 13, strVal.c_str());
+
       }
     }
 
@@ -278,7 +276,7 @@ void scrSetup::rotate(const char forward) {
   if (forward) {
     if (edit < 0) {
       // Nenhum item sendo editado, iluminar item posterior
-      highlight = (highlight + 1) % (nitems - 2);
+      highlight = (highlight + 1) % nitems;
     } else if (edit == 1) {
       // Ajustar passo do giro
       if (session->state.tempStep == 5)
@@ -292,8 +290,8 @@ void scrSetup::rotate(const char forward) {
     if (edit < 0) {
       // Nenhum item sendo editado, iluminar item anterior
       if (--highlight < 0)
-        highlight = (nitems - 2) - 1;
-    } else {
+        highlight = nitems - 1;
+    } else if (edit == 1) {
       // Ajustar passo do giro
       if (session->state.tempStep == 5)
         session->state.tempStep = 1;
@@ -319,6 +317,10 @@ Screen *scrSetup::btTop() {
       // Sair da edição
       edit = -1;
     }
+  } else if (highlight == 2) {
+    // Ativar ou desativar o descanso de tela
+    session->state.screensaver = !session->state.screensaver;
+    session->changed = true;
   }
   return this;
 }

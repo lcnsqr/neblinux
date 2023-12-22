@@ -256,6 +256,9 @@ ws.onmessage = function(event){
   document.querySelector('#state td[data-id="sstop0"]').innerHTML = data.sStop[0];
   document.querySelector('#state td[data-id="sstop1"]').innerHTML = data.sStop[1];
 
+  document.querySelector('#state td[data-id="screensaver"]').innerHTML = (data.screensaver != 0) ? "Sim" : "Não";
+
+
   document.querySelector('#settings td[data-id="cTemp0"]').innerHTML = data.cTemp[0];
   document.querySelector('#settings td[data-id="cTemp1"]').innerHTML = data.cTemp[1];
   document.querySelector('#settings td[data-id="cTemp2"]').innerHTML = data.cTemp[2];
