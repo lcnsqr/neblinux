@@ -3,7 +3,6 @@
 
 #include "display.h"
 #include "session.h"
-#include <avr/pgmspace.h>
 
 class Screen {
 public:
