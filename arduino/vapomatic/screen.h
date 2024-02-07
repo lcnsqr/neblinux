@@ -51,7 +51,7 @@ public:
   Screen *btFront();
 
   // Itens na tela
-  const int nitems = 3;
+  const int nitems = 4;
   int highlight;
   int edit;
 };
