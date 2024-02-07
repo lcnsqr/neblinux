@@ -216,7 +216,7 @@ void scrSetup::show() {
 
   // Texto dos itens
   const char *labels[3] = {" Parar sozinho? ", " Passo do giro:  ",
-                           " Descanso de tela? "};
+                           " Descansar tela? "};
 
   String strVal;
 
