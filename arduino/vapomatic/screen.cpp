@@ -215,7 +215,7 @@ scrSetup::scrSetup(Session *session,
 void scrSetup::show() {
 
   // Texto dos itens
-  const char *labels[3] = {" Parar sozinho? ", " Passo do giro:  ",
+  const char *labels[3] = {" Passo do giro: ", " Parar sozinho?  ",
                            " Descansar tela? "};
 
   String strVal;
@@ -235,15 +235,6 @@ void scrSetup::show() {
 
       if (i == 0) {
 
-        // Auto stop
-        display->drawUTF8(0, (i + 1) * 13, labels[i]);
-        strVal = String((session->state.autostop) ? "S " : "N ");
-        display->setDrawColor(1);
-        display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
-                          (i + 1) * 13, strVal.c_str());
-
-      } else if (i == 1) {
-
         // Passo do giro
         display->drawUTF8(0, (i + 1) * 13, labels[i]);
 
@@ -253,6 +244,15 @@ void scrSetup::show() {
           display->setDrawColor(1);
 
         strVal = String(" ") + String(session->state.tempStep) + String(" ");
+        display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
+                          (i + 1) * 13, strVal.c_str());
+
+      } else if (i == 1) {
+
+        // Auto stop
+        display->drawUTF8(0, (i + 1) * 13, labels[i]);
+        strVal = String((session->state.autostop) ? "S " : "N ");
+        display->setDrawColor(1);
         display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
                           (i + 1) * 13, strVal.c_str());
 
@@ -277,7 +277,7 @@ void scrSetup::rotate(const char forward) {
     if (edit < 0) {
       // Nenhum item sendo editado, iluminar item posterior
       highlight = (highlight + 1) % nitems;
-    } else if (edit == 1) {
+    } else if (edit == 0) {
       // Ajustar passo do giro
       if (session->state.tempStep == 5)
         session->state.tempStep = 10;
@@ -291,7 +291,7 @@ void scrSetup::rotate(const char forward) {
       // Nenhum item sendo editado, iluminar item anterior
       if (--highlight < 0)
         highlight = nitems - 1;
-    } else if (edit == 1) {
+    } else if (edit == 0) {
       // Ajustar passo do giro
       if (session->state.tempStep == 5)
         session->state.tempStep = 1;
@@ -306,10 +306,6 @@ void scrSetup::rotate(const char forward) {
 Screen *scrSetup::btTop() {
   // Invocar ação correspondente ao item
   if (highlight == 0) {
-    // Alternar desligamento automático
-    session->state.autostop = !session->state.autostop;
-    session->changed = true;
-  } else if (highlight == 1) {
     // Ajustar passo do giro
     if (edit < 0) {
       edit = highlight;
@@ -317,6 +313,10 @@ Screen *scrSetup::btTop() {
       // Sair da edição
       edit = -1;
     }
+  } else if (highlight == 1) {
+    // Alternar desligamento automático
+    session->state.autostop = !session->state.autostop;
+    session->changed = true;
   } else if (highlight == 2) {
     // Ativar ou desativar o descanso de tela
     session->state.screensaver = !session->state.screensaver;
