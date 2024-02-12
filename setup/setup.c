@@ -85,6 +85,48 @@ void tokens_cleanup(char **tokens) {
   free(tokens);
 }
 
+void external_cmd(char **tokens) {
+
+  // Ignorar se comando não for "gui"
+  if (strcmp("gui", tokens[0]) != 0) {
+    return;
+  }
+
+  pid_t cmdpid;
+  int wstatus;
+  char *env[] = { NULL };
+
+  cmdpid = fork();
+
+  if ( cmdpid == 0 ){
+    // Child process
+    if (strcmp("gui", tokens[0]) == 0) {
+      // Disparar node index.js
+      static char *tokensGui[] = { "./gui.sh", NULL };
+      execve(tokensGui[0], tokensGui, env);
+    }
+    else {
+      // Linha do comando é tokens
+      execve(tokens[0], tokens, env);
+    }
+    // Exit if execve fails
+    exit(EXIT_FAILURE);
+  }
+  else {
+    // Parent process
+    // Retornar imediatamente se GUI
+    if (strcmp("gui", tokens[0]) == 0) {
+      waitpid(cmdpid, &wstatus, WNOHANG | WUNTRACED | WCONTINUED);
+    }
+    else {
+      waitpid(cmdpid, &wstatus, 0);
+      if ( ! WIFEXITED(wstatus) ){
+        printf("%s\n", "Error calling external command");
+      }
+    }
+  }
+}
+
 // Parse and run cmdline. Returns
 // zero value to keep the shell running
 // or non-zero value to end the shell.
@@ -429,28 +471,7 @@ int exec(char *cmdline) {
   /*
    * External commands
    */
-
-  /*
-  pid_t cmdpid;
-  int wstatus;
-  char *env[] = { NULL };
-
-  cmdpid = fork();
-
-  if ( cmdpid == 0 ){
-    // Child process
-    execve(tokens[0], tokens, env);
-    // Exit if execve fails
-    exit(EXIT_FAILURE);
-  }
-  else {
-    // Parent process
-    waitpid(cmdpid, &wstatus, 0);
-    if ( ! WIFEXITED(wstatus) ){
-      printf("%s\n", "Error calling external command");
-    }
-  }
-  */
+  external_cmd(tokens);
 
   tokens_cleanup(tokens);
   return 0;

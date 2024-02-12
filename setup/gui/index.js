@@ -51,13 +51,14 @@ app.get('/command/:command/:timestamp', (req, res) => {
 })
 
 const server = app.listen(port, host, () => {
-  console.log(`Server ready at http://${host}:${port}`)
+  console.log(`GUI disponível em http://${host}:${port}`)
 })
 
 // SIGINT = CTRL+C
 process.on('SIGINT', () => {
   server.close()
   wss.close()
+  process.exit()
 })
 
 // Websocket
@@ -71,6 +72,11 @@ wss.on('connection', function connection(ws) {
   setInterval(() => {
     // Obter sessão via unix socket
     const client = net.createConnection({path: socketfile})
+    client.on('error', () => {
+      server.close()
+      wss.close()
+      process.exit()
+    })
     client.write('STATE')
     client.on('data', (data) => {
       // Enviar resposta por websocket
