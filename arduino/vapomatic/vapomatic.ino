@@ -34,7 +34,7 @@ Autostop autostop(&session, 2000);
 
 void setup() {
 
-  Serial.begin(9600);
+  Serial.begin(19200);
 
   // Configurar sessão
   session.load();

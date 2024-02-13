@@ -6,7 +6,7 @@
 
 #include "serial.h"
 
-int init_tty(int port) {
+int init_tty(int port, speed_t speed) {
   // Create new termios struct, we call it 'tty' for convention
   struct termios tty;
 
@@ -44,9 +44,9 @@ int init_tty(int port) {
                         // as any data is received.
   tty.c_cc[VMIN] = 0;
 
-  // Set in/out baud rate to be 9600
-  cfsetispeed(&tty, B9600);
-  cfsetospeed(&tty, B9600);
+  // Set in/out baud rate
+  cfsetispeed(&tty, speed);
+  cfsetospeed(&tty, speed);
 
   // Save tty settings, also checking for error
   if (tcsetattr(port, TCSANOW, &tty) != 0) {

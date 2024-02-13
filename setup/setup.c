@@ -913,13 +913,13 @@ int main(int argc, char **argv) {
   port_vapomatic = open(serial_vapomatic, O_RDWR);
   port_probe = open(serial_probe, O_RDWR);
 
-  int init_tty_return = init_tty(port_vapomatic);
+  int init_tty_return = init_tty(port_vapomatic, B19200);
   if (init_tty_return != 0) {
     fprintf(stderr, "ERROR; return code from init_tty() on %s is %d\n",
             serial_vapomatic, init_tty_return);
   }
 
-  init_tty_return = init_tty(port_probe);
+  init_tty_return = init_tty(port_probe, B115200);
   if (init_tty_return != 0) {
     fprintf(stderr, "ERROR; return code from init_tty() on %s is %d\n",
             serial_probe, init_tty_return);

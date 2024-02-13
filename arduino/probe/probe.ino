@@ -10,10 +10,10 @@ static const int thermoCS = 10;
 static const int thermoCSK = 13;
 MAX6675 thermocouple(thermoCSK, thermoCS, thermoSO);
 // Leitura da temperatura no termopar
-Therm therm(&thermocouple, 250);
+Therm therm(&thermocouple, 150);
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   // Serviços (alterar quantidade em task.h)
   tasks.tasks[0] = &therm;
