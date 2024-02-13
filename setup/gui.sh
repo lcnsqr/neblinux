@@ -1,5 +1,5 @@
 #!/bin/sh
 
-echo -e "\nIniciando GUI..."
+echo "\nIniciando GUI..."
 cd gui
 node index.js
