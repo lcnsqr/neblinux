@@ -1,5 +1,6 @@
 CC = gcc
-FLAGS = -Wall
+#FLAGS = -Wall
+FLAGS = 
 
 all : setup
 
