@@ -37,7 +37,7 @@ Session::Session() {
 
   state.ts = 0;
 
-  state.tempStep = 10;
+  state.tempStep = 1;
 
   // Descanso de tela
   state.screensaver = 1;
@@ -128,7 +128,7 @@ void Session::reset() {
   state.cStop[1] = -0.075;
 
   // Passo do giro
-  state.tempStep = 10;
+  state.tempStep = 1;
 
   // Fan load
   state.fan = 255;
