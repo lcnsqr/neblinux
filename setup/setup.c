@@ -361,6 +361,10 @@ int exec(char *cmdline) {
     pthread_mutex_lock(&state_mut);
     stateOut.PID_enabled =
         (!strcmp("on", tokens[1]) || !strcmp("1", tokens[1])) ? 1 : 0;
+
+    // Zerar carga na resistência
+    stateOut.heat = 0;
+
     state_change = 1;
     pthread_mutex_unlock(&state_mut);
 
