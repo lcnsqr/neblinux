@@ -3,7 +3,7 @@ var calibIndex = -1
 var calibEnabled = 0
 var calibPointsLabels = []
 var calibPointsValues = []
-document.querySelectorAll("#calibPoints input[type='number']").forEach((p) => {
+document.querySelectorAll("#calibPoints input[type='number'].heat").forEach((p) => {
   calibPointsLabels.push(p.value)
   calibPointsValues.push(Number(p.value))
 })
@@ -109,9 +109,9 @@ var calibChart = new Chart(document.getElementById('calibChart'), {
         borderWidth: 1
       },
       {
-        label: 'Sonda',
+        label: 'Aferida',
         type: 'line',
-        data: [ 54.8922, 103.0441, 153.4069, 196.9804, 241.6863, 279.2745, 302.7059, 325.7304 ],
+        data: [ 54, 103, 153, 196, 241, 279, 302, 325 ],
         borderWidth: 1
       }
 		]
@@ -191,7 +191,12 @@ ws.onmessage = function(event){
   // Calibragem
   if ( calibEnabled && document.querySelector('button#calibSwitch').dataset.state == "1" ){
     calibChart.data.datasets[0].data[calibIndex] = data.graph.core[data.graph.core.length-1].y
-    calibChart.data.datasets[1].data[calibIndex] = data.graph.probe[data.graph.probe.length-1].y
+
+    // Utilizar temperatura da sonda se não for manual
+    if ( ! document.querySelector("input#calibManual").checked ) {
+      calibChart.data.datasets[1].data[calibIndex] = data.graph.probe[data.graph.probe.length-1].y
+    }
+
     calibChart.update()
   }
 
@@ -327,13 +332,20 @@ document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').
       calibIndex = this.value
       console.log(this.dataset.heat)
       exec("heat "+this.dataset.heat)
+
+      // Se probe manual, focar no input correspondente
+      if ( document.querySelector("input#calibManual").checked ) {
+        document.querySelector('form#calibPoints input[type="number"][name="cpm'+calibIndex+'"].manual').focus()
+      }
+
     }
+
   })
 })
 
 document.querySelector('form#calibPoints div:first-child input[type="radio"]').checked = 'true'
 
-document.querySelectorAll('form#calibPoints input[type="number"]').forEach((p) => {
+document.querySelectorAll('form#calibPoints input[type="number"].heat').forEach((p) => {
   p.addEventListener("change", function(event){
 
     document.querySelector('form#calibPoints input[type="radio"][value="'+this.dataset.index+'"]').dataset.heat = this.value
@@ -349,5 +361,33 @@ document.querySelectorAll('form#calibPoints input[type="number"]').forEach((p) =
 
     calibChart.update('none')
 
+  })
+})
+
+// Calibragem manual
+document.querySelector("input#calibManual").addEventListener("change", function(event){
+  if (this.checked) {
+    document.querySelectorAll('form#calibPoints input[type="number"].manual').forEach((p) => {
+      p.disabled = false
+    })
+  }
+  else {
+    document.querySelectorAll('form#calibPoints input[type="number"].manual').forEach((p) => {
+      p.disabled = true
+    })
+  }
+})
+
+document.querySelectorAll('form#calibPoints input[type="number"].manual').forEach((p) => {
+  p.value = calibChart.data.datasets[1].data[p.dataset.index]
+})
+
+document.querySelectorAll('form#calibPoints input[type="number"].manual').forEach((p) => {
+  p.addEventListener("change", function(event){
+    // Se probe manual, usar valor no input correspondente
+    if ( document.querySelector("input#calibManual").checked ) {
+      calibChart.data.datasets[1].data[this.dataset.index] = this.value
+      calibChart.update()
+    }
   })
 })

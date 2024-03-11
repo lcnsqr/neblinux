@@ -16,7 +16,7 @@ h1 {
 div#dashboard {
   padding: 1em;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 2fr 2fr 1fr;
   grid-gap: 2em;
 }
 
@@ -54,10 +54,21 @@ form#prompt input[name="command"] {
   width: 60%;
 }
 
-form#calibPoints {
+form#calibPoints .calibInputs {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   column-gap: 4px;
+  align-items: center;
+  height: 3em;
+}
+
+form#calibPoints .calibInputs > div:first-child {
+  width: 7em;
+  text-align: right;
+}
+
+form#calibPoints p {
+  margin: 0;
 }
 
 form#calibPoints input[type="number"] {

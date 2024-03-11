@@ -30,12 +30,43 @@
     <canvas id="calibChart"></canvas>
 
     <form id="calibPoints" action="/calib">
+
+    <!-- Seleção do ponto de calibragem -->
+    <div class="calibInputs">
+    <div> 
+      <p>Ponto</p>
+    </div>
 <% calibPointsValues.forEach((point, index) => { %>
-    <div style="text-align: center;"> 
-      <input type="number" data-index="<%= index %>" name="cp<%= index %>" value="<%= point %>" min="0" max="255"> <br>
+    <div> 
       <input type="radio" data-heat="<%= point %>" value="<%= index %>" name="index"> 
     </div>
 <% }) %>
+    </div>
+
+    <!-- Entrada manual de temperatura em cada ponto -->
+    <div class="calibInputs">
+    <div> 
+      <p><input type="checkbox" id="calibManual" name="calibManual" unchecked /> <label for="calibManual">Manual</label></p>
+    </div>
+<% calibPointsValues.forEach((point, index) => { %>
+    <div> 
+      <input disabled class="manual" type="number" data-index="<%= index %>" name="cpm<%= index %>" value="25" min="0" max="666" onfocus="this.select();">
+    </div>
+<% }) %>
+    </div>
+
+    <!-- Carga em cada ponto de calibragem -->
+    <div class="calibInputs">
+    <div> 
+      <p>Carga</p>
+    </div>
+<% calibPointsValues.forEach((point, index) => { %>
+    <div> 
+      <input class="heat" type="number" data-index="<%= index %>" name="cp<%= index %>" value="<%= point %>" min="0" max="255">
+    </div>
+<% }) %>
+    </div>
+
     </form>
 
     <div id="calibButtons">
