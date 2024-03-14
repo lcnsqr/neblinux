@@ -380,9 +380,18 @@ document.querySelector("input#calibManual").addEventListener("change", function(
 
 document.querySelectorAll('form#calibPoints input[type="number"].manual').forEach((p) => {
   p.value = calibChart.data.datasets[1].data[p.dataset.index]
-})
 
-document.querySelectorAll('form#calibPoints input[type="number"].manual').forEach((p) => {
+  // Saltar para o ponto correspondente ao ganhar foco
+  p.addEventListener("focus", function(event){
+
+    let rp = document.querySelector('form#calibPoints input[type="radio"][value="'+this.dataset.index+'"]')
+    if ( ! rp.checked ){
+      rp.checked = true
+    }
+
+  })
+
+  // Atualizar gráfico ao mudar o valor manualmente
   p.addEventListener("change", function(event){
     // Se probe manual, usar valor no input correspondente
     if ( document.querySelector("input#calibManual").checked ) {
