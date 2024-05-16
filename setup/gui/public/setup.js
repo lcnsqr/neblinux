@@ -204,7 +204,7 @@ ws.onmessage = function(event){
   }
   tempChart.data.datasets[0].data[chartHistorySize-1].y = data.tempTarget
   tempChart.data.datasets[1].data[chartHistorySize-1].y = data.tempCore
-  tempChart.data.datasets[2].data[chartHistorySize-1].y = data.tempProbe[0]
+  tempChart.data.datasets[2].data[chartHistorySize-1].y = ((data.tempProbe[0]+data.tempProbe[1]+data.tempProbe[2]+data.tempProbe[3])/4).toFixed(2)
   tempChart.update('none')
 
 
@@ -221,7 +221,7 @@ ws.onmessage = function(event){
 
     // Utilizar temperatura da sonda se não for manual
     if ( ! document.querySelector("input#calibManual").checked ) {
-      calibChart.data.datasets[1].data[calibIndex] = data.tempProbe[0]
+      calibChart.data.datasets[1].data[calibIndex] = ((data.tempProbe[0]+data.tempProbe[1]+data.tempProbe[2]+data.tempProbe[3])/4).toFixed(2)
     }
 
     calibChart.update()
@@ -309,7 +309,7 @@ ws.onmessage = function(event){
   document.querySelector('#state td[data-id="target"]').innerHTML = data.tempTarget;
   document.querySelector('#state td[data-id="core"]').innerHTML = data.tempCore;
   document.querySelector('#state td[data-id="ex"]').innerHTML = data.tempEx;
-  document.querySelector('#state td[data-id="probe"]').innerHTML = data.tempProbe[0];
+  document.querySelector('#state td[data-id="probe"]').innerHTML = ((data.tempProbe[0]+data.tempProbe[1]+data.tempProbe[2]+data.tempProbe[3])/4).toFixed(2);
   document.querySelector('#state td[data-id="heat"]').innerHTML = data.PID[4];
 
   document.querySelector('#state td[data-id="pid0"]').innerHTML = data.PID[0];
