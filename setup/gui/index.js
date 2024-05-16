@@ -28,17 +28,6 @@ app.get('/', (req, res) => {
   res.render('main', {title: "Configuração remota", calibPoints: calibPoints, calibPointsValues: calibPointsValues})
 })
 
-app.get('/calib', (req, res) => {
-  // Mesclar leituras e enviar comando via unix socket
-  const client = net.createConnection({path: socketfile})
-  client.write('calib '+req.query.core+' '+req.query.probe)
-  client.on('data', (data) => {
-  // Apenas fechar conexão por socket e ignorar resposta
-    client.end()
-  })
-  res.sendStatus(204)
-})
-
 app.get('/command/:command/:timestamp', (req, res) => {
   // Enviar comando via unix socket
   const client = net.createConnection({path: socketfile})

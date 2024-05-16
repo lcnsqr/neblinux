@@ -384,17 +384,37 @@ document.querySelector('button#calibSwitch').addEventListener("click", function(
 })
 
 document.querySelector('button#calibSave').addEventListener("click", function(event){
-	var xhr = new XMLHttpRequest();
-	xhr.open('GET', "/calib?core="+calibChart.data.datasets[0].data.join(' ')+"&probe="+calibChart.data.datasets[1].data.join(' '))
-	xhr.onload = function() {
-		if (xhr.status === 204) {
-      //console.log('Request accepted')
-		}
-		else {
-			console.log('Request failed. Return code: ' + xhr.status)
-		}
-	}
-	xhr.send()
+  // Pontos de calibragem (ponto extra para ancoragem em 25°C)
+  const CALIB_POINTS = calibPointsValues.length + 1
+  // Floats de 4 bytes
+  let calibCore = _malloc(CALIB_POINTS*4)
+  let calibProbe = _malloc(CALIB_POINTS*4)
+  // Coeficientes do polinômio interpolador de grau 3
+  const CALIB_COEFS = 4
+  let cTemp = _malloc(CALIB_COEFS*4)
+
+  // Ponto fixo
+  setValue(calibCore, 25.0, 'float')
+  setValue(calibProbe, 25.0, 'float')
+  for (let i = 1; i < CALIB_POINTS; i++) {
+    setValue(calibCore+i*4, calibChart.data.datasets[0].data[i-1], 'float')
+    setValue(calibProbe+i*4, calibChart.data.datasets[1].data[i-1], 'float')
+  }
+  // Computar os coeficientes do polinômio interpolador
+  _mat_leastsquares(CALIB_POINTS, CALIB_COEFS - 1, calibCore, calibProbe, cTemp);
+
+  for (let c = 0; c < CALIB_COEFS; c++)
+    console.log(getValue(cTemp+c*4, 'float'))
+
+  exec("ctemp "+getValue(cTemp+0*4, 'float')+
+    " "+getValue(cTemp+1*4, 'float')+
+    " "+getValue(cTemp+2*4, 'float')+
+    " "+getValue(cTemp+3*4, 'float'))
+
+  _free(calibCore)
+  _free(calibProbe)
+  _free(cTemp)
+
 })
 
 document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').forEach((p) => {
