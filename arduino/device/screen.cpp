@@ -158,7 +158,7 @@ void scrMain::show() {
     display->setFont(u8g2_font_inb16_mn);
 
     // Valores leitura e objetivo
-    str = String((int)tempEx);
+    str = String((int)round(tempEx));
     display->drawStr(52 - display->getStrWidth(str.c_str()), 34, str.c_str());
     str = String((int)session->state.tempTarget);
     display->drawStr(76, 34, str.c_str());
@@ -281,7 +281,7 @@ void scrSetup::show() {
 
         // Modo setup
         display->drawUTF8(0, (i + 1) * 13, labels[i]);
-        strVal = String((session->serialCom) ? "S " : "N ");
+        strVal = String((0) ? "S " : "N ");
         display->setDrawColor(1);
         display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
                           (i + 1) * 13, strVal.c_str());
@@ -343,8 +343,8 @@ Screen *scrSetup::btTop() {
     session->changed = true;
   } else if (highlight == 3) {
     // Ativar ou desativar o modo setup
-    session->serialCom = !session->serialCom;
-    session->changed = true;
+    //session->serialCom = !session->serialCom;
+    //session->changed = true;
   }
   return this;
 }

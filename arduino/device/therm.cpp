@@ -41,5 +41,7 @@ float Therm::celsiusSteinhart(float thermistor) {
   steinhart += 1.0 / (tempNominal + 273.15);
   steinhart = 1.0 / steinhart;
   steinhart -= 273.15;
+  // Termo de correção
+  steinhart -= 1.8;
   return steinhart;
 }

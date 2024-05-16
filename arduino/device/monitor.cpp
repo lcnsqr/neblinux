@@ -32,9 +32,6 @@ Monitor::Monitor(Session *session, Screen *screen, int btTop, int btFront,
   started = 0;
   elapsed = 0;
 
-  // Contagem de tempo para transmissão serial
-  serial_before = millis();
-
   // Screensaver
   screensaver = 0;
   screensaver_idle_since = millis();
@@ -42,88 +39,75 @@ Monitor::Monitor(Session *session, Screen *screen, int btTop, int btFront,
 
 void Monitor::action() {
 
-  // Comunicação serial
-  serial_now = millis();
-  if (serial_now - serial_before >= serial_wait && session->serialCom) {
-    // Enviar estado para o utilitário de setup
-    session->state.ts = millis();
-    Serial.write((char *)&(session->state), sizeof(struct State));
-    serial_before = serial_now;
+  // Receber comando via porta serial
+  if ( session->serialIn == SERIAL_NONE ) {
+    if (Serial.available() > 0 ){
+      Serial.readBytes((char *)&(session->serialIn), 1);
+    }
   }
 
-  if (Serial.available() > 0 && session->serialCom) {
+  if ( session->serialIn == SERIAL_READ ) {
 
-    // Receber mudanças no estado enviadas pelo utilitário de setup
-    Serial.readBytes((char *)&(stateIn), sizeof(struct StateIO));
-
-    // Aguardar recolhimento completo
-    delay(100);
-
-    // Modificar estado do aparelho a partir da estrutura enviada
-
-    if (session->state.tempTarget != stateIn.tempTarget)
-      session->state.targetLastChange = millis() / 1000;
-
-    session->state.tempTarget = stateIn.tempTarget;
-
-    if (stateIn.on == 1 && session->state.on != true) {
-      session->start();
+    // Enviar estado segmentado para não estourar o buffer de saída
+    session->state.ts = millis();
+    for (int b = 0; b < sizeof(struct State); b += 4){
+      Serial.write((char*)((char*)&(session->state) + b), 4);
     }
 
-    if (stateIn.on != 1 && session->state.on == true) {
-      session->stop();
-    }
+  } else if ( session->serialIn == SERIAL_WRITE ) {
 
-    session->state.fan = stateIn.fan;
+    // Recebimento de estado
+    Serial.readBytes((char *)&stateIn, sizeof(struct StateIO));
 
-    session->state.splash = stateIn.splash;
+    // Verificar integridade do recebido
+    if ( stateIn.serialCheck == SERIAL_TAG ){
 
-    session->state.PID_enabled = stateIn.PID_enabled;
+      // Modificar estado do aparelho a partir da estrutura enviada
 
-    session->state.autostop = stateIn.autostop;
+      if (session->state.tempTarget != stateIn.tempTarget)
+        session->state.targetLastChange = millis() / 1000;
 
-    session->state.tempStep = stateIn.tempStep;
+      session->state.tempTarget = stateIn.tempTarget;
+      session->state.fan = stateIn.fan;
+      session->state.splash = stateIn.splash;
+      session->state.PID_enabled = stateIn.PID_enabled;
+      session->state.autostop = stateIn.autostop;
+      session->state.tempStep = stateIn.tempStep;
+      session->state.screensaver = stateIn.screensaver;
 
-    session->state.screensaver = stateIn.screensaver;
+      if (session->state.PID_enabled == 0)
+        session->state.PID[4] = stateIn.heat;
 
-    if (session->state.PID_enabled == 0)
-      session->state.PID[4] = stateIn.heat;
-
-    // Coeficientes temperatura
-    if (stateIn.cTemp[0] != 0) {
+      // Coeficientes temperatura
       session->state.cTemp[0] = stateIn.cTemp[0];
       session->state.cTemp[1] = stateIn.cTemp[1];
       session->state.cTemp[2] = stateIn.cTemp[2];
       session->state.cTemp[3] = stateIn.cTemp[3];
-    }
 
-    // Coeficientes PID
-    if (stateIn.cPID[1] != 0) {
+      // Coeficientes PID
       session->state.cPID[0] = stateIn.cPID[0];
       session->state.cPID[1] = stateIn.cPID[1];
       session->state.cPID[2] = stateIn.cPID[2];
-    }
 
-    // Limiares de parada
-    if (stateIn.cStop[1] != 0) {
+      // Limiares de parada
       session->state.cStop[0] = stateIn.cStop[0];
       session->state.cStop[1] = stateIn.cStop[1];
+
+      session->changed = true;
     }
 
-    // Resetar definições
-    if (stateIn.reset == 1) {
-      session->reset();
-      stateIn.reset = 0;
-    }
-
-    // Gravar definições na EEPROM
-    if (stateIn.store == 1) {
-      session->save();
-      stateIn.store = 0;
-    }
-
-    session->changed = true;
+  } else if ( session->serialIn == SERIAL_START ) {
+    session->start();
+  } else if ( session->serialIn == SERIAL_STOP ) {
+    session->stop();
+  } else if ( session->serialIn == SERIAL_RESET ) {
+    session->reset();
+  } else if ( session->serialIn == SERIAL_STORE ) {
+    session->save();
   }
+
+  // Liberar nova chegada de comando
+  session->serialIn = SERIAL_NONE;
 
   // Avaliar se informações na sessão a serem
   // exibidas mudaram em relação à cópia local.

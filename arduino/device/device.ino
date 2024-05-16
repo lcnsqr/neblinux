@@ -10,7 +10,7 @@
 #include "task.h"
 #include "therm.h"
 
-// Estado do aparelho e comunicação interserviços
+// Estado do aparelho e comunicação intertarefas
 Session session;
 // Controle do aquecedor
 Heater heater(5, &session, 38);
@@ -34,7 +34,7 @@ Autostop autostop(&session, 2000);
 
 void setup() {
 
-  Serial.begin(19200);
+  Serial.begin(115200);
 
   // Configurar sessão
   session.load();
@@ -51,7 +51,7 @@ void setup() {
   // Subir display
   display.begin();
 
-  // Serviços (alterar quantidade em task.h)
+  // Tarefas (alterar quantidade em task.h)
   tasks.tasks[0] = &therm;
   tasks.tasks[1] = &monitor;
   tasks.tasks[2] = &fan;

@@ -1,6 +1,10 @@
 #include "mat.h"
 
-int mat_leastsquares(int m, int n, float x[], float y[], float c[]) {
+int EMSCRIPTEN_KEEPALIVE mat_receba(){
+  return 888;
+}
+
+int EMSCRIPTEN_KEEPALIVE mat_leastsquares(int m, int n, float x[], float y[], float c[]) {
   // Número de coeficientes é o grau + 1
   n = n + 1;
 

@@ -1,9 +1,9 @@
-#ifndef MAT_h
-#define MAT_h
-
 #include <math.h>
+#include <emscripten/emscripten.h>
 
-int mat_leastsquares(int m, int n, float x[], float y[], float c[]);
+int EMSCRIPTEN_KEEPALIVE mat_receba();
+
+int EMSCRIPTEN_KEEPALIVE mat_leastsquares(int m, int n, float x[], float y[], float c[]);
 
 int mat_elem(int rows, int cols, int r, int c);
 
@@ -22,5 +22,3 @@ ___Name_____Type______In/Out____Description_____________________________
    b[n*n]   float*   Out       Inverse of A
 ----------------------------------------------------------------------*/
 int mat_inv(const int n, float *a, float *b);
-
-#endif

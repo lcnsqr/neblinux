@@ -5,14 +5,14 @@ Session::Session() {
 
   changed = false;
 
-  serialCom = false;
+  serialIn = 0x00;
 
   ss.pos[0] = 64;
   ss.pos[1] = 32;
   ss.dir[0] = 2;
   ss.dir[1] = 1;
 
-  state.header = 0xffff;
+  state.serialCheck = SERIAL_TAG;
 
   state.tempCore = 0;
   state.tempEx = 0;
@@ -135,9 +135,6 @@ void Session::reset() {
 
   // Descanso de tela
   state.screensaver = 1;
-
-  // Ativar comunicação serial
-  serialCom = true;
 
   save();
   load();

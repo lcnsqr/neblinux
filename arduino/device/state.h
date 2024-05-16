@@ -7,11 +7,19 @@
 #define TEMP_MAX 400.0
 #define HEAT_MAX 255.0
 
+// Marcação para checagem de transmissão serial
+#define SERIAL_TAG 0x0f1e2d3c
+// Comandos recebíveis via porta serial (char)
+#define SERIAL_NONE 0x00
+#define SERIAL_READ 0x10
+#define SERIAL_WRITE 0x11
+#define SERIAL_START 0x20
+#define SERIAL_STOP 0x21
+#define SERIAL_RESET 0x30
+#define SERIAL_STORE 0x31
+
 // Estrutura para o estado da sessão
 struct State {
-  // Marca inicial do dataframe para transmissão serial
-  int32_t header;
-
   // Tempo em segundos em atividade
   int32_t elapsed;
 
@@ -67,15 +75,16 @@ struct State {
 
   // Descanso de tela (modo de espera)
   uint32_t screensaver;
+
+  // Checagem de erro na transmissão serial
+  uint32_t serialCheck;
+
 };
 
-// Estrutura de comando via porta serial
+// Estrutura para alteração de estado via porta serial
 struct StateIO {
   // Temperatura alvo no exaustor
   float tempTarget;
-
-  // On/off state change
-  uint32_t on;
 
   // Fan load
   uint32_t fan;
@@ -102,17 +111,15 @@ struct StateIO {
   // Rotary temperature step
   uint32_t tempStep;
 
-  // Resetar definições na EEPROM
-  uint32_t reset;
-
-  // Armazenar definições na EEPROM
-  uint32_t store;
-
   // Exibir splash screen
   uint32_t splash;
 
   // Standby (desncanso de tela)
   uint32_t screensaver;
+
+  // Checagem de erro na transmissão serial
+  uint32_t serialCheck;
+
 };
 
 #endif

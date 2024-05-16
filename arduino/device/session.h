@@ -46,8 +46,11 @@ public:
   // Ativo?
   bool running();
 
-  // Comunicação serial?
-  bool serialCom;
+  // Requisição via porta serial
+  // 0x00 → Nada
+  // 0x10 → Requisição de estado da sessão
+  // 0x11 → Recebimento de estado da sessão
+  uint8_t serialIn;
 
   // Estado da proteção de tela
   struct {
