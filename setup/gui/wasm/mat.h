@@ -1,7 +1,6 @@
 #include <math.h>
+#include <stdlib.h>
 #include <emscripten/emscripten.h>
-
-int EMSCRIPTEN_KEEPALIVE mat_receba();
 
 int EMSCRIPTEN_KEEPALIVE mat_leastsquares(int m, int n, float x[], float y[], float c[]);
 

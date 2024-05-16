@@ -13,7 +13,7 @@ const wss = new WebSocketServer({host: '127.0.0.1', port: 8888})
 
 // Unix sockets
 const net = require('net')
-const socketfile = '/tmp/vapomatic.sock'
+const socketfile = 'socket'
 
 // EJS
 app.set('view engine', 'ejs')
@@ -25,7 +25,7 @@ for (var i = 0; i < calibPoints; i++)
   calibPointsValues.push(10 + Math.floor(120 * Math.sin(Math.PI * i/(calibPoints*2))))
 
 app.get('/', (req, res) => {
-  res.render('main', {title: "Vapomatic", calibPoints: calibPoints, calibPointsValues: calibPointsValues})
+  res.render('main', {title: "Configuração remota", calibPoints: calibPoints, calibPointsValues: calibPointsValues})
 })
 
 app.get('/calib', (req, res) => {
@@ -61,6 +61,13 @@ process.on('SIGINT', () => {
   process.exit()
 })
 
+// Processo principal envia um sinal SIGTERM para encerrar
+process.on('SIGTERM', () => {
+  server.close()
+  wss.close()
+  process.exit()
+})
+
 // Websocket
 wss.on('connection', function connection(ws) {
   ws.on('error', console.error)
@@ -69,21 +76,21 @@ wss.on('connection', function connection(ws) {
     console.log('received: %s', data)
   })
 
+  // Envio recorrente do estado para o frontend
   setInterval(() => {
-    // Obter sessão via unix socket
-    const client = net.createConnection({path: socketfile})
-    client.on('error', () => {
-      server.close()
-      wss.close()
-      process.exit()
+    // Solicitar informações ao processo principal via unix socket
+    const client = net.createConnection({path: socketfile}, () => {
+      client.write('STATE')
     })
-    client.write('STATE')
+    client.on('error', () => {
+      client.end()
+    })
     client.on('data', (data) => {
       // Enviar resposta por websocket
       ws.send(data.toString())
       client.end()
     })
-  }, 250)
+  }, 100)
 
 
 })

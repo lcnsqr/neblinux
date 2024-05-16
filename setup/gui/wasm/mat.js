@@ -674,13 +674,28 @@ var tempI64;
   var stackRestore = (val) => __emscripten_stack_restore(val);
 
   var stackSave = () => _emscripten_stack_get_current();
-var wasmImports = {
+
+  var getHeapMax = () =>
+      HEAPU8.length;
   
+  var abortOnCannotGrowMemory = (requestedSize) => {
+      abort('OOM');
+    };
+  var _emscripten_resize_heap = (requestedSize) => {
+      var oldSize = HEAPU8.length;
+      // With CAN_ADDRESS_2GB or MEMORY64, pointers are already unsigned.
+      requestedSize >>>= 0;
+      abortOnCannotGrowMemory(requestedSize);
+    };
+var wasmImports = {
+  /** @export */
+  emscripten_resize_heap: _emscripten_resize_heap
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = () => (___wasm_call_ctors = wasmExports['__wasm_call_ctors'])();
-var _mat_receba = Module['_mat_receba'] = () => (_mat_receba = Module['_mat_receba'] = wasmExports['mat_receba'])();
 var _mat_leastsquares = Module['_mat_leastsquares'] = (a0, a1, a2, a3, a4) => (_mat_leastsquares = Module['_mat_leastsquares'] = wasmExports['mat_leastsquares'])(a0, a1, a2, a3, a4);
+var _malloc = Module['_malloc'] = (a0) => (_malloc = Module['_malloc'] = wasmExports['malloc'])(a0);
+var _free = Module['_free'] = (a0) => (_free = Module['_free'] = wasmExports['free'])(a0);
 var __emscripten_stack_restore = (a0) => (__emscripten_stack_restore = wasmExports['_emscripten_stack_restore'])(a0);
 var __emscripten_stack_alloc = (a0) => (__emscripten_stack_alloc = wasmExports['_emscripten_stack_alloc'])(a0);
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'])();

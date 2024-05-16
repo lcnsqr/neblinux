@@ -22,23 +22,38 @@ function exec(command){
 	xhr.send()
 }
 
+// Os gráficos de temperatura e aquecimemto exibem os últimos chartHistorySize pontos.
+// O tempo de duração do histórico depende do intervalo de atualização.
+// A lista de pontos está no formato [ {x: ..., y: ...}, ... ]
+// Ao iniciar, os pontos do histórico estão zerados.
+
+// Valores iniciais para cada gráfico de histórico
+const chartHistorySize = 300
+var chartData = new Array(4)
+for (let j = 0; j < 4; ++j){
+  chartData[j] = new Array(chartHistorySize)
+  for (let i = 0; i < chartHistorySize; ++i){
+    chartData[j][i] = {x: (30*(- chartHistorySize + 1 + i)/chartHistorySize).toString(), y: 0}
+  }
+}
+
 var tempChart = new Chart(document.getElementById('tempChart'), {
 	type: 'line',
 	data: {
 		datasets: [
       {
         label: 'Alvo',
-        data: [],
+        data: chartData[0],
         borderWidth: 1
       },
       {
         label: 'Interna',
-        data: [],
+        data: chartData[1],
         borderWidth: 1
       },
       {
         label: 'Sonda',
-        data: [],
+        data: chartData[2],
         borderWidth: 1
       }
 		]
@@ -72,7 +87,7 @@ var heatChart = new Chart(document.getElementById('heatChart'), {
 		datasets: [
       {
         label: 'Carga',
-        data: [],
+        data: chartData[3],
         borderWidth: 1
       }
 		]
@@ -180,29 +195,85 @@ ws.onopen = function(event){
 ws.onmessage = function(event){
   var data = JSON.parse(event.data)
 
-  // Gráficos
-  tempChart.data.datasets[0].data = data.graph.target
-  tempChart.data.datasets[1].data = data.graph.core
-  tempChart.data.datasets[2].data = data.graph.probe
+  // Gráfico de temperatura
+
+  for (let i = 0; i < chartHistorySize - 1; ++i){
+    tempChart.data.datasets[0].data[i].y = tempChart.data.datasets[0].data[i+1].y
+    tempChart.data.datasets[1].data[i].y = tempChart.data.datasets[1].data[i+1].y
+    tempChart.data.datasets[2].data[i].y = tempChart.data.datasets[2].data[i+1].y
+  }
+  tempChart.data.datasets[0].data[chartHistorySize-1].y = data.tempTarget
+  tempChart.data.datasets[1].data[chartHistorySize-1].y = data.tempCore
+  tempChart.data.datasets[2].data[chartHistorySize-1].y = data.tempProbe[0]
   tempChart.update('none')
-  heatChart.data.datasets[0].data = data.graph.heat
+
+
+  // Gráfico de carga na resistência
+  for (let i = 0; i < chartHistorySize - 1; ++i){
+    heatChart.data.datasets[0].data[i].y = heatChart.data.datasets[0].data[i+1].y
+  }
+  heatChart.data.datasets[0].data[chartHistorySize-1].y = data.PID[4]
   heatChart.update('none')
 
   // Calibragem
   if ( calibEnabled && document.querySelector('button#calibSwitch').dataset.state == "1" ){
-    calibChart.data.datasets[0].data[calibIndex] = data.graph.core[data.graph.core.length-1].y
+    calibChart.data.datasets[0].data[calibIndex] = data.tempCore
 
     // Utilizar temperatura da sonda se não for manual
     if ( ! document.querySelector("input#calibManual").checked ) {
-      calibChart.data.datasets[1].data[calibIndex] = data.graph.probe[data.graph.probe.length-1].y
+      calibChart.data.datasets[1].data[calibIndex] = data.tempProbe[0]
     }
 
     calibChart.update()
   }
 
   // Estabilidade recente
-  derivChart.data.datasets[0].data = [data.deriv.core, data.deriv.probe, data.deriv.heat]
+  // Regressão linear nos 20 últimos pontos
+  const TAIL_POINTS = 20
+
+  // Máximos para normalização dos domínios de temperatura e carga
+  const TEMP_MAX = 400.0
+  const HEAT_MAX = 255.0
+
+  // Floats de 4 bytes
+  let tailX = _malloc(TAIL_POINTS*4)
+
+  let tailCore = _malloc(TAIL_POINTS*4)
+  let lineCore = _malloc(2*4)
+  let tailProbe = _malloc(TAIL_POINTS*4)
+  let lineProbe = _malloc(2*4)
+  let tailHeat = _malloc(TAIL_POINTS*4)
+  let lineHeat = _malloc(2*4)
+
+  for (let i = 0; i < TAIL_POINTS; i++){
+    // Pontos no domínio entre 0 e 1
+    setValue(tailX+i*4, i/TAIL_POINTS, 'float')
+    // Core
+    setValue(tailCore+i*4, tempChart.data.datasets[1].data[chartHistorySize-TAIL_POINTS+i].y / TEMP_MAX, 'float')
+    // Probe
+    setValue(tailProbe+i*4, tempChart.data.datasets[2].data[chartHistorySize-TAIL_POINTS+i].y / TEMP_MAX, 'float')
+    // Heat
+    setValue(tailHeat+i*4, heatChart.data.datasets[0].data[chartHistorySize-TAIL_POINTS+i].y / HEAT_MAX, 'float')
+  }
+
+  _mat_leastsquares(TAIL_POINTS, 1, tailX, tailCore, lineCore);
+  _mat_leastsquares(TAIL_POINTS, 1, tailX, tailProbe, lineProbe);
+  _mat_leastsquares(TAIL_POINTS, 1, tailX, tailHeat, lineHeat);
+
+  derivChart.data.datasets[0].data = [
+    getValue(lineCore+4, 'float'),
+    getValue(lineProbe+4, 'float'),
+    getValue(lineHeat+4, 'float')
+  ]
   derivChart.update('none')
+
+  _free(tailX)
+  _free(tailCore)
+  _free(lineCore)
+  _free(tailProbe)
+  _free(lineProbe)
+  _free(tailHeat)
+  _free(lineHeat)
 
   // Estado
   document.querySelector('#state td[data-id="on"]').innerHTML = (data.on != 0) ? "Sim" : "Não";
@@ -235,11 +306,11 @@ ws.onmessage = function(event){
 
   document.querySelector('#state td[data-id="tempstep"]').innerHTML = data.tempStep;
 
-  document.querySelector('#state td[data-id="target"]').innerHTML = data.graph.target[data.graph.target.length-1].y;
-  document.querySelector('#state td[data-id="core"]').innerHTML = data.graph.core[data.graph.core.length-1].y;
-  document.querySelector('#state td[data-id="ex"]').innerHTML = data.graph.ex[data.graph.ex.length-1].y;
-  document.querySelector('#state td[data-id="probe"]').innerHTML = data.graph.probe[data.graph.probe.length-1].y;
-  document.querySelector('#state td[data-id="heat"]').innerHTML = data.graph.heat[data.graph.heat.length-1].y;
+  document.querySelector('#state td[data-id="target"]').innerHTML = data.tempTarget;
+  document.querySelector('#state td[data-id="core"]').innerHTML = data.tempCore;
+  document.querySelector('#state td[data-id="ex"]').innerHTML = data.tempEx;
+  document.querySelector('#state td[data-id="probe"]').innerHTML = data.tempProbe[0];
+  document.querySelector('#state td[data-id="heat"]').innerHTML = data.PID[4];
 
   document.querySelector('#state td[data-id="pid0"]').innerHTML = data.PID[0];
   document.querySelector('#state td[data-id="pid1"]').innerHTML = data.PID[1];
