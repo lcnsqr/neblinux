@@ -43,6 +43,8 @@ void Monitor::action() {
   if ( session->serialIn == SERIAL_NONE ) {
     if (Serial.available() > 0 ){
       Serial.readBytes((char *)&(session->serialIn), 1);
+      screensaver_idle_since = millis();
+      screensaver = 0;
     }
   }
 

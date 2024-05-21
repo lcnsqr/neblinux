@@ -7,12 +7,21 @@ Therm::Therm(MAX6675 *thermocouple, unsigned long wait)
     : Task(wait), thermocouple(thermocouple) {}
 
 void Therm::action() {
-  // Comunicação serial
-  serial_now = millis();
-  if (serial_now - serial_before >= serial_wait) {
-    // Enviar temperatura para o utilitário de setup
-    float temp = thermocouple->readCelsius();
-    Serial.write((char *)&temp, sizeof(float));
-    serial_before = serial_now;
+  // Receber comando via porta serial
+  if ( serialIn == SERIAL_NONE ) {
+    if (Serial.available() > 0 ){
+      Serial.readBytes((char *)&(serialIn), 1);
+    }
   }
+
+  if ( serialIn == SERIAL_READ ) {
+
+    // Enviar temperatura para o utilitário de setup
+    celsius = thermocouple->readCelsius();
+    Serial.write((char *)&celsius, sizeof(float));
+
+  }
+  // Liberar nova chegada de comando
+  serialIn = SERIAL_NONE;
+
 }

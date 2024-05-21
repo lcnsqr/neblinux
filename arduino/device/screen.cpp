@@ -171,7 +171,7 @@ void scrMain::show() {
         (int)(round((float)(128 - display->getUTF8Width(str.c_str())) / 2.0)),
         46, str.c_str());
 
-    // Status
+    // Status message
     str = String(session->state.elapsed / 60) + "m" +
           String(session->state.elapsed % 60) + "s";
     if (!session->running()) {

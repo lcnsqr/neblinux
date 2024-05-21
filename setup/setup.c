@@ -26,8 +26,23 @@
 struct State state;
 struct StateIO stateOut;
 
-// mutex de acesso ao estado
+// Temperaturas da sonda
+float tempProbe[4];
+
+// mutex de acesso serial ao aparelho
+pthread_mutex_t device_mut = PTHREAD_MUTEX_INITIALIZER;
+
+// mutex de acesso ao estado do aparelho
 pthread_mutex_t state_mut = PTHREAD_MUTEX_INITIALIZER;
+
+// mutex de acesso ao estado enviado ao aparelho
+pthread_mutex_t stateOut_mut = PTHREAD_MUTEX_INITIALIZER;
+
+// mutex de acesso à temperatura da sonda
+pthread_mutex_t tempProbe_mut = PTHREAD_MUTEX_INITIALIZER;
+
+// mutex de acesso serial à sonda
+pthread_mutex_t probe_mut = PTHREAD_MUTEX_INITIALIZER;
 
 // Portas para comunicação serial
 int portDevice;
@@ -39,22 +54,17 @@ const char socket_path[] = "gui/socket";
 // PID do processo filho assumido pela GUI
 int PIDGUI;
 
-// Intervalo entre comunicações na porta serial (microsegundos)
-#define SERIAL_PAUSE 40e+3
-
-// Temperaturas da sonda
-float tempProbe[4];
-
 // One byte commands
 void deviceCmd(char cmd){
   // Flushes both data received but not read,
   // and data written but not transmitted.
+  pthread_mutex_lock(&device_mut);
   tcflush(portDevice, TCIOFLUSH);
   write(portDevice, &cmd, 1);
-  usleep(SERIAL_PAUSE);
+  pthread_mutex_unlock(&device_mut);
 }
 
-void probeRead(){
+void probeRead_TA612c(){
 
   // Estrutura de escrita para o aparelho
   char writeOut[5];
@@ -71,84 +81,137 @@ void probeRead(){
 
   int rx_bytes = 0;
 
+  pthread_mutex_lock(&probe_mut);
   write(portProbe, writeOut, 5);
-
-  usleep(SERIAL_PAUSE);
-
   rx_bytes = read(portProbe, readIn, 13);
+  pthread_mutex_unlock(&probe_mut);
 
   // Decodificar temperaturas
+  pthread_mutex_lock(&tempProbe_mut);
   tempProbe[0] = (float)((readIn[5] << 8) | (readIn[4] & 0xff)) / 10.0;
   tempProbe[1] = (float)((readIn[7] << 8) | (readIn[6] & 0xff)) / 10.0;
   tempProbe[2] = (float)((readIn[9] << 8) | (readIn[8] & 0xff)) / 10.0;
   tempProbe[3] = (float)((readIn[11] << 8) | (readIn[10] & 0xff)) / 10.0;
+  pthread_mutex_unlock(&tempProbe_mut);
 
-  usleep(SERIAL_PAUSE);
+}
+
+void probeRead_MAX6675(){
+
+  // Comando de leitura
+  char cmd = SERIAL_READ;
+
+  // Resposta da sonda
+  float reply;
+
+  int rx_bytes = 0;
+
+  pthread_mutex_lock(&probe_mut);
+  tcflush(portProbe, TCIOFLUSH);
+  write(portProbe, &cmd, 1);
+  pthread_mutex_unlock(&probe_mut);
+  usleep(80e+3);
+  pthread_mutex_lock(&probe_mut);
+  rx_bytes = read(portProbe, &reply, sizeof(float));
+  pthread_mutex_unlock(&probe_mut);
+
+  pthread_mutex_lock(&tempProbe_mut);
+  for (int i = 0; i < 4; ++i)
+    tempProbe[i] = reply;
+  pthread_mutex_unlock(&tempProbe_mut);
 
 }
 
 // Leitura do estado no aparelho
 void deviceStateRead(){
 
+  // Cópia local temporária do estado recebido
+  struct State stateLocal;
+
   int rx_bytes = 0;
 
-  // Preparar checagem da transmissão
-  state.serialCheck = ~ SERIAL_TAG;
+  const char cmd = SERIAL_READ;
 
   while (1){
 
-    deviceCmd(SERIAL_READ);
-
     // Read the state
     rx_bytes = 0;
-    for (int b = 0; b < sizeof(struct State); b += 4){
-      rx_bytes += read(portDevice, (char*)&state + b, 4);
-    }
+
+    // Preparar checagem da transmissão
+    stateLocal.serialCheck = ~ SERIAL_TAG;
+
+    pthread_mutex_lock(&device_mut);
+
+    tcflush(portDevice, TCIOFLUSH);
+    write(portDevice, &cmd, 1);
+
+    usleep(100e+3);
+
+    for (int b = 0; b < sizeof(struct State); b += 4)
+      rx_bytes = read(portDevice, (char*)&stateLocal + b, 4);
+
+    pthread_mutex_unlock(&device_mut);
+
+    usleep(100e+3);
     
     // Repetir se houver inconsistência no recebimento
-    if ( state.serialCheck != SERIAL_TAG )
-      usleep(SERIAL_PAUSE);
-    else
+    if ( stateLocal.serialCheck == SERIAL_TAG ){
       break;
-
+    }
+    else {
+      usleep(200e+3);
+    }
   }
 
-  // Leitura da sonda
-  probeRead();
+  // Copiar estado para a estrutura principal
+  pthread_mutex_lock(&state_mut);
+  memcpy(&state, &stateLocal, sizeof(struct State));
+  pthread_mutex_unlock(&state_mut);
 
   // Atualizar a estrutura de envio com o estado recebido
-  stateOut.tempTarget = state.tempTarget;
-  stateOut.tempStep = state.tempStep;
-  stateOut.fan = state.fan;
-  stateOut.PID_enabled = state.PID_enabled;
-  stateOut.heat = (state.PID_enabled) ? 0 : state.cPID[4];
-  stateOut.cTemp[0] = state.cTemp[0];
-  stateOut.cTemp[1] = state.cTemp[1];
-  stateOut.cTemp[2] = state.cTemp[2];
-  stateOut.cTemp[3] = state.cTemp[3];
-  stateOut.cPID[0] = state.cPID[0];
-  stateOut.cPID[1] = state.cPID[1];
-  stateOut.cPID[2] = state.cPID[2];
-  stateOut.autostop = state.autostop;
-  stateOut.screensaver = state.screensaver;
-  stateOut.cStop[0] = state.cStop[0];
-  stateOut.cStop[1] = state.cStop[1];
+  pthread_mutex_lock(&stateOut_mut);
+  stateOut.tempTarget = stateLocal.tempTarget;
+  stateOut.tempStep = stateLocal.tempStep;
+  stateOut.fan = stateLocal.fan;
+  stateOut.PID_enabled = stateLocal.PID_enabled;
+  stateOut.heat = (stateLocal.PID_enabled) ? 0 : stateLocal.cPID[4];
+  stateOut.cTemp[0] = stateLocal.cTemp[0];
+  stateOut.cTemp[1] = stateLocal.cTemp[1];
+  stateOut.cTemp[2] = stateLocal.cTemp[2];
+  stateOut.cTemp[3] = stateLocal.cTemp[3];
+  stateOut.cPID[0] = stateLocal.cPID[0];
+  stateOut.cPID[1] = stateLocal.cPID[1];
+  stateOut.cPID[2] = stateLocal.cPID[2];
+  stateOut.autostop = stateLocal.autostop;
+  stateOut.screensaver = stateLocal.screensaver;
+  stateOut.cStop[0] = stateLocal.cStop[0];
+  stateOut.cStop[1] = stateLocal.cStop[1];
+  pthread_mutex_unlock(&stateOut_mut);
 
 }
 
 // Transmissão de estado modificado
 void deviceStateWrite(){
+  // Cópia local da estrutura stateIO
+  struct StateIO stateOutLocal;
+
+  // Copiar stateOut para estrutura temporária local
+  pthread_mutex_lock(&stateOut_mut);
+  memcpy(&stateOutLocal, &stateOut, sizeof(struct StateIO));
+  pthread_mutex_unlock(&stateOut_mut);
+
   // Preparar checagem da transmissão
-  stateOut.serialCheck = SERIAL_TAG;
+  stateOutLocal.serialCheck = SERIAL_TAG;
 
-  deviceCmd(SERIAL_WRITE);
-
-  write(portDevice, (char *)&stateOut, sizeof(struct StateIO));
+  // Enviar para o aparelho
+  const char cmd = SERIAL_WRITE;
+  pthread_mutex_lock(&device_mut);
+  tcflush(portDevice, TCIOFLUSH);
+  write(portDevice, &cmd, 1);
+  usleep(40e+3);
+  write(portDevice, (char *)&stateOutLocal, sizeof(struct StateIO));
+  pthread_mutex_unlock(&device_mut);
   
-  usleep(SERIAL_PAUSE);
-
-  // Ler o estado no dispositivo
-  //deviceStateRead();
 }
 
 
@@ -232,17 +295,21 @@ int exec(char *cmdline) {
    * Builtin commands
    */
 
+  // Cópias locais temporárias
+  struct State stateLocal;
+  float tempProbeLocal[4];
+
   // Coeficientes de temperatura pós calibragem
   if (!strcmp("ctemp", tokens[0])) {
 
     // Change state
-    pthread_mutex_lock(&state_mut);
+    pthread_mutex_lock(&stateOut_mut);
     stateOut.cTemp[0] = atof(tokens[1]);
     stateOut.cTemp[1] = atof(tokens[2]);
     stateOut.cTemp[2] = atof(tokens[3]);
     stateOut.cTemp[3] = atof(tokens[4]);
+    pthread_mutex_unlock(&stateOut_mut);
     deviceStateWrite();
-    pthread_mutex_unlock(&state_mut);
 
     printf("%s %.8f %.8f %.8f %.8f\n", tokens[0], stateOut.cTemp[0],
            stateOut.cTemp[1], stateOut.cTemp[2], stateOut.cTemp[3]);
@@ -277,10 +344,10 @@ int exec(char *cmdline) {
   if (!strcmp("screensaver", tokens[0])) {
 
     // Change state
-    pthread_mutex_lock(&state_mut);
+    pthread_mutex_lock(&stateOut_mut);
     stateOut.screensaver = atoi(tokens[1]);
+    pthread_mutex_unlock(&stateOut_mut);
     deviceStateWrite();
-    pthread_mutex_unlock(&state_mut);
 
     printf("%s = %d\n", tokens[0], (int)stateOut.screensaver);
 
@@ -292,10 +359,10 @@ int exec(char *cmdline) {
   if (!strcmp("tempstep", tokens[0])) {
 
     // Change state
-    pthread_mutex_lock(&state_mut);
+    pthread_mutex_lock(&stateOut_mut);
     stateOut.tempStep = atoi(tokens[1]);
+    pthread_mutex_unlock(&stateOut_mut);
     deviceStateWrite();
-    pthread_mutex_unlock(&state_mut);
 
     printf("%s = %d\n", tokens[0], (int)stateOut.tempStep);
 
@@ -307,10 +374,10 @@ int exec(char *cmdline) {
   if (!strcmp("target", tokens[0])) {
 
     // Change state
-    pthread_mutex_lock(&state_mut);
+    pthread_mutex_lock(&stateOut_mut);
     stateOut.tempTarget = atof(tokens[1]);
+    pthread_mutex_unlock(&stateOut_mut);
     deviceStateWrite();
-    pthread_mutex_unlock(&state_mut);
 
     printf("%s = %d\n", tokens[0], (int)stateOut.tempTarget);
 
@@ -344,11 +411,10 @@ int exec(char *cmdline) {
   if (!strcmp("splash", tokens[0])) {
 
     // Change state
-    pthread_mutex_lock(&state_mut);
-    stateOut.splash =
-        (!strcmp("on", tokens[1]) || !strcmp("1", tokens[1])) ? 1 : 0;
+    pthread_mutex_lock(&stateOut_mut);
+    stateOut.splash = (!strcmp("on", tokens[1]) || !strcmp("1", tokens[1])) ? 1 : 0;
+    pthread_mutex_unlock(&stateOut_mut);
     deviceStateWrite();
-    pthread_mutex_unlock(&state_mut);
 
     printf("%s = %d\n", tokens[0], (int)stateOut.splash);
 
@@ -360,10 +426,10 @@ int exec(char *cmdline) {
   if (!strcmp("fan", tokens[0])) {
 
     // Change state
-    pthread_mutex_lock(&state_mut);
+    pthread_mutex_lock(&stateOut_mut);
     stateOut.fan = atoi(tokens[1]);
+    pthread_mutex_unlock(&stateOut_mut);
     deviceStateWrite();
-    pthread_mutex_unlock(&state_mut);
 
     printf("%s = %d\n", tokens[0], (int)stateOut.fan);
 
@@ -375,15 +441,12 @@ int exec(char *cmdline) {
   if (!strcmp("pid", tokens[0])) {
 
     // Change state
-    pthread_mutex_lock(&state_mut);
-    stateOut.PID_enabled =
-        (!strcmp("on", tokens[1]) || !strcmp("1", tokens[1])) ? 1 : 0;
-
+    pthread_mutex_lock(&stateOut_mut);
+    stateOut.PID_enabled = (!strcmp("on", tokens[1]) || !strcmp("1", tokens[1])) ? 1 : 0;
     // Zerar carga na resistência
     stateOut.heat = 0;
-
+    pthread_mutex_unlock(&stateOut_mut);
     deviceStateWrite();
-    pthread_mutex_unlock(&state_mut);
 
     printf("%s = %d\n", tokens[0], (int)stateOut.PID_enabled);
 
@@ -395,11 +458,10 @@ int exec(char *cmdline) {
   if (!strcmp("autostop", tokens[0])) {
 
     // Change state
-    pthread_mutex_lock(&state_mut);
-    stateOut.autostop =
-        (!strcmp("on", tokens[1]) || !strcmp("1", tokens[1])) ? 1 : 0;
+    pthread_mutex_lock(&stateOut_mut);
+    stateOut.autostop = (!strcmp("on", tokens[1]) || !strcmp("1", tokens[1])) ? 1 : 0;
+    pthread_mutex_unlock(&stateOut_mut);
     deviceStateWrite();
-    pthread_mutex_unlock(&state_mut);
 
     printf("%s = %d\n", tokens[0], (int)stateOut.autostop);
 
@@ -411,11 +473,11 @@ int exec(char *cmdline) {
   if (!strcmp("cstop", tokens[0])) {
 
     // Change state
-    pthread_mutex_lock(&state_mut);
+    pthread_mutex_lock(&stateOut_mut);
     stateOut.cStop[0] = atof(tokens[1]);
     stateOut.cStop[1] = atof(tokens[2]);
+    pthread_mutex_unlock(&stateOut_mut);
     deviceStateWrite();
-    pthread_mutex_unlock(&state_mut);
 
     printf("%s %.8f %.8f\n", tokens[0], stateOut.cStop[0], stateOut.cStop[1]);
 
@@ -427,12 +489,12 @@ int exec(char *cmdline) {
   if (!strcmp("cpid", tokens[0])) {
 
     // Change state
-    pthread_mutex_lock(&state_mut);
+    pthread_mutex_lock(&stateOut_mut);
     stateOut.cPID[0] = atof(tokens[1]);
     stateOut.cPID[1] = atof(tokens[2]);
     stateOut.cPID[2] = atof(tokens[3]);
+    pthread_mutex_unlock(&stateOut_mut);
     deviceStateWrite();
-    pthread_mutex_unlock(&state_mut);
 
     printf("%s %.8f %.8f %.8f\n", tokens[0], stateOut.cPID[0], stateOut.cPID[1],
            stateOut.cPID[2]);
@@ -445,12 +507,12 @@ int exec(char *cmdline) {
   if (!strcmp("heat", tokens[0])) {
 
     // Change state
-    pthread_mutex_lock(&state_mut);
+    pthread_mutex_lock(&stateOut_mut);
     stateOut.heat = atoi(tokens[1]);
     stateOut.heat = (stateOut.heat < 0) ? 0 : stateOut.heat;
     stateOut.heat = (stateOut.heat > 255) ? 255 : stateOut.heat;
+    pthread_mutex_unlock(&stateOut_mut);
     deviceStateWrite();
-    pthread_mutex_unlock(&state_mut);
 
     printf("%s = %d\n", tokens[0], (int)stateOut.heat);
 
@@ -459,33 +521,35 @@ int exec(char *cmdline) {
   }
 
   // Fetch state
-  if (!strcmp("fetch", tokens[0])) {
+  if (!strcmp("show", tokens[0])) {
 
     pthread_mutex_lock(&state_mut);
-    deviceStateRead();
-
-    printf("elapsed           → %d\n", (int)state.elapsed);
-    printf("tempCore          → %.2f\n", state.tempCore);
-    printf("tempEx            → %.2f\n", state.tempEx);
-    printf("tempTarget        → %.2f\n", state.tempTarget);
-    printf("analogTherm       → %d\n", (int)state.analogTherm);
-    printf("cTemp             → %f %f %f %f\n", state.cTemp[0], state.cTemp[1], state.cTemp[2], state.cTemp[3]);
-    printf("autostop          → %d\n", (int)state.autostop);
-    printf("sStop             → %f %f\n", state.sStop[0], state.sStop[1]);
-    printf("cStop             → %f %f\n", state.cStop[0], state.cStop[1]);
-    printf("on                → %d\n", (int)state.on);
-    printf("fan               → %d\n", (int)state.fan);
-    printf("cPID              → %f %f %f\n", state.cPID[0], state.cPID[1], state.cPID[2]);
-    printf("PID               → %f %f %f %f %f\n", state.PID[0], state.PID[1], state.PID[2], state.PID[3], state.PID[4]);
-    printf("PID_enabled       → %d\n", (int)state.PID_enabled);
-    printf("ts                → %ld\n", state.ts);
-    printf("tempStep          → %d\n", (int)state.tempStep);
-    printf("targetLastChange  → %ld\n", state.targetLastChange);
-    printf("splash            → %d\n", (int)state.splash);
-    printf("screensaver       → %d\n", (int)state.screensaver);
-    printf("tempProbe         → %.2f %.2f %.2f %.2f\n", tempProbe[0], tempProbe[1], tempProbe[2], tempProbe[3]);
-
+    memcpy(&stateLocal, &state, sizeof(struct State));
     pthread_mutex_unlock(&state_mut);
+    pthread_mutex_lock(&tempProbe_mut);
+    memcpy(tempProbeLocal, tempProbe, 4 * sizeof(float));
+    pthread_mutex_unlock(&tempProbe_mut);
+
+    printf("elapsed           → %d\n", (int)stateLocal.elapsed);
+    printf("tempCore          → %.2f\n", stateLocal.tempCore);
+    printf("tempEx            → %.2f\n", stateLocal.tempEx);
+    printf("tempTarget        → %d\n", (int)stateLocal.tempTarget);
+    printf("analogTherm       → %d\n", (int)stateLocal.analogTherm);
+    printf("cTemp             → %f %f %f %f\n", stateLocal.cTemp[0], stateLocal.cTemp[1], stateLocal.cTemp[2], stateLocal.cTemp[3]);
+    printf("autostop          → %d\n", (int)stateLocal.autostop);
+    printf("sStop             → %f %f\n", stateLocal.sStop[0], stateLocal.sStop[1]);
+    printf("cStop             → %f %f\n", stateLocal.cStop[0], stateLocal.cStop[1]);
+    printf("on                → %d\n", (int)stateLocal.on);
+    printf("fan               → %d\n", (int)stateLocal.fan);
+    printf("cPID              → %f %f %f\n", stateLocal.cPID[0], stateLocal.cPID[1], stateLocal.cPID[2]);
+    printf("PID               → %f %f %f %f %f\n", stateLocal.PID[0], stateLocal.PID[1], stateLocal.PID[2], stateLocal.PID[3], stateLocal.PID[4]);
+    printf("PID_enabled       → %d\n", (int)stateLocal.PID_enabled);
+    printf("ts                → %ld\n", stateLocal.ts);
+    printf("tempStep          → %d\n", (int)stateLocal.tempStep);
+    printf("targetLastChange  → %ld\n", stateLocal.targetLastChange);
+    printf("splash            → %d\n", (int)stateLocal.splash);
+    printf("screensaver       → %d\n", (int)stateLocal.screensaver);
+    printf("tempProbe         → %.2f %.2f %.2f %.2f\n", tempProbeLocal[0], tempProbeLocal[1], tempProbeLocal[2], tempProbeLocal[3]);
 
     tokens_cleanup(tokens);
     return 0;
@@ -501,15 +565,43 @@ int exec(char *cmdline) {
 }
 
 
+// Atualização da cópia local do estado
+void *pthread_updateState(void *arg) {
+
+  while (1) {
+    deviceStateRead();
+    usleep(250e+3);
+  }
+
+  pthread_exit((void *)NULL);
+}
+
+// Atualizar informações da sonda
+void *pthread_updateProbe(void *arg) {
+
+  while (1) {
+    probeRead_MAX6675();
+    //probeRead_TA612c();
+    usleep(250e+3);
+  }
+
+  pthread_exit((void *)NULL);
+}
+
 // Comunicação via socket
 void *pthread_socket(void *arg) {
   struct sockaddr_un name;
   int ret;
   int connection_socket;
   int data_socket;
-  const int socket_buf_size = 512;
+  const int socket_buf_size = 1024;
   char buffer[socket_buf_size];
   memset(buffer, 0, socket_buf_size);
+
+
+  // Cópias locais temporárias
+  struct State stateLocal;
+  float tempProbeLocal[4];
 
   /*
    * In case the program exited inadvertently on the last run,
@@ -592,7 +684,12 @@ void *pthread_socket(void *arg) {
     if (!strncmp(buffer, "STATE", socket_buf_size)) {
 
       pthread_mutex_lock(&state_mut);
-      deviceStateRead();
+      memcpy(&stateLocal, &state, sizeof(struct State));
+      pthread_mutex_unlock(&state_mut);
+      pthread_mutex_lock(&tempProbe_mut);
+      memcpy(tempProbeLocal, tempProbe, 4 * sizeof(float));
+      pthread_mutex_unlock(&tempProbe_mut);
+
       snprintf(buffer, socket_buf_size,
                "{"
                "\"elapsed\": %d,"
@@ -614,16 +711,16 @@ void *pthread_socket(void *arg) {
                "\"analogTherm\": %d,"
                "\"tempProbe\": [%.2f, %.2f, %.2f, %.2f]"
                "}",
-               state.elapsed, state.screensaver, state.tempStep, state.on, state.fan,
-               state.cTemp[0], state.cTemp[1], state.cTemp[2], state.cTemp[3],
-               state.PID[0], state.PID[1], state.PID[2], state.PID[3],
-               state.PID[4], state.PID_enabled, state.cPID[0], state.cPID[1],
-               state.cPID[2], state.autostop, state.cStop[0], state.cStop[1],
-               state.sStop[0], state.sStop[1], state.ts,
-               state.tempCore, state.tempEx, state.tempTarget, state.analogTherm,
-               tempProbe[0], tempProbe[1], tempProbe[2], tempProbe[3]);
-      pthread_mutex_unlock(&state_mut);
-    } else {
+               stateLocal.elapsed, stateLocal.screensaver, stateLocal.tempStep, stateLocal.on, stateLocal.fan,
+               stateLocal.cTemp[0], stateLocal.cTemp[1], stateLocal.cTemp[2], stateLocal.cTemp[3],
+               stateLocal.PID[0], stateLocal.PID[1], stateLocal.PID[2], stateLocal.PID[3],
+               stateLocal.PID[4], stateLocal.PID_enabled, stateLocal.cPID[0], stateLocal.cPID[1],
+               stateLocal.cPID[2], stateLocal.autostop, stateLocal.cStop[0], stateLocal.cStop[1],
+               stateLocal.sStop[0], stateLocal.sStop[1], stateLocal.ts,
+               stateLocal.tempCore, stateLocal.tempEx, stateLocal.tempTarget, (int)stateLocal.analogTherm,
+               tempProbeLocal[0], tempProbeLocal[1], tempProbeLocal[2], tempProbeLocal[3]);
+    }
+    else {
       // Se não for solicitação do estado, executar comando
       exec(buffer);
     }
@@ -655,7 +752,8 @@ int main(int argc, char **argv) {
   // Portas de comunicação serial
   // TODO: Permitir escolher os caminhos
   const char pathDevice[] = "/dev/ttyUSB0";
-  const char pathProbe[] = "/dev/ttyUSB1";
+  //const char pathProbe[] = "/dev/ttyUSB1";
+  const char pathProbe[] = "/dev/ttyACM0";
 
   portDevice = open(pathDevice, O_RDWR);
   portProbe = open(pathProbe, O_RDWR);
@@ -677,8 +775,25 @@ int main(int argc, char **argv) {
   sleep(3);
   deviceStateRead();
 
-  // socket thread
+  // update state thread
   int pthread_return;
+  pthread_t pthread_update_id;
+  pthread_return = pthread_create(&pthread_update_id, NULL, &pthread_updateState, (void *)NULL);
+  if (pthread_return != 0) {
+    fprintf(stderr, "ERROR; return code from pthread_create() is %d\n", pthread_return);
+    exit(-1);
+  }
+
+  // update probe thread
+  pthread_t pthread_update_probe_id;
+  pthread_return = pthread_create(&pthread_update_probe_id, NULL, &pthread_updateProbe, (void *)NULL);
+  if (pthread_return != 0) {
+    fprintf(stderr, "ERROR; return code from pthread_create() is %d\n", pthread_return);
+    exit(-1);
+  }
+
+
+  // socket thread
   pthread_t pthread_socket_id;
   pthread_return = pthread_create(&pthread_socket_id, NULL, &pthread_socket, (void *)NULL);
   if (pthread_return != 0) {
@@ -743,6 +858,12 @@ int main(int argc, char **argv) {
   //if ( pthread_return != 0 ){
   //  fprintf(stderr, "ERROR; return code from pthread_join() is %d\n", pthread_return);
   //}
+
+  // Stop update state thread 
+  pthread_kill(pthread_update_id, SIGTERM);
+
+  // Stop update probe thread 
+  pthread_kill(pthread_update_probe_id, SIGTERM);
 
   // Released aloccated memory
   free(prompt);

@@ -22,7 +22,7 @@ app.set('view engine', 'ejs')
 const calibPoints = 8
 var calibPointsValues = []
 for (var i = 0; i < calibPoints; i++)
-  calibPointsValues.push(10 + Math.floor(120 * Math.sin(Math.PI * i/(calibPoints*2))))
+  calibPointsValues.push(10 + Math.floor(70 * Math.sin(Math.PI * i/(calibPoints*2))))
 
 app.get('/', (req, res) => {
   res.render('main', {title: "Configuração remota", calibPoints: calibPoints, calibPointsValues: calibPointsValues})
@@ -30,11 +30,12 @@ app.get('/', (req, res) => {
 
 app.get('/command/:command/:timestamp', (req, res) => {
   // Enviar comando via unix socket
-  const client = net.createConnection({path: socketfile})
-  client.write(req.params.command)
-  client.on('data', (data) => {
-  // Apenas fechar conexão por socket e ignorar resposta
-    client.end()
+  const client = net.createConnection({path: socketfile}, () => {
+    client.write(req.params.command)
+    client.on('data', (data) => {
+    // Apenas fechar conexão por socket e ignorar resposta
+      client.end()
+    })
   })
   res.sendStatus(204)
 })
@@ -58,28 +59,27 @@ process.on('SIGTERM', () => {
 })
 
 // Websocket
-wss.on('connection', function connection(ws) {
-  ws.on('error', console.error)
-
-  ws.on('message', function message(data) {
-    console.log('received: %s', data)
+wss.on('connection', (ws) => {
+  ws.on('error', () => {
+    console.log("Erro na conexão Web socket")
   })
 
-  // Envio recorrente do estado para o frontend
-  setInterval(() => {
-    // Solicitar informações ao processo principal via unix socket
-    const client = net.createConnection({path: socketfile}, () => {
-      client.write('STATE')
-    })
-    client.on('error', () => {
-      client.end()
-    })
-    client.on('data', (data) => {
-      // Enviar resposta por websocket
-      ws.send(data.toString())
-      client.end()
-    })
-  }, 100)
-
+  ws.on('message', (data) => {
+    if ( data == "state" ){
+      // Solicitar estado ao processo principal via
+      // Unix socket e responder à interface via websocket
+      const client = net.createConnection({path: socketfile}, () => {
+        client.on('data', (data) => {
+          // Enviar resposta por websocket
+          ws.send(data.toString())
+          client.end()
+        })
+        client.on('error', () => {
+          client.end()
+        })
+        client.write('STATE')
+      })
+    }
+  })
 
 })

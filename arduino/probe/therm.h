@@ -1,6 +1,10 @@
 #ifndef Therm_h
 #define Therm_h
 
+// Comandos recebíveis via porta serial (char)
+#define SERIAL_NONE 0x00
+#define SERIAL_READ 0x10
+
 #include "max6675.h"
 #include "task.h"
 
@@ -13,9 +17,13 @@ public:
 
   void action();
 
-  // Intervalo de transmissão serial
-  static const float serial_wait = 250;
-  long int serial_before, serial_now;
+  // Temperatura em Celsius
+  float celsius;
+
+  // Requisição via porta serial
+  // 0x00 → Nada
+  // 0x10 → Requisição de estado da sessão
+  uint8_t serialIn;
 };
 
 #endif

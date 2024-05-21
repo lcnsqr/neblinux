@@ -27,13 +27,16 @@ function exec(command){
 // A lista de pontos está no formato [ {x: ..., y: ...}, ... ]
 // Ao iniciar, os pontos do histórico estão zerados.
 
+// Intervalo de atualização em ms
+const updateInterval = 100
+
 // Valores iniciais para cada gráfico de histórico
 const chartHistorySize = 300
 var chartData = new Array(4)
 for (let j = 0; j < 4; ++j){
   chartData[j] = new Array(chartHistorySize)
   for (let i = 0; i < chartHistorySize; ++i){
-    chartData[j][i] = {x: (30*(- chartHistorySize + 1 + i)/chartHistorySize).toString(), y: 0}
+    chartData[j][i] = {x: ((chartHistorySize*updateInterval/1000)*(- chartHistorySize + 1 + i)/chartHistorySize).toFixed(2).toString(), y: 0}
   }
 }
 
@@ -189,7 +192,10 @@ var derivChart = new Chart(document.getElementById('derivChart'), {
 ws = new WebSocket('ws://127.0.0.1:8888')
 
 ws.onopen = function(event){
-  //console.log("Conexão websocket aberta")
+  // Solicitação recorrente de estado
+  setInterval(() => {
+    ws.send("state")
+  }, updateInterval)
 }
 
 ws.onmessage = function(event){
@@ -204,9 +210,10 @@ ws.onmessage = function(event){
   }
   tempChart.data.datasets[0].data[chartHistorySize-1].y = data.tempTarget
   tempChart.data.datasets[1].data[chartHistorySize-1].y = data.tempCore
-  tempChart.data.datasets[2].data[chartHistorySize-1].y = ((data.tempProbe[0]+data.tempProbe[1]+data.tempProbe[2]+data.tempProbe[3])/4).toFixed(2)
+  // Utilizar a maior temperatura da sonda quádrupla
+  const tempProbe = data.tempProbe.toSorted((a, b) => b - a)
+  tempChart.data.datasets[2].data[chartHistorySize-1].y = tempProbe[0].toFixed(2)
   tempChart.update('none')
-
 
   // Gráfico de carga na resistência
   for (let i = 0; i < chartHistorySize - 1; ++i){
@@ -221,7 +228,7 @@ ws.onmessage = function(event){
 
     // Utilizar temperatura da sonda se não for manual
     if ( ! document.querySelector("input#calibManual").checked ) {
-      calibChart.data.datasets[1].data[calibIndex] = ((data.tempProbe[0]+data.tempProbe[1]+data.tempProbe[2]+data.tempProbe[3])/4).toFixed(2)
+      calibChart.data.datasets[1].data[calibIndex] = tempProbe[0].toFixed(2)
     }
 
     calibChart.update()
@@ -229,7 +236,7 @@ ws.onmessage = function(event){
 
   // Estabilidade recente
   // Regressão linear nos 20 últimos pontos
-  const TAIL_POINTS = 20
+  const TAIL_POINTS = 30
 
   // Máximos para normalização dos domínios de temperatura e carga
   const TEMP_MAX = 400.0
@@ -309,7 +316,7 @@ ws.onmessage = function(event){
   document.querySelector('#state td[data-id="target"]').innerHTML = data.tempTarget;
   document.querySelector('#state td[data-id="core"]').innerHTML = data.tempCore;
   document.querySelector('#state td[data-id="ex"]').innerHTML = data.tempEx;
-  document.querySelector('#state td[data-id="probe"]').innerHTML = ((data.tempProbe[0]+data.tempProbe[1]+data.tempProbe[2]+data.tempProbe[3])/4).toFixed(2);
+  document.querySelector('#state td[data-id="probe"]').innerHTML = tempProbe[0].toFixed(2);
   document.querySelector('#state td[data-id="heat"]').innerHTML = data.PID[4];
 
   document.querySelector('#state td[data-id="pid0"]').innerHTML = data.PID[0];
@@ -346,6 +353,7 @@ ws.onmessage = function(event){
 
   document.querySelector('#settings td[data-id="cstop0"]').innerHTML = data.cStop[0];
   document.querySelector('#settings td[data-id="cstop1"]').innerHTML = data.cStop[1];
+
 }
 
 document.querySelector('form#prompt').addEventListener("submit", function(event){
