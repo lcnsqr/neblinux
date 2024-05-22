@@ -13,7 +13,6 @@ const wss = new WebSocketServer({host: '127.0.0.1', port: 8888})
 
 // Unix sockets
 const net = require('net')
-const socketfile = 'socket'
 
 // EJS
 app.set('view engine', 'ejs')
@@ -30,7 +29,7 @@ app.get('/', (req, res) => {
 
 app.get('/command/:command/:timestamp', (req, res) => {
   // Enviar comando via unix socket
-  const client = net.createConnection({path: socketfile}, () => {
+  const client = net.createConnection({path: 'cmd'}, () => {
     client.write(req.params.command)
     client.on('data', (data) => {
     // Apenas fechar conexão por socket e ignorar resposta
@@ -68,7 +67,7 @@ wss.on('connection', (ws) => {
     if ( data == "state" ){
       // Solicitar estado ao processo principal via
       // Unix socket e responder à interface via websocket
-      const client = net.createConnection({path: socketfile}, () => {
+      const client = net.createConnection({path: 'status'}, () => {
         client.on('data', (data) => {
           // Enviar resposta por websocket
           ws.send(data.toString())
