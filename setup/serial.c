@@ -18,7 +18,7 @@ void *pthread_updateState(void *arg) {
 
   while (!glb->exit) {
     deviceStateRead(glb);
-    usleep(250e+3);
+    usleep(150e+3);
   }
 
   close(glb->portDevice);
@@ -43,8 +43,8 @@ void *pthread_updateProbe(void *arg) {
 
   while (!glb->exit) {
     probeRead_MAX6675(glb);
-    //probeRead_TA612c()int portDevice;
-    usleep(250e+3);
+    //probeRead_TA612c(glb);
+    usleep(150e+3);
   }
 
   close(glb->portProbe);
@@ -130,7 +130,7 @@ void deviceStateRead(struct Global *glb){
 
   const char cmd = SERIAL_READ;
 
-  while (1){
+  while (!glb->exit){
 
     // Read the state
     rx_bytes = 0;
@@ -143,21 +143,23 @@ void deviceStateRead(struct Global *glb){
     tcflush(glb->portDevice, TCIOFLUSH);
     write(glb->portDevice, &cmd, 1);
 
-    usleep(100e+3);
+    usleep(40e+3);
 
-    for (int b = 0; b < sizeof(struct State); b += 4)
-      rx_bytes = read(glb->portDevice, (char*)&stateLocal + b, 4);
+    //for (int b = 0; b < sizeof(struct State); b += 4){
+    //  rx_bytes = read(glb->portDevice, (char*)&stateLocal + b, 4);
+    //}
+    rx_bytes = read(glb->portDevice, (char*)&stateLocal, sizeof(struct State));
 
     pthread_mutex_unlock(&(glb->device_mut));
 
-    usleep(100e+3);
+    usleep(80e+3);
     
     // Repetir se houver inconsistência no recebimento
     if ( stateLocal.serialCheck == SERIAL_TAG ){
       break;
     }
     else {
-      usleep(200e+3);
+      usleep(100e+3);
     }
   }
 

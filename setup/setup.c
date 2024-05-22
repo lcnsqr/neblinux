@@ -449,22 +449,25 @@ int main(int argc, char **argv) {
   // Sinalizar encerramento
   glb.exit = 1;
 
-  // Stop GUI
+  // Stop GUI server
   if ( glb.PIDGUI > 0 )
     kill(glb.PIDGUI, SIGTERM);
 
   // Stop socket thread 
-  //pthread_kill(pthread_socket_id, SIGTERM);
-  //pthread_return = pthread_join(pthread_socket_id, NULL);
-  //if ( pthread_return != 0 ){
-  //  fprintf(stderr, "ERROR; return code from pthread_join() is %d\n", pthread_return);
-  //}
+  pthread_kill(pthread_socket_status_id, SIGTERM);
+  pthread_kill(pthread_socket_cmd_id, SIGTERM);
 
-  // Stop update state thread 
-  //pthread_kill(pthread_update_id, SIGTERM);
+  // Join update state thread
+  pthread_return = pthread_join(pthread_update_id, NULL);
+  if ( pthread_return != 0 ){
+    fprintf(stderr, "ERROR; return code from pthread_join() is %d\n", pthread_return);
+  }
 
-  // Stop update probe thread 
-  pthread_kill(pthread_update_probe_id, SIGTERM);
+  // Join probe thread
+  pthread_return = pthread_join(pthread_update_probe_id, NULL);
+  if ( pthread_return != 0 ){
+    fprintf(stderr, "ERROR; return code from pthread_join() is %d\n", pthread_return);
+  }
 
   // Released aloccated memory
   free(prompt);
