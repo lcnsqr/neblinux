@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
 
 app.get('/command/:command/:timestamp', (req, res) => {
   // Enviar comando via unix socket
-  const client = net.createConnection({path: 'cmd'}, () => {
+  const client = net.createConnection({path: 'socket'}, () => {
     client.write(req.params.command)
     client.on('data', (data) => {
     // Apenas fechar conexão por socket e ignorar resposta
@@ -67,7 +67,7 @@ wss.on('connection', (ws) => {
     if ( data == "state" ){
       // Solicitar estado ao processo principal via
       // Unix socket e responder à interface via websocket
-      const client = net.createConnection({path: 'status'}, () => {
+      const client = net.createConnection({path: 'socket'}, () => {
         client.on('data', (data) => {
           // Enviar resposta por websocket
           ws.send(data.toString())

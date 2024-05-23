@@ -13,9 +13,6 @@ void *pthread_updateState(void *arg) {
     pthread_exit((void *)NULL);
   }
 
-  // Wait until serial port and device are ready
-  sleep(3);
-
   while (!glb->exit) {
     deviceStateRead(glb);
     usleep(150e+3);
@@ -37,9 +34,6 @@ void *pthread_updateProbe(void *arg) {
   if (init_tty_return != 0) {
     fprintf(stderr, "ERROR; return code from init_tty() on %s is %d\n", glb->pathProbe, init_tty_return);
   }
-
-  // Wait until serial port and device are ready
-  sleep(3);
 
   while (!glb->exit) {
     probeRead_MAX6675(glb);

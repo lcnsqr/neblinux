@@ -4,18 +4,21 @@ FLAGS =
 
 all : setup
 
-setup : setup.o serial.o sockets.o
+setup : setup.o serial.o socket.o shell.o
 	$(CC) -o $@ $^ -lreadline -pthread -lm $(FLAGS)
 
 setup.o : setup.c
 	$(CC) -c -o $@ $^ $(FLAGS)
 
+shell.o : shell.c
+	$(CC) -c -o $@ $^ $(FLAGS)
+
 serial.o : serial.c
 	$(CC) -c -o $@ $^ $(FLAGS)
 
-sockets.o : sockets.c
+socket.o : socket.c
 	$(CC) -c -o $@ $^ $(FLAGS)
 
 
 clean :
-	rm setup setup.o serial.o sockets.o
+	rm setup setup.o serial.o socket.o shell.o

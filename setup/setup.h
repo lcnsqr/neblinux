@@ -28,8 +28,7 @@
 struct Global {
 
   // Comunicação com GUI via socket
-  char socket_path_status[32];
-  char socket_path_cmd[32];
+  char socket_path[32];
 
   struct State state;
   struct StateIO stateOut;
@@ -80,6 +79,5 @@ void external_cmd(char **tokens, struct Global *glb);
 int exec(char *cmdline, struct Global *glb);
 void *pthread_updateState(void *arg);
 void *pthread_updateProbe(void *arg);
-// Comunicação via socket
-void *pthread_socket_status(void *arg);
-void *pthread_socket_cmd(void *arg);
+void *pthread_socket(void *arg);
+void *pthread_shell(void *arg);
