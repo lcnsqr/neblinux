@@ -31,6 +31,7 @@ void *pthread_updateProbe(void *arg) {
   glb->portProbe = open(glb->pathProbe, O_RDWR);
 
   int init_tty_return = init_tty(glb->portProbe, B115200);
+  //int init_tty_return = init_tty(glb->portProbe, B9600);
   if (init_tty_return != 0) {
     fprintf(stderr, "ERROR; return code from init_tty() on %s is %d\n", glb->pathProbe, init_tty_return);
   }
@@ -178,6 +179,7 @@ void deviceStateRead(struct Global *glb){
   glb->stateOut.cPID[2] = stateLocal.cPID[2];
   glb->stateOut.autostop = stateLocal.autostop;
   glb->stateOut.screensaver = stateLocal.screensaver;
+  glb->stateOut.splash = stateLocal.splash;
   glb->stateOut.cStop[0] = stateLocal.cStop[0];
   glb->stateOut.cStop[1] = stateLocal.cStop[1];
   pthread_mutex_unlock(&(glb->stateOut_mut));

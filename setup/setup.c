@@ -4,6 +4,9 @@ int main(int argc, char **argv) {
 
   // Estrutura para acessar variáveis globais
   struct Global glb;
+  // Limpar dados nas estruturas de estado
+  memset(&(glb.state), 0, sizeof(struct State));
+  memset(&(glb.stateOut), 0, sizeof(struct StateIO));
 
   // Comunicação com GUI via socket
   snprintf(glb.socket_path, 32, "%s", "gui/socket");
