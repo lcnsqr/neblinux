@@ -402,8 +402,8 @@ document.querySelector('button#calibSave').addEventListener("click", function(ev
   let cTemp = _malloc(CALIB_COEFS*4)
 
   // Ponto fixo
-  setValue(calibCore, 25.0, 'float')
-  setValue(calibProbe, 25.0, 'float')
+  setValue(calibCore, 20.0, 'float')
+  setValue(calibProbe, 20.0, 'float')
   for (let i = 1; i < CALIB_POINTS; i++) {
     setValue(calibCore+i*4, calibChart.data.datasets[0].data[i-1], 'float')
     setValue(calibProbe+i*4, calibChart.data.datasets[1].data[i-1], 'float')
