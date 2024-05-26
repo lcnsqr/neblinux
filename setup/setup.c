@@ -19,8 +19,8 @@ int main(int argc, char **argv) {
 
   // Portas de comunicação serial
   snprintf(glb.pathDevice, 32, "%s", "/dev/ttyUSB0");
-  //snprintf(glb.pathProbe, 32, "%s", "/dev/ttyUSB1");
-  snprintf(glb.pathProbe, 32, "%s", "/dev/ttyACM0");
+  snprintf(glb.pathProbe, 32, "%s", "/dev/ttyUSB1");
+  //snprintf(glb.pathProbe, 32, "%s", "/dev/ttyACM0");
 
   // Continuar laços até sinalização de encerramento
   glb.exit = 0;
