@@ -8,7 +8,6 @@ body {
 
 h1 {
   text-align: center;
-  margin: 2em 0 1em 0;
   font-size: 0.85em;
   font-weight: 600;
 }
@@ -16,12 +15,19 @@ h1 {
 div#dashboard {
   padding: 1em;
   display: grid;
-  grid-template-columns: 2fr 2fr 1fr;
+  grid-template-columns: 1fr 2fr 1fr;
   grid-gap: 2em;
 }
 
-div#dashboard > div > div:nth-child(2) {
-  margin-top: 2em;
+div#middle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 2em;
+}
+
+div#middle > div:nth-child(1) {
+  display: flex;
+  flex-direction: column;
 }
 
 .tables {
@@ -54,29 +60,104 @@ form#prompt input[name="command"] {
   width: 60%;
 }
 
-form#calibPoints .calibInputs {
-  display: flex;
-  justify-content: space-between;
-  column-gap: 4px;
-  align-items: center;
-  height: 3em;
+.controls {
+  margin-bottom: 1em;
 }
 
-form#calibPoints .calibInputs > div:first-child {
-  width: 7em;
-  text-align: right;
-}
-
-form#calibPoints p {
+.controls p {
   margin: 0;
+  text-align: center;
+  white-space: nowrap;
 }
 
-form#calibPoints input[type="number"] {
+.controls input[type="number"] {
   width: 3.5em;
 }
 
+.controls input[type="number"].long {
+  width: 7em;
+}
+
+.controls input.stateNumInput[data-changed="1"] {
+  background-color: #ffb1c1;
+}
+
+.controls span.gauge {
+  font-weight: 700;
+  width: 5em;
+}
+
+.controls sub {
+  font-family: monospace;
+}
+
+#fanControls {
+  display: flex;
+  column-gap: 4px;
+  row-gap: 4px;
+  align-items: baseline;
+  justify-content: space-evenly;
+}
+
+#heatControls {
+  display: flex;
+  column-gap: 4px;
+  row-gap: 4px;
+  align-items: baseline;
+  justify-content: space-evenly;
+}
+
+#pidSettings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 1em;
+  justify-items: stretch;
+  align-items: center;
+}
+
+#pidSettings > div:nth-child(1) {
+  justify-self: end;
+}
+
+#pidSettings > div:nth-child(1) > div {
+  text-align: right;
+  height: 2em;
+  line-height: 1.7em;
+}
+
+#pidSettings > div:nth-child(2) {
+  justify-self: start;
+}
+
+#pidSettings > div:nth-child(2) > div {
+  text-align: left;
+  height: 2em;
+}
+
+#calibPoints {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 1em;
+  justify-items: center;
+}
+
+#calibPoints .calibControls {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: space-between;
+  column-gap: 4px;
+  row-gap: 4px;
+  align-items: center;
+}
+
+#calibPoints .calibControls > div:first-child {
+  height: 5em;
+}
+
+#calibPoints .calibControls > div {
+}
+
 div#calibButtons {
-  padding: 1em;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-gap: 1em;

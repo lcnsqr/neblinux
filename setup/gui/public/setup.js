@@ -8,6 +8,7 @@ document.querySelectorAll("#calibPoints input[type='number'].heat").forEach((p) 
   calibPointsValues.push(Number(p.value))
 })
 
+// Aguardar comando retornar antes de atualizar estado
 function exec(command){
 	var xhr = new XMLHttpRequest();
 	xhr.open('GET', "/command/"+command+"/"+Date.now())
@@ -50,7 +51,7 @@ var tempChart = new Chart(document.getElementById('tempChart'), {
         borderWidth: 1
       },
       {
-        label: 'Interna',
+        label: 'Core',
         data: chartData[1],
         borderWidth: 1
       },
@@ -62,7 +63,7 @@ var tempChart = new Chart(document.getElementById('tempChart'), {
 		]
 	},
 	options: {
-    aspectRatio: 1,
+    aspectRatio: 2,
     elements: {
       point: {
         radius: 0
@@ -121,7 +122,7 @@ var calibChart = new Chart(document.getElementById('calibChart'), {
     labels: calibPointsLabels,
 		datasets: [
       {
-        label: 'Interna',
+        label: 'Core',
         type: 'line',
         data: [ 31.0717, 40.1702, 53.7266, 70.8701, 90.0546, 111.3144, 126.8766, 142.917 ],
         borderWidth: 1
@@ -163,7 +164,7 @@ var calibChart = new Chart(document.getElementById('calibChart'), {
 var derivChart = new Chart(document.getElementById('derivChart'), {
   type: 'bar',
 	data: {
-  labels: ['Interna', 'Sonda', 'Carga'],
+  labels: ['Core', 'Sonda', 'Carga'],
 		datasets: [
       {
         label: 'Estável se próximo a zero',
@@ -201,8 +202,16 @@ ws.onopen = function(event){
 ws.onmessage = function(event){
   var data = JSON.parse(event.data)
 
-  // Gráfico de temperatura
+  /*
+   * Gráficos
+   */
 
+  // Gráfico de temperatura
+  tempChart.data.datasets[0].label = "Alvo: "+data.tempTarget;
+  tempChart.data.datasets[1].label = "Core: "+Math.round(Number(data.tempCore));
+  // Colocar temperaturas da sonda quádrupla em ordem decrescente
+  const tempProbe = data.tempProbe.toSorted((a, b) => b - a)
+  tempChart.data.datasets[2].label = "Sonda: "+Math.round(0.25*(tempProbe[0]+tempProbe[1]+tempProbe[2]+tempProbe[3]));
   for (let i = 0; i < chartHistorySize - 1; ++i){
     tempChart.data.datasets[0].data[i].y = tempChart.data.datasets[0].data[i+1].y
     tempChart.data.datasets[1].data[i].y = tempChart.data.datasets[1].data[i+1].y
@@ -210,25 +219,25 @@ ws.onmessage = function(event){
   }
   tempChart.data.datasets[0].data[chartHistorySize-1].y = data.tempTarget
   tempChart.data.datasets[1].data[chartHistorySize-1].y = data.tempCore
-  // Utilizar a maior temperatura da sonda quádrupla
-  const tempProbe = data.tempProbe.toSorted((a, b) => b - a)
-  tempChart.data.datasets[2].data[chartHistorySize-1].y = tempProbe[0].toFixed(2)
+  // Média aritmética das quatro sondas de temperatura
+  tempChart.data.datasets[2].data[chartHistorySize-1].y = (0.25*(tempProbe[0]+tempProbe[1]+tempProbe[2]+tempProbe[3])).toFixed(2)
   tempChart.update('none')
 
   // Gráfico de carga na resistência
+  heatChart.data.datasets[0].label = "Carga: " + Math.round(Number(data.PID[4]));
   for (let i = 0; i < chartHistorySize - 1; ++i){
     heatChart.data.datasets[0].data[i].y = heatChart.data.datasets[0].data[i+1].y
   }
   heatChart.data.datasets[0].data[chartHistorySize-1].y = data.PID[4]
   heatChart.update('none')
 
-  // Calibragem
+  // Pontos de calibragem
   if ( calibEnabled && document.querySelector('button#calibSwitch').dataset.state == "1" ){
     calibChart.data.datasets[0].data[calibIndex] = data.tempCore
 
     // Utilizar temperatura da sonda se não for manual
     if ( ! document.querySelector("input#calibManual").checked ) {
-      calibChart.data.datasets[1].data[calibIndex] = tempProbe[0].toFixed(2)
+      calibChart.data.datasets[1].data[calibIndex] = (0.25*(tempProbe[0]+tempProbe[1]+tempProbe[2]+tempProbe[3])).toFixed(2)
     }
 
     calibChart.update()
@@ -282,53 +291,68 @@ ws.onmessage = function(event){
   _free(tailHeat)
   _free(lineHeat)
 
-  // Estado
-  document.querySelector('#state td[data-id="on"]').innerHTML = (data.on != 0) ? "Sim" : "Não";
+  /*
+   * Controles
+   */
 
-  // Liberar calibragem
-  if ( data.on != 0 && data.PID_enabled == 0 ){
-    document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').forEach((p) => {
-      p.disabled = false
-    })
-    document.querySelectorAll('.calibButton').forEach((b) => {
-      b.disabled = false
-    })
-    calibEnabled = 1
+  // Assoprar e esquentar se PID ativo
+  let input = document.getElementById('fanControl')
+  let value = Boolean(Number(data.on))
+  if ( input.dataset['changed'] != 1 ) // Se não foi modificado pelo usuário
+    input.checked = value // usar valor recebido do aparelho
+  else if ( input.checked == value ) // Se modificado pelo usuário e valor igual ao recebido do aparelho
+    input.dataset['changed'] = 0 // marcar como não modificado pelo usuário
+
+  // Campo do valor da carga na ventoinha
+  input = document.getElementById('fanLoad')
+  value = Math.round(Number(data.fan))
+  if ( input.dataset['changed'] != 1 )
+    input.value = value
+  else if ( input.value == value )
+    input.dataset['changed'] = 0
+
+  // Duração do último acionamento
+  document.getElementById('elapsed').innerHTML = data.elapsed
+
+  //document.querySelector('#state td[data-id="tempstep"]').innerHTML = data.tempStep;
+  //document.querySelector('#state td[data-id="ex"]').innerHTML = data.tempEx;
+
+
+  // Ativação PID
+  input = document.getElementById('pidEnabled')
+  value = Boolean(Number(data.PID_enabled))
+  if ( input.dataset['changed'] != 1 )
+    input.checked = value
+  else if ( input.checked == value )
+    input.dataset['changed'] = 0
+
+  // Campo do valor  da carga na resistência
+  input = document.getElementById('heatLoad')
+  value = Math.round(Number(data.PID[4]))
+  if ( input.dataset['changed'] != 1 )
+    input.value = value
+  else if ( input.value == value )
+    input.dataset['changed'] = 0
+
+  // Alvo do PID
+  input = document.getElementById('target')
+  if ( input.dataset['changed'] != 1 )
+    input.value = data.tempTarget
+  else if ( input.value == data.tempTarget )
+    input.dataset['changed'] = 0
+
+  // Coeficientes PID
+  for (let i = 0; i < 3; i++){
+    input = document.getElementById('cPID'+String(i))
+    if ( input.dataset['changed'] != 1 )
+      input.value = Number(data.cPID[i])
+    else if ( input.value == Number(data.cPID[i]) )
+      input.dataset['changed'] = 0
   }
-  else {
-    if ( calibEnabled == 1 ) exec("heat 0")
-    document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').forEach((p) => {
-      p.disabled = true
-    })
-    document.querySelectorAll('.calibButton#calibSwitch').forEach((b) => {
-      b.disabled = true
-    })
-    calibEnabled = 0
-  }
 
-
-  document.querySelector('#state td[data-id="fan"]').innerHTML = data.fan;
-
-  document.querySelector('#state td[data-id="elapsed"]').innerHTML = data.elapsed;
-
-  document.querySelector('#state td[data-id="tempstep"]').innerHTML = data.tempStep;
-
-  document.querySelector('#state td[data-id="target"]').innerHTML = data.tempTarget;
-  document.querySelector('#state td[data-id="core"]').innerHTML = data.tempCore;
-  document.querySelector('#state td[data-id="ex"]').innerHTML = data.tempEx;
-  document.querySelector('#state td[data-id="probe"]').innerHTML = tempProbe[0].toFixed(2);
-  document.querySelector('#state td[data-id="heat"]').innerHTML = data.PID[4];
-
-  document.querySelector('#state td[data-id="pid0"]').innerHTML = data.PID[0];
-  document.querySelector('#state td[data-id="pid1"]').innerHTML = data.PID[1];
-  document.querySelector('#state td[data-id="pid2"]').innerHTML = data.PID[2];
-
-  if ( data.PID_enabled != 0 ){
-    document.querySelector('#state td[data-id="pid_enabled"]').innerHTML = "Sim";
-  }
-  else {
-    document.querySelector('#state td[data-id="pid_enabled"]').innerHTML = "Não";
-  }
+  //document.querySelector('#state td[data-id="pid0"]').innerHTML = data.PID[0];
+  //document.querySelector('#state td[data-id="pid1"]').innerHTML = data.PID[1];
+  //document.querySelector('#state td[data-id="pid2"]').innerHTML = data.PID[2];
 
   if ( data.autostop != 0 ){
     document.querySelector('#state td[data-id="autostop"]').innerHTML = "Sim";
@@ -347,14 +371,44 @@ ws.onmessage = function(event){
   document.querySelector('#settings td[data-id="cTemp2"]').innerHTML = data.cTemp[2];
   document.querySelector('#settings td[data-id="cTemp3"]').innerHTML = data.cTemp[3];
 
-  document.querySelector('#settings td[data-id="cPID0"]').innerHTML = data.cPID[0];
-  document.querySelector('#settings td[data-id="cPID1"]').innerHTML = data.cPID[1];
-  document.querySelector('#settings td[data-id="cPID2"]').innerHTML = data.cPID[2];
-
   document.querySelector('#settings td[data-id="cstop0"]').innerHTML = data.cStop[0];
   document.querySelector('#settings td[data-id="cstop1"]').innerHTML = data.cStop[1];
 
 }
+
+// Comportamento comum a todos os campos numéricos de estado
+document.querySelectorAll(".stateNumInput").forEach((input) => {
+  let actions = ["mousedown", "wheel"]
+  actions.forEach((action) => {
+    input.addEventListener(action, (e) => {
+      e.srcElement.dataset['changed'] = 1
+    })
+  })
+  input.addEventListener("keydown", (e) => {
+    // Keycode 13 = Enter
+    if (e.keyCode != 13)
+      e.srcElement.dataset['changed'] = 1
+  })
+})
+
+// Ventoinha on/off
+document.getElementById("fanControl").addEventListener("change", (e) => {
+  e.srcElement.dataset['changed'] = 1
+  exec((e.srcElement.checked) ? "on" : "off")
+})
+
+// PID on/off
+document.getElementById("pidEnabled").addEventListener("change", (e) => {
+  e.srcElement.dataset['changed'] = 1
+  exec((e.srcElement.checked) ? "pid on" : "pid off")
+})
+
+// Modificar temperatura alvo do PID
+document.getElementById('target').addEventListener("keydown", (e) => {
+  if (e.keyCode == 13)
+    exec("target " + e.srcElement.value)
+})
+
 
 document.querySelector('form#prompt').addEventListener("submit", function(event){
   event.preventDefault()
@@ -364,10 +418,6 @@ document.querySelector('form#prompt').addEventListener("submit", function(event)
   exec(command)
   document.querySelector('form#prompt').reset()
 
-})
-
-document.querySelector('form#calibPoints').addEventListener("submit", function(event){
-  event.preventDefault()
 })
 
 document.querySelector('button#calibSwitch').addEventListener("click", function(event){
@@ -381,7 +431,7 @@ document.querySelector('button#calibSwitch').addEventListener("click", function(
   else {
     this.dataset.state = 1
     this.innerHTML = "Parar"
-    document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').forEach((p) => {
+    document.querySelectorAll('#calibPoints input[type="radio"][name="index"]').forEach((p) => {
       if ( p.checked ){
         calibIndex = p.value
         console.log(p.dataset.heat)
@@ -425,7 +475,7 @@ document.querySelector('button#calibSave').addEventListener("click", function(ev
 
 })
 
-document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').forEach((p) => {
+document.querySelectorAll('#calibPoints input[type="radio"][name="index"]').forEach((p) => {
   p.addEventListener("change", function(event){
     if ( document.querySelector('button#calibSwitch').dataset.state == "1" && this.checked ){
       calibIndex = this.value
@@ -434,7 +484,7 @@ document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').
 
       // Se probe manual, focar no input correspondente
       if ( document.querySelector("input#calibManual").checked ) {
-        document.querySelector('form#calibPoints input[type="number"][name="cpm'+calibIndex+'"].manual').focus()
+        document.querySelector('#calibPoints input[type="number"][name="cpm'+calibIndex+'"].manual').focus()
       }
 
     }
@@ -442,15 +492,15 @@ document.querySelectorAll('form#calibPoints input[type="radio"][name="index"]').
   })
 })
 
-document.querySelector('form#calibPoints div:first-child input[type="radio"]').checked = 'true'
+document.querySelector('#calibPoints div:first-child input[type="radio"]').checked = 'true'
 
-document.querySelectorAll('form#calibPoints input[type="number"].heat').forEach((p) => {
+document.querySelectorAll('#calibPoints input[type="number"].heat').forEach((p) => {
   p.addEventListener("change", function(event){
 
-    document.querySelector('form#calibPoints input[type="radio"][value="'+this.dataset.index+'"]').dataset.heat = this.value
+    document.querySelector('#calibPoints input[type="radio"][value="'+this.dataset.index+'"]').dataset.heat = this.value
 
     if ( document.querySelector('button#calibSwitch').dataset.state == "1" 
-      && document.querySelector('form#calibPoints input[type="radio"][value="'+this.dataset.index+'"]').checked )
+      && document.querySelector('#calibPoints input[type="radio"][value="'+this.dataset.index+'"]').checked )
     {
       console.log(this.value)
       exec("heat "+this.value)
@@ -466,24 +516,24 @@ document.querySelectorAll('form#calibPoints input[type="number"].heat').forEach(
 // Calibragem manual
 document.querySelector("input#calibManual").addEventListener("change", function(event){
   if (this.checked) {
-    document.querySelectorAll('form#calibPoints input[type="number"].manual').forEach((p) => {
+    document.querySelectorAll('#calibPoints input[type="number"].manual').forEach((p) => {
       p.disabled = false
     })
   }
   else {
-    document.querySelectorAll('form#calibPoints input[type="number"].manual').forEach((p) => {
+    document.querySelectorAll('#calibPoints input[type="number"].manual').forEach((p) => {
       p.disabled = true
     })
   }
 })
 
-document.querySelectorAll('form#calibPoints input[type="number"].manual').forEach((p) => {
+document.querySelectorAll('#calibPoints input[type="number"].manual').forEach((p) => {
   p.value = calibChart.data.datasets[1].data[p.dataset.index]
 
   // Saltar para o ponto correspondente ao ganhar foco
   p.addEventListener("focus", function(event){
 
-    let rp = document.querySelector('form#calibPoints input[type="radio"][value="'+this.dataset.index+'"]')
+    let rp = document.querySelector('#calibPoints input[type="radio"][value="'+this.dataset.index+'"]')
     if ( ! rp.checked ){
       rp.checked = true
     }

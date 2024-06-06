@@ -21,7 +21,7 @@ app.set('view engine', 'ejs')
 const calibPoints = 8
 var calibPointsValues = []
 for (var i = 0; i < calibPoints; i++)
-  calibPointsValues.push(10 + Math.floor(70 * Math.sin(Math.PI * i/(calibPoints*2))))
+  calibPointsValues.push(10 + Math.floor(140 * Math.sin(Math.PI * i/(calibPoints*2))))
 
 app.get('/', (req, res) => {
   res.render('main', {title: "Configuração remota", calibPoints: calibPoints, calibPointsValues: calibPointsValues})
