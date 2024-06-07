@@ -326,13 +326,19 @@ ws.onmessage = function(event){
   else if ( input.checked == value )
     input.dataset['changed'] = 0
 
-  // Campo do valor  da carga na resistência
+  // Campo do valor da carga na resistência
   input = document.getElementById('heatLoad')
   value = Math.round(Number(data.PID[4]))
   if ( input.dataset['changed'] != 1 )
     input.value = value
   else if ( input.value == value )
     input.dataset['changed'] = 0
+
+  // Bloquear carga na resistência se PID ativo
+  if ( Boolean(Number(data.PID_enabled)) )
+    input.disabled = true
+  else
+    input.disabled = false
 
   // Alvo do PID
   input = document.getElementById('target')
@@ -365,6 +371,18 @@ ws.onmessage = function(event){
 
   document.querySelector('#state td[data-id="screensaver"]').innerHTML = (data.screensaver != 0) ? "Sim" : "Não";
 
+
+  if ( Boolean(Number(data.on)) && !Boolean(Number(data.PID_enabled)) ){
+    // Liberar calibragem
+    calibEnabled  = 1
+    document.querySelector('button#calibSwitch').disabled = false
+    document.querySelector('button#calibSave').disabled = false
+  }
+  else {
+    calibEnabled  = 0
+    document.querySelector('button#calibSwitch').disabled = true
+    document.querySelector('button#calibSave').disabled = true
+  }
 
   document.querySelector('#settings td[data-id="cTemp0"]').innerHTML = data.cTemp[0];
   document.querySelector('#settings td[data-id="cTemp1"]').innerHTML = data.cTemp[1];
@@ -409,6 +427,15 @@ document.getElementById('target').addEventListener("keydown", (e) => {
     exec("target " + e.srcElement.value)
 })
 
+// Parâmetros do PID
+document.querySelectorAll(".cPID").forEach((input) => {
+  input.addEventListener("keydown", (e) => {
+    if (e.keyCode == 13)
+      exec("cpid " + document.getElementById("cPID0").value
+        + " " + document.getElementById("cPID1").value
+        + " " + document.getElementById("cPID2").value)
+  })
+})
 
 document.querySelector('form#prompt').addEventListener("submit", function(event){
   event.preventDefault()
