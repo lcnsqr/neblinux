@@ -226,7 +226,7 @@ void scrSetup::show() {
   const char *labels[4] = {" Passo do giro  : ",
                            " Parar sozinho  : ",
                            " Descansar tela : ",
-                           " Modo setup     : "};
+                           " Voltar "};
 
   String strVal;
 
@@ -279,12 +279,10 @@ void scrSetup::show() {
       } else if (i == 3) {
 
 
-        // Modo setup
-        display->drawUTF8(0, (i + 1) * 13, labels[i]);
-        strVal = String((0) ? "S " : "N ");
-        display->setDrawColor(1);
-        display->drawUTF8(128 - display->getUTF8Width(strVal.c_str()),
-                          (i + 1) * 13, strVal.c_str());
+        // Salvar e voltar
+        display->drawUTF8(
+            (int)(round((float)(128 - display->getUTF8Width(labels[i])) / 2.0)),
+            (i + 1) * 13, labels[i]);
 
       }
     }
@@ -342,9 +340,11 @@ Screen *scrSetup::btTop() {
     session->state.screensaver = !session->state.screensaver;
     session->changed = true;
   } else if (highlight == 3) {
-    // Ativar ou desativar o modo setup
-    //session->serialCom = !session->serialCom;
-    //session->changed = true;
+    // Salvar e voltar
+    session->save();
+    // Chamar a tela definida em leave
+    session->changed = true;
+    return leave;
   }
   return this;
 }
