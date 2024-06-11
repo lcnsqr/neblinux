@@ -4,30 +4,34 @@ body {
   color: #2d2d2d;
   margin: 0;
   font-size: 0.8em;
+  background-color: #9eabb0;
+}
+
+div#dashboard {
+  display: grid;
+  grid-template-columns: 32em 32em 32em;
+  grid-gap: 1px;
+  justify-content: center;
+  margin: 1em 0 0 0;
 }
 
 h1 {
   text-align: center;
-  font-size: 0.85em;
+  font-size: 1em;
   font-weight: 600;
+  background-color: #9eabb0;
+  color: #fff;
+  border: 1px solid #364e59;
+  margin: 0 0 4px 0;
+  padding: 4px 0;
+  text-shadow: 1px 1px 3px #364e59;
+  border-radius: 3px;
 }
 
-div#dashboard {
+div#dashboard > div {
+  background-color: #fff;
   padding: 1em;
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  grid-gap: 2em;
-}
-
-div#middle {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-gap: 2em;
-}
-
-div#middle > div:nth-child(1) {
-  display: flex;
-  flex-direction: column;
+  border-radius: 5px;
 }
 
 .tables {
@@ -61,7 +65,7 @@ form#prompt input[name="command"] {
 }
 
 .controls {
-  margin-bottom: 1em;
+  margin: 1em 0;
 }
 
 .controls p {
@@ -99,7 +103,8 @@ form#prompt input[name="command"] {
   justify-content: space-evenly;
 }
 
-#heatControls {
+#heatControls,
+#prefControls {
   display: flex;
   column-gap: 4px;
   row-gap: 4px;
@@ -107,6 +112,8 @@ form#prompt input[name="command"] {
   justify-content: space-evenly;
 }
 
+#cStopSettings,
+#cTempSettings,
 #pidSettings {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -115,20 +122,28 @@ form#prompt input[name="command"] {
   align-items: center;
 }
 
+#cStopSettings > div:nth-child(1),
+#cTempSettings > div:nth-child(1),
 #pidSettings > div:nth-child(1) {
   justify-self: end;
 }
 
+#cStopSettings > div:nth-child(1) > div,
+#cTempSettings > div:nth-child(1) > div,
 #pidSettings > div:nth-child(1) > div {
   text-align: right;
   height: 2em;
   line-height: 1.7em;
 }
 
+#cStopSettings > div:nth-child(2),
+#cTempSettings > div:nth-child(2),
 #pidSettings > div:nth-child(2) {
   justify-self: start;
 }
 
+#cStopSettings > div:nth-child(2) > div,
+#cTempSettings > div:nth-child(2) > div,
 #pidSettings > div:nth-child(2) > div {
   text-align: left;
   height: 2em;
@@ -157,6 +172,7 @@ form#prompt input[name="command"] {
 #calibPoints .calibControls > div {
 }
 
+div#eepromButtons,
 div#calibButtons {
   display: grid;
   grid-template-columns: 1fr 1fr;

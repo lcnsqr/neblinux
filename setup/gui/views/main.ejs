@@ -14,211 +14,243 @@
 
 <div id="left">
 
+  <h1>Temperaturas Alvo / Saída</h1>
   <div>
-  <canvas id="tempChart"></canvas>
+  <canvas id="tempChartA"></canvas>
   </div>
 
+  <h1>Temperaturas Prévia / Sonda</h1>
   <div>
-  <canvas id="heatChart"></canvas>
+  <canvas id="tempChartB"></canvas>
   </div>
 
+  <h1>Parâmetros PID</h1>
+  <div class="controls" id="pidSettings">
+  <!-- labels -->
+  <div>
+    <div>
+      <label for="target">Alvo</label>
+    </div>
+    <div>
+      <label for="cPID0">K<sub>p</sub></label>
+    </div>
+    <div>
+      <label for="cPID1">K<sub>i</sub></label>
+    </div>
+    <div>
+      <label for="cPID2">K<sub>d</sub></label>
+    </div>
+  </div>
+  <!-- inputs -->
+  <div>
+    <div>
+      <input class="stateNumInput" type="number" id="target" name="target" value="180" min="100" max="300" data-changed="0">
+    </div>
+    <div>
+      <input class="long stateNumInput cPID" type="number" step="0.01" id="cPID0" name="cPID0" value="0">
+    </div>
+    <div>
+      <input class="long stateNumInput cPID" type="number" step="0.000001" id="cPID1" name="cPID1" value="0">
+    </div>
+    <div>
+      <input class="long stateNumInput cPID" type="number" step="0.01" id="cPID2" name="cPID2" value="0">
+    </div>
+  </div>
+  </div><!-- #pidSettings -->
+  
+  <h1>Estabilidade recente</h1>
   <div>
   <canvas id="derivChart"></canvas>
-  </div>
-
-  <div>
-  <canvas id="calibChart"></canvas>
   </div>
 
 </div> <!-- #left -->
 
 <div id="middle">
 
-  <div>
-    <h1>Ventoinha</h1>
-    <div class="controls" id="fanControls">
-    <div> 
-      <p><input type="checkbox" id="fanControl" name="fanControl" unchecked /><br><label for="fanControl">Rodando</label></p>
-    </div>
-    <div> 
-      <p><input class="stateNumInput" type="number" id="fanLoad" name="fanLoad" value="255" min="0" max="255"><br><label for="fanLoad">Carga<br>(0 até 255)</label></p>
-    </div>
-    <div> 
-      <p><span id="elapsed" class="gauge">0</span><br>Última<br>duração</p>
-    </div>
-    </div><!-- #fanControls -->
-
-    <h1>Aquecedor</h1>
-    <div class="controls" id="heatControls">
-    <div> 
-      <p><input type="checkbox" id="pidEnabled" name="pidEnabled" unchecked /><br><label for="pidEnabled">Controlador<br>PID ativo</label></p>
-    </div>
-    <div> 
-      <p><input class="stateNumInput" type="number" id="heatLoad" name="heatLoad" value="0" min="0" max="255"><br><label for="heatLoad">Carga<br>(0 até 255)</label></p>
-    </div>
-    </div><!-- #heatControls -->
-
-    <h1>Parâmetros PID</h1>
-    <div class="controls" id="pidSettings">
-    <!-- labels -->
-    <div>
-      <div>
-        <label for="target">Alvo</label>
-      </div>
-      <div>
-        <label for="cPID0">C<sub>p</sub></label>
-      </div>
-      <div>
-        <label for="cPID1">C<sub>i</sub></label>
-      </div>
-      <div>
-        <label for="cPID2">C<sub>d</sub></label>
-      </div>
-    </div>
-    <!-- inputs -->
-    <div>
-      <div>
-        <input class="stateNumInput" type="number" id="target" name="target" value="180" min="100" max="300" data-changed="0">
-      </div>
-      <div>
-        <input class="long stateNumInput cPID" type="number" step="0.01" id="cPID0" name="cPID0" value="0">
-      </div>
-      <div>
-        <input class="long stateNumInput cPID" type="number" step="0.000001" id="cPID1" name="cPID1" value="0">
-      </div>
-      <div>
-        <input class="long stateNumInput cPID" type="number" step="0.01" id="cPID2" name="cPID2" value="0">
-      </div>
-    </div>
-    </div><!-- #pidSettings -->
-    
-    <h1>Calibragem do sensor</h1>
-
-    <div class="controls" id="calibPoints">
-
-    <!-- Seleção do ponto de calibragem -->
-    <div class="calibControls">
-    <div> 
-      <p>Ponto de<br>calibragem</p>
-    </div>
-<% calibPointsValues.forEach((point, index) => { %>
-    <div> 
-      <input type="radio" data-heat="<%= point %>" value="<%= index %>" name="index"> 
-    </div>
-<% }) %>
-    </div>
-
-    <!-- Carga em cada ponto de calibragem -->
-    <div class="calibControls">
-    <div> 
-      <p>Carga<br>(0 até 255)</p>
-    </div>
-<% calibPointsValues.forEach((point, index) => { %>
-    <div> 
-      <input class="heat" type="number" data-index="<%= index %>" name="cp<%= index %>" value="<%= point %>" min="0" max="255">
-    </div>
-<% }) %>
-    </div>
-
-    <!-- Entrada manual de temperatura em cada ponto -->
-    <div class="calibControls">
-    <div> 
-      <p><label for="calibManual">Aferição manual<br>da temperatura</label><br><input type="checkbox" id="calibManual" name="calibManual" unchecked /></p>
-    </div>
-<% calibPointsValues.forEach((point, index) => { %>
-    <div> 
-      <input disabled class="manual" type="number" data-index="<%= index %>" name="cpm<%= index %>" value="25" min="0" max="666" onfocus="this.select();">
-    </div>
-<% }) %>
-    </div>
-
-    </div><!-- #calibPoints -->
-
-    <div class="controls" id="calibButtons">
-    <div>
-      <button disabled class="calibButton" id="calibSwitch" data-state="0" type="button">Calibrar</button>
-    </div>
-    <div>
-      <button disabled class="calibButton" id="calibSave" data-state="0" type="button">Salvar</button>
-    </div>
-    </div> <!-- #calibButtons -->
+  <h1>Ventoinha</h1>
+  <div class="controls" id="fanControls">
+  <div> 
+    <p><input type="checkbox" id="fanControl" name="fanControl" unchecked /><br><label for="fanControl">Rodando</label></p>
   </div>
+  <div> 
+    <p><input class="stateNumInput" type="number" id="fanLoad" name="fanLoad" value="255" min="0" max="255"><br><label for="fanLoad">Carga<br>(0 até 255)</label></p>
+  </div>
+  <div> 
+    <p><span id="elapsed" class="gauge">0</span><br>Última<br>duração</p>
+  </div>
+  </div><!-- #fanControls -->
+
+  <h1>Calibragem do sensor</h1>
 
   <div>
-    <h1>Executar comando</h1>
-    <form id="prompt" action="/command">
-    <input type="text" name="command" placeholder="Comando" list="commands">
-    <input type="submit" value="Amém">
-    </form>
-    <datalist id="commands">
-      <option value="target">
-      <option value="on">
-      <option value="off">
-      <option value="fan">
-      <option value="heat">
-      <option value="pid">
-    </datalist>
+  <canvas id="calibChart"></canvas>
   </div>
 
-</div> <!-- #middle -->
+  <div class="controls" id="calibPoints">
+
+  <!-- Seleção do ponto de calibragem -->
+  <div class="calibControls">
+  <div> 
+    <p>Ponto de<br>calibragem</p>
+  </div>
+<% calibPointsValues.forEach((point, index) => { %>
+  <div> 
+    <input type="radio" data-heat="<%= point %>" value="<%= index %>" name="index"> 
+  </div>
+<% }) %>
+  </div>
+
+  <!-- Carga em cada ponto de calibragem -->
+  <div class="calibControls">
+  <div> 
+    <p>Carga<br>(0 até 255)</p>
+  </div>
+<% calibPointsValues.forEach((point, index) => { %>
+  <div> 
+    <input class="heat" type="number" data-index="<%= index %>" name="cp<%= index %>" value="<%= point %>" min="0" max="255">
+  </div>
+<% }) %>
+  </div>
+
+  <!-- Entrada manual de temperatura em cada ponto -->
+  <div class="calibControls">
+  <div> 
+    <p><label for="calibManual">Aferição manual<br>da temperatura</label><br><input type="checkbox" id="calibManual" name="calibManual" unchecked /></p>
+  </div>
+<% calibPointsValues.forEach((point, index) => { %>
+  <div> 
+    <input disabled class="manual" type="number" data-index="<%= index %>" name="cpm<%= index %>" value="25" min="0" max="666" onfocus="this.select();">
+  </div>
+<% }) %>
+  </div>
+
+  </div><!-- #calibPoints -->
+
+  <div class="controls" id="calibButtons">
+  <div>
+    <button disabled class="calibButton" id="calibSwitch" data-state="0" type="button">Calibrar</button>
+  </div>
+  <div>
+    <button disabled class="calibButton" id="calibUse" data-state="0" type="button">Usar Pontos</button>
+  </div>
+  </div> <!-- #calibButtons -->
+
+
+  <h1>Coeficientes do estimador</h1>
+  <div class="controls" id="cTempSettings">
+  <!-- labels -->
+  <div>
+    <div>
+      <label for="cTemp0">T<sub>0</sub></label>
+    </div>
+    <div>
+      <label for="cTemp1">T<sub>1</sub></label>
+    </div>
+    <div>
+      <label for="cTemp2">T<sub>2</sub></label>
+    </div>
+    <div>
+      <label for="cTemp3">T<sub>3</sub></label>
+    </div>
+  </div>
+  <!-- inputs -->
+  <div>
+    <div>
+      <input class="long stateNumInput cTemp" type="number" step="0.000001" id="cTemp0" name="cTemp0" value="0">
+    </div>
+    <div>
+      <input class="long stateNumInput cTemp" type="number" step="0.000001" id="cTemp1" name="cTemp1" value="0">
+    </div>
+    <div>
+      <input class="long stateNumInput cTemp" type="number" step="0.000001" id="cTemp2" name="cTemp2" value="0">
+    </div>
+    <div>
+      <input class="long stateNumInput cTemp" type="number" step="0.000001" id="cTemp3" name="cTemp3" value="0">
+    </div>
+  </div>
+  </div><!-- #cTempSettings -->
+
+
+</div><!-- #middle -->
 
 <div id="right">
+  <h1>Aquecimento</h1>
 
-  <h1>Estado da máquina</h1>
-  <div class="tables" id="state">
-    <table>
-    <tbody>
-    <tr><td>Ativo</td><td data-id="on">Não</td></tr>
-    <tr><td>Tempo ativo</td><td data-id="elapsed">0</td></tr>
-    <tr><td>Fan</td><td data-id="fan">0</td></tr>
-    <tr><td>Target</td><td data-id="target">0</td></tr>
-    <tr><td>Interna</td><td data-id="core">0</td></tr>
-    <tr><td>Externa</td><td data-id="ex">0</td></tr>
-    <tr><td>Sonda</td><td data-id="probe">0</td></tr>
-    <tr><td>PID ativo</td><td data-id="pid_enabled">Sim</td></tr>
-    <tr><td>PID[0]</td><td data-id="pid0">0</td></tr>
-    <tr><td>PID[1]</td><td data-id="pid1">0</td></tr>
-    <tr><td>PID[2]</td><td data-id="pid2">0</td></tr>
-    <tr><td>Carga</td><td data-id="heat">0</td></tr>
-    <tr><td>Autostop</td><td data-id="autostop">Sim</td></tr>
-    <tr><td>sStop[0]</td><td data-id="sstop0">0</td></tr>
-    <tr><td>sStop[1]</td><td data-id="sstop1">0</td></tr>
-    <tr><td>Passo do giro</td><td data-id="tempstep">10</td></tr>
-    <tr><td>Descanso de tela</td><td data-id="screensaver">Sim</td></tr>
-    </tbody>
-    </table>
+  <div>
+  <canvas id="heatChart"></canvas>
   </div>
 
-  <h1>Definições</h1>
-  <div class="tables" id="settings">
-    <table>
-    <tbody>
-    <tr><td>cTemp[0]</td><td data-id="cTemp0">0</td></tr>
-    <tr><td>cTemp[1]</td><td data-id="cTemp1">0</td></tr>
-    <tr><td>cTemp[2]</td><td data-id="cTemp2">0</td></tr>
-    <tr><td>cTemp[3]</td><td data-id="cTemp3">0</td></tr>
-    <tr><td>cPID[0]</td><td data-id="cPID0">0</td></tr>
-    <tr><td>cPID[1]</td><td data-id="cPID1">0</td></tr>
-    <tr><td>cPID[2]</td><td data-id="cPID2">0</td></tr>
-    <tr><td>cStop[0]</td><td data-id="cstop0">0</td></tr>
-    <tr><td>cStop[1]</td><td data-id="cstop1">0</td></tr>
-    </tbody>
-    </table>
+  <div class="controls" id="heatControls">
+  <div> 
+    <p><input type="checkbox" id="pidEnabled" name="pidEnabled" unchecked /><br><label for="pidEnabled">Controlador<br>PID ativo</label></p>
+  </div>
+  <div> 
+    <p><input class="stateNumInput" type="number" id="heatLoad" name="heatLoad" value="0" min="0" max="255"><br><label for="heatLoad">Carga<br>(0 até 255)</label></p>
+  </div>
+  </div><!-- #heatControls -->
+
+  <h1>Limiares da parada automática</h1>
+
+  <div>
+  <canvas id="autostopChart"></canvas>
   </div>
 
-  <div style="margin-top: 4em; text-align: center">
-  <img src="/desenho.svg" alt="Vapomatic">
+  <div class="controls" id="cStopSettings">
+  <!-- labels -->
+  <div>
+    <div>
+      <label for="cStop0">Componente Linear &ge;</label>
+    </div>
+    <div>
+      <label for="cStop1">Componente Angular &le;</label>
+    </div>
   </div>
+  <!-- inputs -->
+  <div>
+    <div>
+      <input class="long stateNumInput cStop" type="number" step="0.000001" id="cStop0" name="cStop0" value="0">
+    </div>
+    <div>
+      <input class="long stateNumInput cStop" type="number" step="0.000001" id="cStop1" name="cStop1" value="0">
+    </div>
+  </div>
+  </div><!-- #cStopSettings -->
+
+  <h1>Preferências</h1>
+  <div class="controls" id="prefControls">
+  <div> 
+    <p><input type="checkbox" id="autostop" name="autostop" checked /><br><label for="autostop">Parada<br>automática</label></p>
+  </div>
+  <div> 
+    <p><input class="stateNumInput" type="number" id="tempstep" name="tempstep" value="1" min="1" max="10"><br><label for="tempstep">Passo<br>do giro</label></p>
+  </div>
+  <div> 
+    <p><input type="checkbox" id="screensaver" name="screensaver" checked /><br><label for="screensaver">Descanso<br>de tela</label></p>
+  </div>
+  </div><!-- #prefControls -->
+
+  <h1>Definições na EEPROM</h1>
+  <div class="controls" id="eepromButtons">
+  <div>
+    <button class="eepromButton" id="eepromReset" type="button">Resetar</button>
+  </div>
+  <div>
+    <button class="eepromButton" id="eepromStore" type="button">Gravar</button>
+  </div>
+  </div> <!-- #eepromButtons -->
 
 </div> <!-- #right -->
 
 </div> <!-- #dashboard -->
 
-<script src="/chart.umd.js"></script>
-<script src="/setup.js"></script>
-
 <!-- Funções matemáticas em WebAssembly -->
 <script async type="text/javascript" src="mat.js"></script>
+
+<!-- Recursos gráficos -->
+<script src="/chart.umd.js"></script>
+
+<!-- Interface e funções de apoio -->
+<script src="/gui.js"></script>
 
 </body>
 </html>

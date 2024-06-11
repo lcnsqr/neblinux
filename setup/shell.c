@@ -145,9 +145,6 @@ int exec(char *cmdline, struct Global *glb) {
     pthread_mutex_unlock(&(glb->stateOut_mut));
     deviceStateWrite(glb);
 
-    printf("%s %.8f %.8f %.8f %.8f\n", tokens[0], glb->stateOut.cTemp[0],
-           glb->stateOut.cTemp[1], glb->stateOut.cTemp[2], glb->stateOut.cTemp[3]);
-
     tokens_cleanup(tokens);
     return 0;
   }
@@ -156,8 +153,6 @@ int exec(char *cmdline, struct Global *glb) {
   if (!strcmp("reset", tokens[0])) {
 
     deviceCmd(SERIAL_RESET, glb);
-
-    printf("%s\n", tokens[0]);
 
     tokens_cleanup(tokens);
     return 0;
@@ -168,8 +163,6 @@ int exec(char *cmdline, struct Global *glb) {
 
     deviceCmd(SERIAL_STORE, glb);
 
-    printf("%s\n", tokens[0]);
-
     tokens_cleanup(tokens);
     return 0;
   }
@@ -179,11 +172,9 @@ int exec(char *cmdline, struct Global *glb) {
 
     // Change state
     pthread_mutex_lock(&(glb->stateOut_mut));
-    glb->stateOut.screensaver = atoi(tokens[1]);
+    glb->stateOut.screensaver = (!strcmp("on", tokens[1]) || !strcmp("1", tokens[1])) ? 1 : 0;
     pthread_mutex_unlock(&(glb->stateOut_mut));
     deviceStateWrite(glb);
-
-    printf("%s = %d\n", tokens[0], (int)glb->stateOut.screensaver);
 
     tokens_cleanup(tokens);
     return 0;
@@ -198,8 +189,6 @@ int exec(char *cmdline, struct Global *glb) {
     pthread_mutex_unlock(&(glb->stateOut_mut));
     deviceStateWrite(glb);
 
-    printf("%s = %d\n", tokens[0], (int)glb->stateOut.tempStep);
-
     tokens_cleanup(tokens);
     return 0;
   }
@@ -213,8 +202,6 @@ int exec(char *cmdline, struct Global *glb) {
     pthread_mutex_unlock(&(glb->stateOut_mut));
     deviceStateWrite(glb);
 
-    printf("%s = %d\n", tokens[0], (int)glb->stateOut.tempTarget);
-
     tokens_cleanup(tokens);
     return 0;
   }
@@ -224,8 +211,6 @@ int exec(char *cmdline, struct Global *glb) {
 
     deviceCmd(SERIAL_START, glb);
 
-    printf("%s\n", tokens[0]);
-
     tokens_cleanup(tokens);
     return 0;
   }
@@ -234,8 +219,6 @@ int exec(char *cmdline, struct Global *glb) {
   if (!strcmp("off", tokens[0])) {
 
     deviceCmd(SERIAL_STOP, glb);
-
-    printf("%s\n", tokens[0]);
 
     tokens_cleanup(tokens);
     return 0;
@@ -250,8 +233,6 @@ int exec(char *cmdline, struct Global *glb) {
     pthread_mutex_unlock(&(glb->stateOut_mut));
     deviceStateWrite(glb);
 
-    printf("%s = %d\n", tokens[0], (int)glb->stateOut.splash);
-
     tokens_cleanup(tokens);
     return 0;
   }
@@ -264,8 +245,6 @@ int exec(char *cmdline, struct Global *glb) {
     glb->stateOut.fan = atoi(tokens[1]);
     pthread_mutex_unlock(&(glb->stateOut_mut));
     deviceStateWrite(glb);
-
-    printf("%s = %d\n", tokens[0], (int)glb->stateOut.fan);
 
     tokens_cleanup(tokens);
     return 0;
@@ -282,8 +261,6 @@ int exec(char *cmdline, struct Global *glb) {
     pthread_mutex_unlock(&(glb->stateOut_mut));
     deviceStateWrite(glb);
 
-    printf("%s = %d\n", tokens[0], (int)glb->stateOut.PID_enabled);
-
     tokens_cleanup(tokens);
     return 0;
   }
@@ -296,8 +273,6 @@ int exec(char *cmdline, struct Global *glb) {
     glb->stateOut.autostop = (!strcmp("on", tokens[1]) || !strcmp("1", tokens[1])) ? 1 : 0;
     pthread_mutex_unlock(&(glb->stateOut_mut));
     deviceStateWrite(glb);
-
-    printf("%s = %d\n", tokens[0], (int)glb->stateOut.autostop);
 
     tokens_cleanup(tokens);
     return 0;
@@ -312,8 +287,6 @@ int exec(char *cmdline, struct Global *glb) {
     glb->stateOut.cStop[1] = atof(tokens[2]);
     pthread_mutex_unlock(&(glb->stateOut_mut));
     deviceStateWrite(glb);
-
-    printf("%s %.8f %.8f\n", tokens[0], glb->stateOut.cStop[0], glb->stateOut.cStop[1]);
 
     tokens_cleanup(tokens);
     return 0;
@@ -330,8 +303,6 @@ int exec(char *cmdline, struct Global *glb) {
     pthread_mutex_unlock(&(glb->stateOut_mut));
     deviceStateWrite(glb);
 
-    printf("%s %.8f %.8f %.8f\n", tokens[0], glb->stateOut.cPID[0], glb->stateOut.cPID[1], glb->stateOut.cPID[2]);
-
     tokens_cleanup(tokens);
     return 0;
   }
@@ -346,8 +317,6 @@ int exec(char *cmdline, struct Global *glb) {
     glb->stateOut.heat = (glb->stateOut.heat > 255) ? 255 : glb->stateOut.heat;
     pthread_mutex_unlock(&(glb->stateOut_mut));
     deviceStateWrite(glb);
-
-    printf("%s = %d\n", tokens[0], (int)glb->stateOut.heat);
 
     tokens_cleanup(tokens);
     return 0;
@@ -390,8 +359,6 @@ int exec(char *cmdline, struct Global *glb) {
 
   // Encerrar
   if (!strcmp("exit", tokens[0]) || !strcmp("end", tokens[0])) {
-
-    printf("%s\n", tokens[0]);
 
     tokens_cleanup(tokens);
     return 1;
