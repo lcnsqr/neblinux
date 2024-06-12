@@ -24,7 +24,7 @@ for (var i = 0; i < calibPoints; i++)
   calibPointsValues.push(10 + Math.floor(170 * Math.sin(Math.PI * i/(calibPoints*2))))
 
 app.get('/', (req, res) => {
-  res.render('main', {title: "Configuração remota", calibPoints: calibPoints, calibPointsValues: calibPointsValues})
+  res.render('main', {title: "Interface de Configuração", calibPoints: calibPoints, calibPointsValues: calibPointsValues})
 })
 
 app.get('/command/:command/:timestamp', (req, res) => {

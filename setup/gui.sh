@@ -2,4 +2,4 @@
 
 echo "\nIniciando GUI..."
 cd gui
-exec node index.js
+exec node server.js

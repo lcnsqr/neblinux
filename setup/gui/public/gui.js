@@ -6,12 +6,25 @@
 var calibIndex = -1           // Ponto de calibragem ativo
 var calibEnabled = 0          // Calibragem em andamento
 var calibPointsLabels = []    // Valor do ponto em texto
-var calibPointsValues = []    // Valor do ponto em número
 // Usar os campos de calibragem presentes no documento para preencher as arrays
 document.querySelectorAll("#calibPoints input[type='number'].heat").forEach((p) => {
   calibPointsLabels.push(p.value)
-  calibPointsValues.push(Number(p.value))
 })
+
+if (localStorage.getItem("calibHeat") !== null){
+  calibPointsLabels = JSON.parse(localStorage.getItem("calibHeat"))
+}
+
+var calibPointsCore = [ 0, 0, 0, 0, 0, 0, 0, 0 ]
+if (localStorage.getItem("calibCore") !== null){
+  calibPointsCore = JSON.parse(localStorage.getItem("calibCore"))
+}
+
+var calibPointsProbe = [ 0, 0, 0, 0, 0, 0, 0, 0 ]
+if (localStorage.getItem("calibProbe") !== null){
+  calibPointsProbe = JSON.parse(localStorage.getItem("calibProbe"))
+}
+
 
 // Intervalo de atualização do estado via Websocket
 const updateInterval = 100 // milliseconds
@@ -150,13 +163,13 @@ var calibChart = new Chart(document.getElementById('calibChart'), {
       {
         label: 'Prévia',
         type: 'line',
-        data: [ 31.0717, 40.1702, 53.7266, 70.8701, 90.0546, 111.3144, 126.8766, 142.917 ],
+        data: calibPointsCore,
         borderWidth: 1
       },
       {
         label: 'Aferida',
         type: 'line',
-        data: [ 54, 103, 153, 196, 241, 279, 302, 325 ],
+        data: calibPointsProbe,
         borderWidth: 1
       }
 		]
@@ -370,7 +383,7 @@ document.querySelector('button#calibSwitch').addEventListener("click", function(
 
 document.querySelector('button#calibUse').addEventListener("click", function(event){
   // Pontos de calibragem (ponto extra para ancoragem em 25°C)
-  const CALIB_POINTS = calibPointsValues.length + 1
+  const CALIB_POINTS = calibPointsLabels.length + 1
   // Floats de 4 bytes
   let calibCore = _malloc(CALIB_POINTS*4)
   let calibProbe = _malloc(CALIB_POINTS*4)
@@ -484,7 +497,13 @@ document.querySelector('button#eepromReset').addEventListener("click", function(
 })
 
 document.querySelector('button#eepromStore').addEventListener("click", function(event){
+
   exec("store")
+
+  // Preservar valores em tela para futuras sessões
+  localStorage.setItem("calibCore", JSON.stringify(calibChart.data.datasets[0].data))
+  localStorage.setItem("calibProbe", JSON.stringify(calibChart.data.datasets[1].data))
+  localStorage.setItem("calibHeat", JSON.stringify(calibChart.data.labels))
 })
 
 /*
