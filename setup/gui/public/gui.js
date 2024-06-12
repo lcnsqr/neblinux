@@ -203,7 +203,7 @@ var calibChart = new Chart(document.getElementById('calibChart'), {
 var derivChart = new Chart(document.getElementById('derivChart'), {
   type: 'bar',
 	data: {
-  labels: ['Core', 'Sonda', 'Carga'],
+  labels: ['Prévia', 'Sonda', 'Carga'],
 		datasets: [
       {
         label: 'Estável se próximo a zero',
@@ -232,10 +232,10 @@ var derivChart = new Chart(document.getElementById('derivChart'), {
 var autostopChart = new Chart(document.getElementById('autostopChart'), {
   type: 'bar',
 	data: {
-  labels: ['Linear', 'Angular'],
+  labels: ['Temperatura', 'Aquecimento'],
 		datasets: [
       {
-        label: 'Componentes da regressão linear do aquecimento',
+        label: 'Coeficientes lineares de temperatura e aquecimento',
         data: [0, 0],
         borderWidth: 1
       }
@@ -245,7 +245,7 @@ var autostopChart = new Chart(document.getElementById('autostopChart'), {
     plugins: {
       title: {
         display: false,
-        text: 'Regressão linear do aquecimento'
+        text: 'Regressão linear da temperatura e aquecimento'
       }
     },
 		scales: {
@@ -468,7 +468,7 @@ document.querySelector("input#calibManual").addEventListener("change", function(
 })
 
 document.querySelectorAll('#calibPoints input[type="number"].manual').forEach((p) => {
-  p.value = calibChart.data.datasets[1].data[p.dataset.index]
+  p.value = Math.round(Number(calibChart.data.datasets[1].data[p.dataset.index]))
 
   // Saltar para o ponto correspondente ao ganhar foco
   p.addEventListener("focus", function(event){
