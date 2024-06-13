@@ -235,7 +235,7 @@ var autostopChart = new Chart(document.getElementById('autostopChart'), {
   labels: ['Temperatura', 'Aquecimento'],
 		datasets: [
       {
-        label: 'Coeficientes lineares de temperatura e aquecimento',
+        label: 'Coeficientes lineares no tempo',
         data: [0, 0],
         borderWidth: 1
       }
@@ -250,8 +250,8 @@ var autostopChart = new Chart(document.getElementById('autostopChart'), {
     },
 		scales: {
 			y: {
-				min: -0.1,
-				max: 0.1
+				min: -0.04,
+				max: 0.04
 			}
 		}
 	}
@@ -307,6 +307,12 @@ document.getElementById("pidEnabled").addEventListener("change", (e) => {
 document.getElementById('target').addEventListener("keydown", (e) => {
   if (e.keyCode == 13)
     exec("target " + e.srcElement.value)
+})
+
+// Modificar carga na resistência quando PID desativado
+document.getElementById('heatLoad').addEventListener("keydown", (e) => {
+  if (e.keyCode == 13 && !document.querySelector("input#pidEnabled").checked)
+    exec("heat " + e.srcElement.value)
 })
 
 // Parâmetros do PID
@@ -442,7 +448,6 @@ document.querySelectorAll('#calibPoints input[type="number"].heat').forEach((p) 
     if ( document.querySelector('button#calibSwitch').dataset.state == "1" 
       && document.querySelector('#calibPoints input[type="radio"][value="'+this.dataset.index+'"]').checked )
     {
-      console.log(this.value)
       exec("heat "+this.value)
     }
 
@@ -551,15 +556,15 @@ var Module = {
       }
 
       // Gráfico de temperaturas alvo e saída
-      tempChartA.data.datasets[0].label = "Alvo: "+data.tempTarget
-      tempChartA.data.datasets[1].label = "Saída: "+Math.round(Number(data.tempEx))
+      tempChartA.data.datasets[0].label = "Alvo: "+data.tempTarget+" °C"
+      tempChartA.data.datasets[1].label = "Saída: "+Math.round(Number(data.tempEx))+" °C"
       tempChartA.data.datasets[0].data[chartHistorySize-1].y = data.tempTarget
       tempChartA.data.datasets[1].data[chartHistorySize-1].y = data.tempEx
       tempChartA.update('none')
 
       // Gráfico de temperatura Prévia e Sonda
-      tempChartB.data.datasets[0].label = "Prévia: "+Math.round(Number(data.tempCore));
-      tempChartB.data.datasets[1].label = "Sonda: "+Math.round(tempProbeValue);
+      tempChartB.data.datasets[0].label = "Prévia: "+Math.round(Number(data.tempCore))+" °C"
+      tempChartB.data.datasets[1].label = "Sonda: "+Math.round(tempProbeValue)+" °C"
       tempChartB.data.datasets[0].data[chartHistorySize-1].y = data.tempCore
       tempChartB.data.datasets[1].data[chartHistorySize-1].y = tempProbeValue
       tempChartB.update('none')
@@ -633,8 +638,8 @@ var Module = {
       // os pontos recentes da carga na resistência
       if ( Boolean(Number(data.on)) && Boolean(Number(data.PID_enabled)) ){
         // Atualizar apenas se PID ativo e soprando
-        autostopChart.data.labels[0] = "Linear: "+data.sStop[0]
-        autostopChart.data.labels[1] = "Angular: "+data.sStop[1]
+        autostopChart.data.labels[0] = "Temperatura: "+data.sStop[0]
+        autostopChart.data.labels[1] = "Aquecimento: "+data.sStop[1]
         autostopChart.data.datasets[0].data = [
           data.sStop[0],
           data.sStop[1]
