@@ -328,14 +328,29 @@ document.querySelectorAll(".cPID").forEach((input) => {
 
 // Coeficientes de temperatura
 document.querySelectorAll(".cTemp").forEach((input) => {
+
   input.addEventListener("keydown", (e) => {
-    if (e.keyCode == 13)
+    if (e.keyCode == 13){
+
       exec("ctemp"
         + " " + document.getElementById("cTemp0").value
         + " " + document.getElementById("cTemp1").value
         + " " + document.getElementById("cTemp2").value
         + " " + document.getElementById("cTemp3").value)
+
+      // Atualizar gráfico de calibragem ao mexer nos coeficientes
+      for(let i = 0; i < calibPointsCore.length; ++i){
+        calibChart.data.datasets[1].data[i] = 
+            Number(document.getElementById("cTemp0").value)
+          + Number(document.getElementById("cTemp1").value) * calibChart.data.datasets[0].data[i]
+          + Number(document.getElementById("cTemp2").value) * Math.pow(calibChart.data.datasets[0].data[i], 2)
+          + Number(document.getElementById("cTemp3").value) * Math.pow(calibChart.data.datasets[0].data[i], 3)
+      }
+      calibChart.update()
+
+    }
   })
+
 })
 
 // Autostop on/off
