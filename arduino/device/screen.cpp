@@ -166,10 +166,12 @@ void scrMain::show() {
     // 9 pixel height
     display->setFont(u8g2_font_6x13_mr);
 
-    str = String("'C");
-    display->drawUTF8(
-        (int)(round((float)(128 - display->getUTF8Width(str.c_str())) / 2.0)),
-        46, str.c_str());
+    // C = Celsius
+    str = String("C");
+    display->drawUTF8(65, 46, str.c_str());
+
+    // Círculo para o símbolo de grau °
+    display->drawCircle(60, 39, 2);
 
     // Status message
     str = String(session->state.elapsed / 60) + "m" +
