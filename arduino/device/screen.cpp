@@ -41,8 +41,8 @@ void Screen::saver() {
     }
 
     // Colisões de fronteira
-    session->ss.d[i][0] *= (session->ss.p[i][0] + session->ss.d[i][0] > 2 && session->ss.p[i][0] + session->ss.d[i][0] < display->getDisplayWidth()) ? 1 : -1;
-    session->ss.d[i][1] *= (session->ss.p[i][1] + session->ss.d[i][1] > 2 && session->ss.p[i][1] + session->ss.d[i][1] < display->getDisplayHeight()) ? 1 : -1;
+    session->ss.d[i][0] *= (session->ss.p[i][0] + session->ss.d[i][0] > 2 && session->ss.p[i][0] + session->ss.d[i][0] < display->getDisplayWidth()-2) ? 1 : -1;
+    session->ss.d[i][1] *= (session->ss.p[i][1] + session->ss.d[i][1] > 2 && session->ss.p[i][1] + session->ss.d[i][1] < display->getDisplayHeight()-2) ? 1 : -1;
 
     // Deslocar
     session->ss.p[i][0] += session->ss.d[i][0]/pow((float)(i+1), 4);

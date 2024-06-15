@@ -59,7 +59,7 @@ void setup() {
   tasks.tasks[4] = &autostop;
 
   // Random seed
-  randomSeed(analogRead(3));
+  randomSeed(analogRead(A0));
 }
 
 void loop() { tasks.run(); }
