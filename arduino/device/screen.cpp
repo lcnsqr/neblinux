@@ -15,8 +15,11 @@ void Screen::saver() {
   display->firstPage();
   do {
 
-    for (int i = 0; i < 2; ++i)
-      display->drawDisc(round(session->ss.p[i][0]), round(session->ss.p[i][1]), 1+i);
+    //for (int i = 0; i < 2; ++i)
+    //  display->drawDisc(round(session->ss.p[i][0]), round(session->ss.p[i][1]), 1+i);
+
+    // Mostrar só o primeiro ponto
+    display->drawDisc(round(session->ss.p[0][0]), round(session->ss.p[0][1]), 1);
 
   } while (display->nextPage());
 

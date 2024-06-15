@@ -32,9 +32,6 @@ Monitor::Monitor(Session *session, Screen *screen, int btTop, int btFront,
   started = 0;
   elapsed = 0;
 
-  // Screensaver
-  screensaver = 0;
-  screensaver_idle_since = millis();
 }
 
 void Monitor::action() {
@@ -142,43 +139,43 @@ void Monitor::action() {
   btTopSt[0] = btTopSt[1]; // Copiar estado anterior do botão superior
   btTopSt[1] = (digitalRead(btTop) == LOW) ? 1 : 0; // LOW é pressionado
   if (btTopSt[0] == 1 && btTopSt[1] == 0) {
-    if (!screensaver) {
+    if (!session->screensaver) {
       screen = screen->btTop(); // Botão pra cima
     }
     session->changed = true;
-    screensaver_idle_since = millis();
-    screensaver = 0;
+    session->screensaver_idle_since = millis();
+    session->screensaver = 0;
   }
   btFrontSt[0] = btFrontSt[1]; // Copiar estador anterior do botão frontal
   btFrontSt[1] = (digitalRead(btFront) == LOW) ? 1 : 0; // LOW é pressionado
   if (btFrontSt[0] == 1 && btFrontSt[1] == 0) {
-    if (!screensaver) {
+    if (!session->screensaver) {
       screen = screen->btFront(); // Botão pra cima
     }
     session->changed = true;
-    screensaver_idle_since = millis();
-    screensaver = 0;
+    session->screensaver_idle_since = millis();
+    session->screensaver = 0;
   }
 
   // Resposta ao rotary também depende da tela atual.
   // O estado está em *encoderMove* no caso do rotary encoder.
   if (encoderMove >= encoderLocal + 4) {
-    if (!screensaver) {
+    if (!session->screensaver) {
       encoderLocal = encoderMove;
       screen->rotate(1);
     }
     session->changed = true;
-    screensaver_idle_since = millis();
-    screensaver = 0;
+    session->screensaver_idle_since = millis();
+    session->screensaver = 0;
   }
   if (encoderMove <= encoderLocal - 4) {
-    if (!screensaver) {
+    if (!session->screensaver) {
       encoderLocal = encoderMove;
       screen->rotate(0);
     }
     session->changed = true;
-    screensaver_idle_since = millis();
-    screensaver = 0;
+    session->screensaver_idle_since = millis();
+    session->screensaver = 0;
   }
 
   if (millis() > 2000 && millis() < 2100) {
@@ -187,12 +184,12 @@ void Monitor::action() {
     session->changed = true;
   }
 
-  if (millis() - screensaver_idle_since > screensaver_max_idle_time && session->state.screensaver && !session->running()) {
-    screensaver = 1;
+  if (millis() - session->screensaver_idle_since > session->screensaver_max_idle_time && session->state.screensaver && !session->running()) {
+    session->screensaver = 1;
     screen->saver();
   }
 
-  if (session->changed && !screensaver) {
+  if (session->changed && !session->screensaver) {
     // Exibir mudanças na tela ativa
     screen->show();
     // Mudanças exibidas

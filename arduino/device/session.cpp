@@ -35,9 +35,14 @@ Session::Session() {
 
   state.tempStep = 1;
 
-  // Descanso de tela
+  // Descanso de tela permitido
   state.screensaver = 1;
-  // Pontos
+
+  // Mostrando o descanso de tela
+  screensaver = 0;
+  screensaver_idle_since = millis();
+
+  // Animação de dois pontos
   ss.p[0][0] = random(10, 118);
   ss.p[0][1] = random(10,  54);
   ss.p[1][0] = random(10, 118);

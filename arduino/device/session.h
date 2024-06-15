@@ -52,6 +52,11 @@ public:
   // 0x11 → Recebimento de estado da sessão
   uint8_t serialIn;
 
+  // Intervalo do protetor de tela
+  static const int32_t screensaver_max_idle_time = 6000;
+  int32_t screensaver_idle_since;
+  uint8_t screensaver;
+
   // Estado da proteção de tela
   struct {
     // Ponto dinâmico e ponto fixo
@@ -59,7 +64,7 @@ public:
     // Direção do ponto
     float d[2][2];
     // Maior deslocamento possível num passo
-    static const float L = 4.0;
+    static const float L = 3.0;
   } ss;
 };
 

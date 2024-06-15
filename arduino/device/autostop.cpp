@@ -57,6 +57,12 @@ void Autostop::action() {
       session->state.tempEx > session->state.tempTarget &&
       session->state.sStop[0] > g * session->state.cStop[0] &&
       session->state.sStop[1] < g * session->state.cStop[1] &&
-      (millis() / 1000) - session->state.targetLastChange > targetMinSec)
+      (millis() / 1000) - session->state.targetLastChange > targetMinSec){
+
+    // Zerar contagem do screensaver de tempo inativo
+    session->screensaver_idle_since = millis();
+
+    // Parar enchimento
     session->stop();
+  }
 }
