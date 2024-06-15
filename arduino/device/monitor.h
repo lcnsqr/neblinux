@@ -20,7 +20,7 @@ private:
   Session *session;
 
   // Intervalo do protetor de tela
-  static const int32_t screensaver_max_idle_time = 180000;
+  static const int32_t screensaver_max_idle_time = 60000;
   int32_t screensaver_idle_since;
   uint8_t screensaver;
 

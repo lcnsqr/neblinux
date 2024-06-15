@@ -15,8 +15,8 @@ void Screen::saver() {
   display->firstPage();
   do {
 
-    display->drawDisc((int)session->ss.p[0][0], (int)session->ss.p[0][1], 1);
-    display->drawDisc((int)session->ss.p[1][0], (int)session->ss.p[1][1], 2);
+    for (int i = 0; i < 2; ++i)
+      display->drawDisc(round(session->ss.p[i][0]), round(session->ss.p[i][1]), 1+i);
 
   } while (display->nextPage());
 
@@ -42,8 +42,8 @@ void Screen::saver() {
     session->ss.d[i][1] *= (session->ss.p[i][1] + session->ss.d[i][1] > 2 && session->ss.p[i][1] + session->ss.d[i][1] < display->getDisplayHeight()) ? 1 : -1;
 
     // Deslocar
-    session->ss.p[i][0] += session->ss.d[i][0]/pow((float)(i+1), 3);
-    session->ss.p[i][1] += session->ss.d[i][1]/pow((float)(i+1), 3);
+    session->ss.p[i][0] += session->ss.d[i][0]/pow((float)(i+1), 4);
+    session->ss.p[i][1] += session->ss.d[i][1]/pow((float)(i+1), 4);
   }
 }
 
