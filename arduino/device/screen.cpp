@@ -1,6 +1,7 @@
 #include "screen.h"
 #include "display.h"
 #include "session.h"
+#include <Arduino.h>
 
 Screen::Screen(Session *session, U8G2_SH1106_128X64_NONAME_2_HW_I2C *display)
     : session(session), display(display) {
@@ -14,33 +15,36 @@ void Screen::saver() {
   display->firstPage();
   do {
 
-    display->drawDisc(session->ss.pos[0], session->ss.pos[1], 1);
+    display->drawDisc((int)session->ss.p[0][0], (int)session->ss.p[0][1], 1);
+    display->drawDisc((int)session->ss.p[1][0], (int)session->ss.p[1][1], 2);
 
   } while (display->nextPage());
 
-  // Dimensão auxiliar na rotação da direção
-  int dir;
+  // Tamanhos da atração e deslocamento
+  float g, l;
 
+  for (int i = 0; i < 2; ++i){
+    g = (pow(session->ss.p[(i+1)%2][0]-session->ss.p[i][0], 2) + pow(session->ss.p[(i+1)%2][1]-session->ss.p[0][1], 2));
 
-  session->ss.dir[0] *= (session->ss.pos[0] + session->ss.dir[0] > 2 &&
-    session->ss.pos[0] + session->ss.dir[0] < display->getDisplayWidth()) ? 1 : -1;
-  session->ss.pos[0] += session->ss.dir[0];
-  session->ss.dir[1] *= (session->ss.pos[1] + session->ss.dir[1] > 2 &&
-    session->ss.pos[1] + session->ss.dir[1] < display->getDisplayHeight()) ? 1 : -1;
-  session->ss.pos[1] += session->ss.dir[1];
+    // Deslocamento dos pontos
+    session->ss.d[i][0] += (session->ss.p[(i+1)%2][0]-session->ss.p[i][0])/g;
+    session->ss.d[i][1] += (session->ss.p[(i+1)%2][1]-session->ss.p[i][1])/g;
 
-  if (millis() % 433 == 0) {
-    dir = session->ss.dir[1];
-    session->ss.dir[1] = -session->ss.dir[0];
-    session->ss.dir[0] = dir;
+    // Limitar velocidade
+    l = sqrt(pow(session->ss.d[i][0], 2) + pow(session->ss.d[i][1], 2));
+    if ( l > session->ss.L ){
+      session->ss.d[i][0] = session->ss.L * session->ss.d[i][0] / l;
+      session->ss.d[i][1] = session->ss.L * session->ss.d[i][1] / l;
+    }
+
+    // Colisões de fronteira
+    session->ss.d[i][0] *= (session->ss.p[i][0] + session->ss.d[i][0] > 2 && session->ss.p[i][0] + session->ss.d[i][0] < display->getDisplayWidth()) ? 1 : -1;
+    session->ss.d[i][1] *= (session->ss.p[i][1] + session->ss.d[i][1] > 2 && session->ss.p[i][1] + session->ss.d[i][1] < display->getDisplayHeight()) ? 1 : -1;
+
+    // Deslocar
+    session->ss.p[i][0] += session->ss.d[i][0]/pow((float)(i+1), 3);
+    session->ss.p[i][1] += session->ss.d[i][1]/pow((float)(i+1), 3);
   }
-
-  if (millis() % 431 == 0) {
-    dir = -session->ss.dir[1];
-    session->ss.dir[1] = session->ss.dir[0];
-    session->ss.dir[0] = dir;
-  }
-
 }
 
 /***

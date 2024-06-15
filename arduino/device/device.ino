@@ -57,6 +57,9 @@ void setup() {
   tasks.tasks[2] = &fan;
   tasks.tasks[3] = &heater;
   tasks.tasks[4] = &autostop;
+
+  // Random seed
+  randomSeed(analogRead(3));
 }
 
 void loop() { tasks.run(); }

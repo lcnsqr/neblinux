@@ -1,16 +1,12 @@
 #include "session.h"
 #include <EEPROM.h>
+#include <Arduino.h>
 
 Session::Session() {
 
   changed = false;
 
   serialIn = 0x00;
-
-  ss.pos[0] = 64;
-  ss.pos[1] = 32;
-  ss.dir[0] = 2;
-  ss.dir[1] = 1;
 
   state.serialCheck = SERIAL_TAG;
 
@@ -41,6 +37,20 @@ Session::Session() {
 
   // Descanso de tela
   state.screensaver = 1;
+  // Pontos
+  ss.p[0][0] = random(10, 118);
+  ss.p[0][1] = random(10,  54);
+  ss.p[1][0] = random(10, 118);
+  ss.p[1][1] = random(10,  54);
+  // Ângulo aleatório
+  float a[2];
+  a[0] = (2.0 * M_PI * (float)random(1024))/1024.0;
+  a[1] = (2.0 * M_PI * (float)random(1024))/1024.0;
+  // Direção dos pontos
+  ss.d[0][0] = cos(a[0]);
+  ss.d[0][1] = sin(a[0]);
+  ss.d[1][0] = cos(a[1]);
+  ss.d[1][1] = sin(a[1]);
 
   state.targetLastChange = 0;
 

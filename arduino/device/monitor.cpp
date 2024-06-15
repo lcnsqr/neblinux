@@ -43,8 +43,6 @@ void Monitor::action() {
   if ( session->serialIn == SERIAL_NONE ) {
     if (Serial.available() > 0 ){
       Serial.readBytes((char *)&(session->serialIn), 1);
-      screensaver_idle_since = millis();
-      screensaver = 0;
     }
   }
 
@@ -189,7 +187,7 @@ void Monitor::action() {
     session->changed = true;
   }
 
-  if (millis() - screensaver_idle_since > screensaver_max_idle_time && session->state.screensaver) {
+  if (millis() - screensaver_idle_since > screensaver_max_idle_time && session->state.screensaver && !session->running()) {
     screensaver = 1;
     screen->saver();
   }
