@@ -35,17 +35,17 @@ void Screen::saver() {
   // Para cada ponto
   for (int i = 0; i < 2; ++i){
 
-    // Atração
+    // Medida de distância entre pontos para aceleração
     g = (pow(session->ss.p[(i+1)%2][0]-session->ss.p[i][0], 2) + pow(session->ss.p[(i+1)%2][1]-session->ss.p[i][1], 2));
+
+    // Limitar se distância muito curta ou muito longa
+    g = constrain(g, 1e-1, 1e+4);
 
     // Para cada dimensão
     for (int j = 0; j < 2; ++j){
 
       // Deslocamento dos pontos
       session->ss.d[i][j] += (session->ss.p[(i+1)%2][j]-session->ss.p[i][j])/g;
-
-      // Limitar deslocamento na dimensão
-      if ( session->ss.d[i][j] > session->ss.L ) session->ss.d[i][j] = session->ss.L;
 
       // Colisões de fronteira
       session->ss.d[i][j] *= (session->ss.p[i][j] + session->ss.d[i][j] > 2 && session->ss.p[i][j] + session->ss.d[i][j] < s[j]-2) ? 1 : -0.5;

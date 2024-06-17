@@ -63,8 +63,6 @@ public:
     float p[2][2];
     // Direção do ponto
     float d[2][2];
-    // Maior deslocamento possível num passo
-    static const float L = 5.0;
   } ss;
 };
 
