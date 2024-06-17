@@ -15,38 +15,45 @@ void Screen::saver() {
   display->firstPage();
   do {
 
-    //for (int i = 0; i < 2; ++i)
-    //  display->drawDisc(round(session->ss.p[i][0]), round(session->ss.p[i][1]), 1+i);
+    // Mostrar só o ponto leve
+    //display->drawDisc(round(session->ss.p[0][0]), round(session->ss.p[0][1]), 1);
 
-    // Mostrar só o primeiro ponto
-    display->drawDisc(round(session->ss.p[0][0]), round(session->ss.p[0][1]), 1);
+    // Mostrar ambos
+    for (int i = 0; i < 2; ++i)
+      display->drawDisc(round(session->ss.p[i][0]), round(session->ss.p[i][1]), 1+i);
 
   } while (display->nextPage());
 
-  // Tamanhos da atração e deslocamento
-  float g, l;
+  // Tamanhos da atração
+  float g;
 
+  // Limites
+  int s[2];
+  s[0] = display->getDisplayWidth();
+  s[1] = display->getDisplayHeight();
+
+  // Para cada ponto
   for (int i = 0; i < 2; ++i){
-    g = (pow(session->ss.p[(i+1)%2][0]-session->ss.p[i][0], 2) + pow(session->ss.p[(i+1)%2][1]-session->ss.p[0][1], 2));
 
-    // Deslocamento dos pontos
-    session->ss.d[i][0] += (session->ss.p[(i+1)%2][0]-session->ss.p[i][0])/g;
-    session->ss.d[i][1] += (session->ss.p[(i+1)%2][1]-session->ss.p[i][1])/g;
+    // Atração
+    g = (pow(session->ss.p[(i+1)%2][0]-session->ss.p[i][0], 2) + pow(session->ss.p[(i+1)%2][1]-session->ss.p[i][1], 2));
 
-    // Limitar velocidade
-    l = sqrt(pow(session->ss.d[i][0], 2) + pow(session->ss.d[i][1], 2));
-    if ( l > session->ss.L ){
-      session->ss.d[i][0] = session->ss.L * session->ss.d[i][0] / l;
-      session->ss.d[i][1] = session->ss.L * session->ss.d[i][1] / l;
+    // Para cada dimensão
+    for (int j = 0; j < 2; ++j){
+
+      // Deslocamento dos pontos
+      session->ss.d[i][j] += (session->ss.p[(i+1)%2][j]-session->ss.p[i][j])/g;
+
+      // Limitar deslocamento na dimensão
+      if ( session->ss.d[i][j] > session->ss.L ) session->ss.d[i][j] = session->ss.L;
+
+      // Colisões de fronteira
+      session->ss.d[i][j] *= (session->ss.p[i][j] + session->ss.d[i][j] > 2 && session->ss.p[i][j] + session->ss.d[i][j] < s[j]-2) ? 1 : -0.5;
+
+      // Deslocar
+      session->ss.p[i][j] += session->ss.d[i][j]/pow((float)(i+1), 4);
+
     }
-
-    // Colisões de fronteira
-    session->ss.d[i][0] *= (session->ss.p[i][0] + session->ss.d[i][0] > 2 && session->ss.p[i][0] + session->ss.d[i][0] < display->getDisplayWidth()-2) ? 1 : -1;
-    session->ss.d[i][1] *= (session->ss.p[i][1] + session->ss.d[i][1] > 2 && session->ss.p[i][1] + session->ss.d[i][1] < display->getDisplayHeight()-2) ? 1 : -1;
-
-    // Deslocar
-    session->ss.p[i][0] += session->ss.d[i][0]/pow((float)(i+1), 4);
-    session->ss.p[i][1] += session->ss.d[i][1]/pow((float)(i+1), 4);
   }
 }
 

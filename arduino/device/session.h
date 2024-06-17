@@ -59,12 +59,12 @@ public:
 
   // Estado da proteção de tela
   struct {
-    // Ponto dinâmico e ponto fixo
+    // Ponto leve e ponto pesado
     float p[2][2];
     // Direção do ponto
     float d[2][2];
     // Maior deslocamento possível num passo
-    static const float L = 3.0;
+    static const float L = 5.0;
   } ss;
 };
 
