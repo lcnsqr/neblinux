@@ -2,6 +2,7 @@
 #define Session_h
 
 #include "state.h"
+#include <math.h>
 
 // Estrutura para armazenar na EEPROM
 struct Settings {
@@ -57,12 +58,22 @@ public:
   int32_t screensaver_idle_since;
   uint8_t screensaver;
 
-  // Estado da proteção de tela
+  // Passo da animação do descanso de tela
   struct {
-    // Ponto leve e ponto pesado
-    float p[2][2];
-    // Direção do ponto
-    float d[2][2];
+    // Pontos
+    static const int P = 80;
+    // Raio final
+    static const int R = 60;
+    // Radius step
+    static const float rho = (float)R/(float)P;
+    // The Golden Angle
+    static const float phi = (1.0 + (1.0-sqrt(5.0))/2.0) * 2.0 * M_PI;
+    // Angle
+    float a;
+    // Initial radius
+    float r;
+    // Passo da animação
+    float s;
   } ss;
 };
 

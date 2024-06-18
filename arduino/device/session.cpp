@@ -42,21 +42,6 @@ Session::Session() {
   screensaver = 0;
   screensaver_idle_since = millis();
 
-  // Animação de dois pontos
-  ss.p[0][0] = random(10, 118);
-  ss.p[0][1] = random(10,  54);
-  ss.p[1][0] = random(10, 118);
-  ss.p[1][1] = random(10,  54);
-  // Ângulo aleatório
-  float a[2];
-  a[0] = (2.0 * M_PI * (float)random(1024))/1024.0;
-  a[1] = (2.0 * M_PI * (float)random(1024))/1024.0;
-  // Direção dos pontos
-  ss.d[0][0] = cos(a[0]);
-  ss.d[0][1] = sin(a[0]);
-  ss.d[1][0] = cos(a[1]);
-  ss.d[1][1] = sin(a[1]);
-
   state.targetLastChange = 0;
 
   state.splash = 1;

@@ -12,49 +12,38 @@ void Screen::clear() { display->clear(); }
 
 void Screen::saver() {
 
+  int x, y;
+
   display->firstPage();
   do {
 
-    // Mostrar só o ponto leve
-    //display->drawDisc(round(session->ss.p[0][0]), round(session->ss.p[0][1]), 1);
+    session->ss.a = session->ss.phi;
+    session->ss.r = session->ss.rho + 4;
 
-    // Mostrar ambos
-    for (int i = 0; i < 2; ++i)
-      display->drawDisc(round(session->ss.p[i][0]), round(session->ss.p[i][1]), 1+i);
+    for (int i = 0; i < session->ss.P; ++i){
+
+      x = 64 + (int)round(session->ss.r * cos(session->ss.a));
+      y = 32 + (int)round(session->ss.r * sin(session->ss.a));
+
+      if (x >= 0 && x < 128 && y >= 0 && y < 64)
+        display->drawPixel(x, y);
+
+      // Turn angle
+      session->ss.a += (session->ss.phi + session->ss.s);
+
+      // Angle modulo
+      if ( session->ss.a > 2.0*M_PI ) session->ss.a = session->ss.a - 2.0*M_PI;
+
+      // Grow radius
+      session->ss.r += session->ss.rho;
+
+    }
+
+    session->ss.s += (session->ss.phi * 5e-5);
+    if ( session->ss.s >= session->ss.phi ) session->ss.s = 0;
 
   } while (display->nextPage());
 
-  // Tamanhos da atração
-  float g;
-
-  // Limites
-  int s[2];
-  s[0] = display->getDisplayWidth();
-  s[1] = display->getDisplayHeight();
-
-  // Para cada ponto
-  for (int i = 0; i < 2; ++i){
-
-    // Medida de distância entre pontos para aceleração
-    g = (pow(session->ss.p[(i+1)%2][0]-session->ss.p[i][0], 2) + pow(session->ss.p[(i+1)%2][1]-session->ss.p[i][1], 2));
-
-    // Limitar se distância muito curta ou muito longa
-    g = constrain(g, 1e-1, 1e+4);
-
-    // Para cada dimensão
-    for (int j = 0; j < 2; ++j){
-
-      // Deslocamento dos pontos
-      session->ss.d[i][j] += (session->ss.p[(i+1)%2][j]-session->ss.p[i][j])/g;
-
-      // Colisões de fronteira
-      session->ss.d[i][j] *= (session->ss.p[i][j] + session->ss.d[i][j] > 2 && session->ss.p[i][j] + session->ss.d[i][j] < s[j]-2) ? 1 : -0.5;
-
-      // Deslocar
-      session->ss.p[i][j] += session->ss.d[i][j]/pow((float)(i+1), 4);
-
-    }
-  }
 }
 
 /***
