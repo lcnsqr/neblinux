@@ -39,8 +39,8 @@ void Screen::saver() {
 
     }
 
-    session->ss.s += (session->ss.phi * 5e-5);
-    if ( session->ss.s >= session->ss.phi ) session->ss.s = 0;
+    session->ss.s += (2.0*M_PI * 1e-5);
+    if ( session->ss.s >= 2.0*M_PI ) session->ss.s = 0;
 
   } while (display->nextPage());
 
