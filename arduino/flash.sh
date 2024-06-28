@@ -1,6 +1,7 @@
 #!/bin/bash
 
 AVRDUDE=`which avrdude`
+PORT=/dev/ttyUSB0
 
 if [ ! -x "$AVRDUDE" ]
 then
@@ -8,4 +9,4 @@ then
   exit 1
 fi
 
-$AVRDUDE -C avrdude.conf -v -p atmega328p -c arduino -P /dev/ttyUSB0 -b 57600 -D -U flash:w:device.hex:i
+$AVRDUDE -C avrdude.conf -v -p atmega328p -c arduino -P $PORT -b 57600 -D -U flash:w:device.hex:i
