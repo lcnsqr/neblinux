@@ -31,7 +31,7 @@ if (localStorage.getItem("calibProbe") !== null){
 
 
 // Intervalo de atualização do estado via Websocket
-const updateInterval = 100 // milliseconds
+const updateInterval = 200 // milliseconds
 
 // Os gráficos de temperatura e aquecimemto exibem os últimos chartHistorySize pontos.
 // O tempo de duração do histórico depende do intervalo de atualização.
