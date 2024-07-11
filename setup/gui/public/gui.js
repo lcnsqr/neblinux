@@ -13,6 +13,10 @@ document.querySelectorAll("#calibPoints input[type='number'].heat").forEach((p) 
 
 if (localStorage.getItem("calibHeat") !== null){
   calibPointsLabels = JSON.parse(localStorage.getItem("calibHeat"))
+  // Atualizar nos campos
+  document.querySelectorAll("#calibPoints input[type='number'].heat").forEach((p) => {
+    p.value = calibPointsLabels[p.dataset.index]
+  })
 }
 
 var calibPointsCore = [ 0, 0, 0, 0, 0, 0, 0, 0 ]
