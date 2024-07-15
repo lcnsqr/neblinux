@@ -57,6 +57,12 @@ struct Global {
   char pathProbe[32];
   int portProbe;
 
+  // Sonda utilizada
+  // 0 : none
+  // 1 : uno
+  // 2 : ta612c
+  char probe;
+
   // PID do processo filho assumido pela GUI
   int PIDGUI;
 

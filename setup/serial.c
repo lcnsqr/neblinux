@@ -30,15 +30,24 @@ void *pthread_updateProbe(void *arg) {
 
   glb->portProbe = open(glb->pathProbe, O_RDWR);
 
-  //int init_tty_return = init_tty(glb->portProbe, B115200);
-  int init_tty_return = init_tty(glb->portProbe, B9600);
+  // Baud rate da sonda
+  int init_tty_return;
+  if ( glb->probe == 1 )
+    init_tty_return = init_tty(glb->portProbe, B115200);
+  else if ( glb->probe == 2 )
+    init_tty_return = init_tty(glb->portProbe, B9600);
+
   if (init_tty_return != 0) {
     fprintf(stderr, "ERROR; return code from init_tty() on %s is %d\n", glb->pathProbe, init_tty_return);
   }
 
   while (!glb->exit) {
-    //probeRead_MAX6675(glb);
-    probeRead_TA612c(glb);
+
+    if ( glb->probe == 1 )
+      probeRead_MAX6675(glb);
+    else if ( glb->probe == 2 )
+      probeRead_TA612c(glb);
+
     usleep(150e+3);
   }
 
