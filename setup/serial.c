@@ -178,7 +178,7 @@ void deviceStateRead(struct Global *glb){
   glb->stateOut.tempStep = stateLocal.tempStep;
   glb->stateOut.fan = stateLocal.fan;
   glb->stateOut.PID_enabled = stateLocal.PID_enabled;
-  glb->stateOut.heat = (stateLocal.PID_enabled) ? 0 : stateLocal.cPID[4];
+  glb->stateOut.heat = (stateLocal.PID_enabled) ? 0 : stateLocal.PID[4];
   glb->stateOut.cTemp[0] = stateLocal.cTemp[0];
   glb->stateOut.cTemp[1] = stateLocal.cTemp[1];
   glb->stateOut.cTemp[2] = stateLocal.cTemp[2];
