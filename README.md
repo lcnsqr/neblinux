@@ -2,7 +2,7 @@ Neblinux
 
 Firmware para Arduino Nano (ATmega328p) e utilitário de configuração.
 
-== Instruções de compilação ==
+## Instruções de compilação
 
     git clone https://github.com/lcnsqr/neblinux.git
     cd neblinux
