@@ -320,6 +320,8 @@ MainWindow::MainWindow(QWidget *parent)
     cTempHeader->setStyleSheet("margin-top: 24px;");
     ui->middle->addWidget(cTempHeader);
     ui->middle->addWidget(formCTemp);
+    // Generate coefficients from initial points
+    calibFitPoints();
 
 
     // Heating element load chart
@@ -448,6 +450,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(probeThread, &QThread::finished, probe, &QObject::deleteLater);
     connect(probe, &Probe::finished, probeThread, &QThread::quit);
     connect(ui->probeConnect, &QCheckBox::stateChanged, this, &MainWindow::probeConnect);
+
+    // Update calibChart from user given coefficients
+    connect(formCTemp, &FormCTemp::CTempChange, this, &MainWindow::calibPolyFill);
 
     // Timer for general screen updates
     QTimer *screenUpdates = new QTimer();
@@ -773,6 +778,26 @@ void MainWindow::calibUpCoefsSlot()
     formCTemp->getCTemp1()->setProperty("changed", false);
     formCTemp->getCTemp2()->setProperty("changed", false);
     formCTemp->getCTemp3()->setProperty("changed", false);
+}
+
+void MainWindow::calibPolyFill()
+{
+    // Compute calibration probe points from polynomial coefficients
+
+    if ( formCalib->getCalibRunning() )
+        return;
+
+    QList<float> c;
+    for (int i = 0; i < 4; ++i)
+        c.append(static_cast<float>(formCTemp->getCTemp(i)->value()));
+
+    for (int i = 0; i < calibChart.size; ++i) {
+        float x = calibChart.series[0]->at(i).y();
+        float y = c.at(0) + c.at(1) * x + c.at(2) * x*x + c.at(3) * x*x*x;
+        calibChart.series[1]->replace(i, calibChart.series[1]->at(i).x(), y);
+        calibChart.scatter[1]->replace(i, calibChart.scatter[1]->at(i).x(), y);
+    }
+
 }
 
 void MainWindow::eepromResetSlot()

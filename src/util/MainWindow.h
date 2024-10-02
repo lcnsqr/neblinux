@@ -171,6 +171,7 @@ public slots:
 
     void calibSwitchSlot(bool pressed);
     void calibUpCoefsSlot();
+    void calibPolyFill();
 
     void eepromResetSlot();
     void eepromStoreSlot();

@@ -35,6 +35,10 @@ public slots:
     void CTemp3Change();
     void CTemp3Save();
 
+
+signals:
+    void CTempChange();
+
 private:
     Ui::FormCTemp *ui;
     devNano *dev;

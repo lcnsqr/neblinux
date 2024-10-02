@@ -67,6 +67,7 @@ QDoubleSpinBox *FormCTemp::getCTemp(int i)
 void FormCTemp::CTemp0Change()
 {
     ui->cTemp0->setProperty("changed", true);
+    emit CTempChange();
 }
 
 void FormCTemp::CTemp0Save()
@@ -80,6 +81,7 @@ void FormCTemp::CTemp0Save()
 void FormCTemp::CTemp1Change()
 {
     ui->cTemp1->setProperty("changed", true);
+    emit CTempChange();
 }
 
 void FormCTemp::CTemp1Save()
@@ -93,6 +95,7 @@ void FormCTemp::CTemp1Save()
 void FormCTemp::CTemp2Change()
 {
     ui->cTemp2->setProperty("changed", true);
+    emit CTempChange();
 }
 
 void FormCTemp::CTemp2Save()
@@ -106,6 +109,7 @@ void FormCTemp::CTemp2Save()
 void FormCTemp::CTemp3Change()
 {
     ui->cTemp3->setProperty("changed", true);
+    emit CTempChange();
 }
 
 void FormCTemp::CTemp3Save()
