@@ -207,7 +207,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Calibration points
     calibChart.size = 8;
     calibChart.min = 10;
-    calibChart.max = 176;
+    calibChart.max = 125;
     // Domain for the density function (tan)
     calibChart.from = -1.0;
     calibChart.to = 0.7;
@@ -276,7 +276,7 @@ MainWindow::MainWindow(QWidget *parent)
     calibChart.chart->legend()->markers(calibChart.scatter[1]).first()->setVisible(false);
 
     calibChart.axisX = new QValueAxis();
-    calibChart.axisX->setRange(10, 176);
+    calibChart.axisX->setRange(calibChart.min, calibChart.max);
     calibChart.axisX->setTickCount(2);
     calibChart.axisX->setLabelFormat("%d");
     calibChart.chart->addAxis(calibChart.axisX, Qt::AlignBottom);
