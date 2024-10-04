@@ -86,7 +86,7 @@
       </size>
      </property>
      <property name="decimals">
-      <number>6</number>
+      <number>7</number>
      </property>
      <property name="singleStep">
       <double>0.010000000000000</double>
@@ -112,7 +112,7 @@
       <enum>QAbstractSpinBox::UpDownArrows</enum>
      </property>
      <property name="decimals">
-      <number>6</number>
+      <number>7</number>
      </property>
      <property name="singleStep">
       <double>0.000001000000000</double>
@@ -135,7 +135,7 @@
       </size>
      </property>
      <property name="decimals">
-      <number>6</number>
+      <number>7</number>
      </property>
      <property name="singleStep">
       <double>0.010000000000000</double>
