@@ -105,9 +105,6 @@ void scrMain::show() {
   // String para exibir labels e valores
   String str;
 
-  // Valor na escala de temperaturas
-  u8g2_uint_t tempDial;
-
   // Desconsiderar temperaturas fora da faixa para a escala visual
   float tempEx;
   // Se ativo, tempEx usa a aproximação da interpolação polinomial.
@@ -115,6 +112,13 @@ void scrMain::show() {
   tempEx = (session->running() && (int)session->state.PID[4] > 0)
       ? constrain(session->state.tempEx, session->tempMin, session->tempMax)
       : constrain(session->state.tempCore, session->tempMin, session->tempMax);
+
+  // Valor na escala de temperaturas
+  u8g2_uint_t tempDial[2];
+  tempDial[0] = round(32.0 * (tempEx - session->tempMin) / (session->tempMax - session->tempMin));
+  tempDial[1] = round(32.0 *
+                         (constrain(session->state.tempTarget, session->tempMin, session->tempMax) -
+                          session->tempMin) / (session->tempMax - session->tempMin));
 
   display->firstPage();
   do {
@@ -131,20 +135,11 @@ void scrMain::show() {
 
     // Escala leitura
     display->drawFrame(56, 2, 6, 32);
+    display->drawBox(56, 34 - tempDial[0], 6, tempDial[0]);
 
-    tempDial = round(32.0 * (tempEx - session->tempMin) /
-                     (session->tempMax - session->tempMin));
-    display->drawBox(56, (u8g2_uint_t)(34 - tempDial), 6,
-                     (u8g2_uint_t)tempDial);
     // Escala objetivo
     display->drawFrame(66, 2, 6, 32);
-    tempDial =
-        (u8g2_uint_t)round(32.0 *
-                           (constrain(session->state.tempTarget,
-                                      session->tempMin, session->tempMax) -
-                            session->tempMin) /
-                           (session->tempMax - session->tempMin));
-    display->drawBox(66, 34 - tempDial, 6, tempDial);
+    display->drawBox(66, 34 - tempDial[1], 6, tempDial[1]);
 
     // 16 pixel height
     display->setFont(u8g2_font_inb16_mn);
