@@ -15,11 +15,7 @@ void Therm::action() {
       bufSum += buf[i];
     session->state.analogTherm = (float)bufSum / (float)bufLen;
     session->state.tempCore = celsiusSteinhart(session->state.analogTherm);
-    // Se ativo, tempEx usa a aproximação da interpolação polinomial.
-    // Caso contrário, usa a temperatura medida no core.
-    session->state.tempEx = (session->running())
-                                ? celsiusPoly(session->state.tempCore)
-                                : session->state.tempCore;
+    session->state.tempEx = celsiusPoly(session->state.tempCore);
   } else {
     buf[bufCount++] = analogRead(port);
   }

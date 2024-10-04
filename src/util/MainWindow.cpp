@@ -569,12 +569,17 @@ void MainWindow::devDataIn(const struct State& state)
         heatChart.series->replace(j, heatChart.series->at(j).x(), heatChart.series->at(j+1).y());
     }
 
-    tempChartA.series[0]->replace(chartPastSize - 1, tempChartA.series[0]->at(chartPastSize - 1).x(), state.tempEx);
+    tempChartA.series[1]->setName(tr("Target: ")+QString::number(static_cast<int>(state.tempTarget))+"°C");
     tempChartA.series[1]->replace(chartPastSize - 1, tempChartA.series[1]->at(chartPastSize - 1).x(), state.tempTarget);
 
-    tempChartA.series[0]->setName(tr("Output: ")+QString::number(static_cast<int>(state.tempEx))+"°C");
-    tempChartA.series[1]->setName(tr("Target: ")+QString::number(static_cast<int>(state.tempTarget))+"°C");
-
+    if ( static_cast<bool>(state.on) && static_cast<int>(state.PID[4]) > 0 ){
+        tempChartA.series[0]->setName(tr("Output: ")+QString::number(static_cast<int>(state.tempEx))+"°C");
+        tempChartA.series[0]->replace(chartPastSize - 1, tempChartA.series[0]->at(chartPastSize - 1).x(), state.tempEx);
+    }
+    else {
+        tempChartA.series[0]->setName(tr("Output: ")+QString::number(static_cast<int>(state.tempCore))+"°C");
+        tempChartA.series[0]->replace(chartPastSize - 1, tempChartA.series[0]->at(chartPastSize - 1).x(), state.tempCore);
+    }
     tempChartB.series[0]->replace(chartPastSize - 1, tempChartB.series[0]->at(chartPastSize - 1).x(), state.tempCore);
     tempChartB.series[0]->setName(tr("Pre: ")+QString::number(static_cast<int>(state.tempCore))+"°C");
 

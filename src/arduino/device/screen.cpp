@@ -110,6 +110,11 @@ void scrMain::show() {
 
   // Desconsiderar temperaturas fora da faixa para a escala visual
   float tempEx;
+  // Se ativo, tempEx usa a aproximação da interpolação polinomial.
+  // Caso contrário, usa a temperatura medida no core.
+  tempEx = (session->running() && (int)session->state.PID[4] > 0)
+      ? constrain(session->state.tempEx, session->tempMin, session->tempMax)
+      : constrain(session->state.tempCore, session->tempMin, session->tempMax);
 
   display->firstPage();
   do {
@@ -126,8 +131,7 @@ void scrMain::show() {
 
     // Escala leitura
     display->drawFrame(56, 2, 6, 32);
-    tempEx =
-        constrain(session->state.tempEx, session->tempMin, session->tempMax);
+
     tempDial = round(32.0 * (tempEx - session->tempMin) /
                      (session->tempMax - session->tempMin));
     display->drawBox(56, (u8g2_uint_t)(34 - tempDial), 6,
@@ -146,7 +150,7 @@ void scrMain::show() {
     display->setFont(u8g2_font_inb16_mn);
 
     // Valores leitura e objetivo
-    str = String((int)round(tempEx));
+    str = String((int)tempEx);
     display->drawStr(52 - display->getStrWidth(str.c_str()), 34, str.c_str());
     str = String((int)session->state.tempTarget);
     display->drawStr(76, 34, str.c_str());
