@@ -207,7 +207,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Calibration points
     calibChart.size = 8;
     calibChart.min = 10;
-    calibChart.max = 125;
+    calibChart.max = 105;
     // Domain for the density function (tan)
     calibChart.from = -1.0;
     calibChart.to = 0.7;
@@ -777,8 +777,13 @@ void MainWindow::calibFitPoints()
 void MainWindow::calibUpCoefsSlot()
 {
     qDebug() << "Upload new coefficients to device";
-    calibFitPoints();
-    QMetaObject::invokeMethod(dev, "setCTempAll", Qt::QueuedConnection, Q_ARG(QList<float>, cTempCoeffs));
+
+    QList<float> c;
+    for (int i = 0; i < 4; ++i)
+        c.append(static_cast<float>(formCTemp->getCTemp(i)->value()));
+
+    QMetaObject::invokeMethod(dev, "setCTempAll", Qt::QueuedConnection, Q_ARG(QList<float>, c));
+
     formCTemp->getCTemp0()->setProperty("changed", false);
     formCTemp->getCTemp1()->setProperty("changed", false);
     formCTemp->getCTemp2()->setProperty("changed", false);
