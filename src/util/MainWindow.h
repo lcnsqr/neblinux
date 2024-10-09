@@ -169,6 +169,8 @@ public slots:
     void probeDataIn(const float reading);
     void probeError(const QString& error);
 
+    void setProbeType(bool checked);
+
     void calibSwitchSlot(bool pressed);
     void calibUpCoefsSlot();
     void calibPolyFill();

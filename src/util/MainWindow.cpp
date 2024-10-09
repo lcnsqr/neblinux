@@ -451,6 +451,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(probe, &Probe::finished, probeThread, &QThread::quit);
     connect(ui->probeConnect, &QCheckBox::stateChanged, this, &MainWindow::probeConnect);
 
+    // Probe type
+    ui->probeTA612c->setProperty("probeType", 0x04);
+    connect(ui->probeTA612c, &QRadioButton::toggled, this, &MainWindow::setProbeType);
+    ui->probeArduino->setProperty("probeType", 0x01);
+    connect(ui->probeArduino, &QRadioButton::toggled, this, &MainWindow::setProbeType);
+
     // Update calibChart from user given coefficients
     connect(formCTemp, &FormCTemp::CTempChange, this, &MainWindow::calibPolyFill);
 
@@ -546,6 +552,8 @@ void MainWindow::probeConnect(int state)
         QMetaObject::invokeMethod(probe, "setPortName", Qt::QueuedConnection, Q_ARG(QString, probePortName));
 
         ui->probeLocation->setDisabled(true);
+        ui->probeTA612c->setDisabled(true);
+        ui->probeArduino->setDisabled(true);
 
         QMetaObject::invokeMethod(probe, "startReading", Qt::QueuedConnection);
 
@@ -553,6 +561,8 @@ void MainWindow::probeConnect(int state)
     else {
         QMetaObject::invokeMethod(probe, "stopReading", Qt::QueuedConnection);
         ui->probeLocation->setDisabled(false);
+        ui->probeTA612c->setDisabled(false);
+        ui->probeArduino->setDisabled(false);
     }
 }
 
@@ -707,6 +717,18 @@ void MainWindow::probeError(const QString &error)
     ui->statusbar->showMessage(error);
 }
 
+void MainWindow::setProbeType(bool checked)
+{
+    if (checked) {
+        QRadioButton *button = qobject_cast<QRadioButton*>(sender());
+        if (button) {
+            char pt = (char)button->property("probeType").toInt();
+            qDebug() << "probeType" << QString::number(pt);
+            QMetaObject::invokeMethod(probe, "setProbeType", Qt::QueuedConnection, Q_ARG(char, pt));
+        }
+    }
+}
+
 void MainWindow::calibSwitchSlot(bool pressed)
 {
     if ( pressed ){
@@ -853,14 +875,20 @@ void MainWindow::updateScreenData(){
     if ( ui->probeLocation->count() == 0 ){
         ui->probeLocation->setDisabled(true);
         ui->probeConnect->setDisabled(true);
+        ui->probeTA612c->setDisabled(true);
+        ui->probeArduino->setDisabled(true);
     }
     else {
         if ( ui->probeConnect->isChecked() ){
             ui->probeLocation->setDisabled(true);
+            ui->probeTA612c->setDisabled(true);
+            ui->probeArduino->setDisabled(true);
         }
         else {
             ui->probeLocation->setDisabled(false);
             ui->probeConnect->setDisabled(false);
+            ui->probeTA612c->setDisabled(false);
+            ui->probeArduino->setDisabled(false);
         }
     }
 
