@@ -29,6 +29,8 @@
 
 #include <QDebug>
 
+#include <QToolTip>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -372,12 +374,31 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     // Bar set for autostopChart
-    autostopChart.barset = new QBarSet(tr("Linear coefficients over time"));
-    *(autostopChart.barset) << 0 << 0;
+    autostopChart.barset[0] = new QBarSet(tr("Linear coefficients over time"));
+    *(autostopChart.barset[0]) << 0 << 0;
+
+    autostopChart.barset[1] = new QBarSet(tr("Maximum"));
+    *(autostopChart.barset[1]) << 0 << 0;
 
     // Create a bar series and add the single bar set
     autostopChart.series = new QBarSeries();
-    autostopChart.series->append(autostopChart.barset);
+    autostopChart.series->append(autostopChart.barset[0]);
+    autostopChart.series->append(autostopChart.barset[1]);
+
+    // Show tooltip when pointer hovers
+    QObject::connect(autostopChart.series, &QBarSeries::hovered, [&](bool status, int index, QBarSet *barSet) {
+        if (status) {  // When the pointer hovers over the bar
+            // Get the value of the bar
+            qreal value = barSet->at(index);
+
+            // Get the global position of the mouse cursor and display the tooltip
+            QPoint globalPos = QCursor::pos();
+            QToolTip::showText(globalPos, QString::number(value));
+        } else {
+            // Hide the tooltip when the pointer leaves the bar
+            QToolTip::hideText();
+        }
+    });
 
     // Create the chart and add the bar series
     autostopChart.chart = new QChart();
@@ -665,8 +686,15 @@ void MainWindow::devDataIn(const struct State& state)
     }
 
     // autostopChart
-    autostopChart.barset->replace(0, state.sStop[0]);
-    autostopChart.barset->replace(1, state.sStop[1]);
+    autostopChart.barset[0]->replace(0, state.sStop[0]);
+    autostopChart.barset[0]->replace(1, state.sStop[1]);
+    // Max values
+    if ( static_cast<bool>(state.on) && state.elapsed > 60 ){
+        if ( autostopChart.barset[1]->at(0) < state.sStop[0] )
+            autostopChart.barset[1]->replace(0, state.sStop[0]);
+        if ( autostopChart.barset[1]->at(1) > state.sStop[1] )
+            autostopChart.barset[1]->replace(1, state.sStop[1]);
+    }
     // auto stop coefficients
     if ( ! formCStop->getCStop0()->property("changed").toBool() ){
         formCStop->getCStop0()->setValue( static_cast<float>(state.cStop[0]) );

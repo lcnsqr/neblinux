@@ -133,7 +133,7 @@ private:
 
     // autostopChart
     struct {
-        QBarSet *barset;
+        QBarSet *barset[2];
         QBarSeries *series;
         QChart *chart;
         QStringList categories;
