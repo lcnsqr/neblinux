@@ -20,8 +20,6 @@ Autostop::Autostop(Session *session, unsigned long wait)
   s[0] = 0;
   s[1] = 0;
 
-  // Constante de decaimento
-  decay = -log(0.4);
 }
 
 void Autostop::action() {
@@ -41,7 +39,7 @@ void Autostop::action() {
   session->state.sStop[1] = ((s[1] / a2) - (s[0] / a0)) / ((a3 / a2) - (a1 / a0));
 
   // Fator de decaimento dos limiares de parada depende do tempo decorrido
-  float g = exp(-decay * ((float)(session->state.elapsed) - (float)minSec) / (float)minSec);
+  float g = exp(decay*((float)(session->state.elapsed)-mark)/(over-mark));
 
   // CRITÉRIOS PARA PARADA AUTOMÁTICA:
   // Ativada na configuração

@@ -36,13 +36,17 @@ public:
   float s[2];
 
   // Mínimo tempo decorrido
-  static const int minSec = 40;
-
-  // Constante de decaimento dos limiares de parada
-  float decay;
+  static const int minSec = 60;
 
   // Mínimo tempo decorrido após última mudança no target
   static const int targetMinSec = 10;
+
+  // Em qual momento aplicar coeficientes integrais
+  static const float mark = 120.0;
+  // Em qual momento atingir a redução especificada
+  static const float over = 240.0;
+  // Redução especificada
+  static const float decay = log(1.0/3.0);
 
 private:
   Session *session;
