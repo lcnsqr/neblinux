@@ -160,152 +160,168 @@
         <translation>Utilitário de Configuração Neblinux</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="30"/>
+        <location filename="MainWindow.ui" line="40"/>
+        <source>TA612c</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="MainWindow.ui" line="56"/>
+        <source>Arduino</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="MainWindow.ui" line="107"/>
         <source>Neblinux</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="43"/>
-        <location filename="MainWindow.ui" line="63"/>
+        <location filename="MainWindow.ui" line="33"/>
+        <location filename="MainWindow.ui" line="66"/>
         <source>Connected</source>
         <translation>Conectado</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="50"/>
-        <location filename="MainWindow.cpp" line="120"/>
-        <location filename="MainWindow.cpp" line="253"/>
+        <location filename="MainWindow.ui" line="85"/>
+        <location filename="MainWindow.cpp" line="122"/>
+        <location filename="MainWindow.cpp" line="255"/>
         <source>Probe</source>
         <translation>Sonda</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="61"/>
+        <location filename="MainWindow.cpp" line="63"/>
         <source>Output and target temperatures</source>
         <translation>Temperaturas Saída e Alvo</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="64"/>
+        <location filename="MainWindow.cpp" line="66"/>
         <source>Output</source>
         <translation>Saída</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="70"/>
+        <location filename="MainWindow.cpp" line="72"/>
         <source>Target</source>
         <translation>Alvo</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="111"/>
+        <location filename="MainWindow.cpp" line="113"/>
         <source>Pre and probe temperatures</source>
         <translation>Temperaturas prévia e sonda</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="114"/>
-        <location filename="MainWindow.cpp" line="239"/>
+        <location filename="MainWindow.cpp" line="116"/>
+        <location filename="MainWindow.cpp" line="241"/>
         <source>Pre</source>
         <translation>Prévia</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="164"/>
+        <location filename="MainWindow.cpp" line="166"/>
         <source>Stable if close to zero</source>
         <translation>Estável se próxima de zero</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="174"/>
+        <location filename="MainWindow.cpp" line="176"/>
         <source>Stability</source>
         <translation>Estabilidade</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="201"/>
+        <location filename="MainWindow.cpp" line="203"/>
         <source>Blower</source>
         <translation>Soprador</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="231"/>
+        <location filename="MainWindow.cpp" line="233"/>
         <source>Calibration</source>
         <translation>Calibragem</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="307"/>
+        <location filename="MainWindow.cpp" line="309"/>
         <source>Run calibration</source>
         <translation>Calibrar sensor</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="310"/>
+        <location filename="MainWindow.cpp" line="312"/>
         <source>Send to device</source>
         <translation>Enviar para o dispositivo</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="318"/>
+        <location filename="MainWindow.cpp" line="320"/>
         <source>Temperature coefficients</source>
         <translation>Coeficientes de temperatura</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="328"/>
+        <location filename="MainWindow.cpp" line="332"/>
         <source>Heating</source>
         <translation>Aquecimento</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="331"/>
+        <location filename="MainWindow.cpp" line="335"/>
         <source>Load</source>
         <translation>Carga</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="373"/>
+        <location filename="MainWindow.cpp" line="377"/>
         <source>Linear coefficients over time</source>
         <translation>Coeficientes lineares no tempo</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="383"/>
+        <location filename="MainWindow.cpp" line="380"/>
+        <source>Maximum</source>
+        <translation>Máximo</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="406"/>
         <source>Auto stop threshold</source>
         <translation>Limiar de parada automática</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="415"/>
+        <location filename="MainWindow.cpp" line="438"/>
         <source>Preferences</source>
         <translation>Preferências</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="425"/>
+        <location filename="MainWindow.cpp" line="448"/>
         <source>Reset EEPROM</source>
         <translation>Resetar EEPROM</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="427"/>
+        <location filename="MainWindow.cpp" line="450"/>
         <source>Store on EEPROM</source>
         <translation>Gravar na EEPROM</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="515"/>
-        <location filename="MainWindow.cpp" line="539"/>
+        <location filename="MainWindow.cpp" line="547"/>
+        <location filename="MainWindow.cpp" line="571"/>
         <source>Connected to </source>
         <translation>Conectado a </translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="524"/>
+        <location filename="MainWindow.cpp" line="556"/>
         <source>Disconnected</source>
         <translation>Desconectado</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="570"/>
+        <location filename="MainWindow.cpp" line="607"/>
+        <location filename="MainWindow.cpp" line="611"/>
         <source>Output: </source>
         <translation>Saída: </translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="571"/>
+        <location filename="MainWindow.cpp" line="603"/>
         <source>Target: </source>
         <translation>Alvo: </translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="574"/>
+        <location filename="MainWindow.cpp" line="615"/>
         <source>Pre: </source>
         <translation>Prévia: </translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="577"/>
+        <location filename="MainWindow.cpp" line="618"/>
         <source>Load: </source>
         <translation>Carga: </translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="684"/>
+        <location filename="MainWindow.cpp" line="732"/>
         <source>Probe: </source>
         <translation>Sonda: </translation>
     </message>
