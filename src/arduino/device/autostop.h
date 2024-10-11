@@ -13,6 +13,11 @@ public:
 
   static const int pts = 4;
 
+
+  // Máximos para normalização dos domínios de temperatura e carga
+  static const float tempMax = 400.0;
+  static const float heatMax = 255.0;
+
   // Elementos da matriz A' * A, onde A = [1 0; 1 0.25; 1 0.5; 1 0.75]
   static const float a0 = 4.0;
   static const float a1 = 1.5;

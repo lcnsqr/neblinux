@@ -24,8 +24,8 @@ Autostop::Autostop(Session *session, unsigned long wait)
 
 void Autostop::action() {
 
-  tempEx[iy] = session->state.tempEx / TEMP_MAX;
-  heat[iy] = session->state.PID[4] / HEAT_MAX;
+  tempEx[iy] = session->state.tempEx / tempMax;
+  heat[iy] = session->state.PID[4] / heatMax;
   iy = (iy + 1) % pts;
 
   // Calcular coeficiente de reta para temperatura
