@@ -44,7 +44,7 @@ private:
 
     // Timer to call pull() on timeout
     QTimer* timer;
-    int updateInterval = 100;
+    int updateInterval = 250;
 
     // Data load
     float reading;

@@ -67,7 +67,7 @@ private:
     Probe* probe;
     QString probePortName;
 
-    static const int refreshInterval = 100;
+    static const int refreshInterval = 250;
     static const int chartPastSize = 201;
 
     // tempChartA
