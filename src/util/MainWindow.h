@@ -4,8 +4,14 @@
 #include <QMainWindow>
 #include <QThread>
 
+#include <QApplication>
+#include <QCloseEvent>
+
 #include "devNano.h"
 #include "probe.h"
+
+#include "View.h"
+#include <unordered_map>
 
 #include <QString>
 
@@ -38,6 +44,8 @@
 
 #include <QPushButton>
 
+#include <QSettings>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -54,8 +62,13 @@ public:
     // calibChart should be public
     struct CalibChart calibChart;
 
+    // Restore window geometry
+    void restore();
+
 private:
     Ui::MainWindow *ui;
+
+    QSettings settings;
 
     // Neblinux device connected to the serial port
     QThread* devThread;
@@ -160,6 +173,13 @@ private:
     // Update derivative charts
     void regressions();
 
+    // Views (child windows)
+    std::unordered_map<QString, View*> views;
+
+    // Setup Main window menu and views
+    void setupViews();
+    void setupCharts();
+
 public slots:
     void devConnect(int);
     void devDataIn(const struct State& state);
@@ -180,5 +200,12 @@ public slots:
 
     void updateScreenData();
 
+    // Menu slots
+    void triggerView();
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
 };
+
 #endif // MAINWINDOW_H

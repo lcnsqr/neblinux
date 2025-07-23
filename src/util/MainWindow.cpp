@@ -57,10 +57,170 @@ MainWindow::MainWindow(QWidget *parent)
     connect(shortcutCtrlQ, &QShortcut::activated, this, &QWidget::close);
 
 
-    // Setup charts
+    // Preferences autostop, tempstep, screensaver
+    QLabel *prefHeader = new QLabel(tr("Preferences"));
+    prefHeader->setAlignment(Qt::AlignCenter);
+    prefHeader->setStyleSheet("margin-top: 24px;");
+    ui->right->addWidget(prefHeader);
+    ui->right->addWidget(formPrefs);
 
+    ui->right->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
+
+
+    // Create the buttons for eeprom actions
+    eepromReset = new QPushButton(tr("Reset EEPROM"));
+    connect(eepromReset, &QPushButton::clicked, this, &MainWindow::eepromResetSlot);
+    eepromStore = new QPushButton(tr("Store on EEPROM"));
+    connect(eepromStore, &QPushButton::clicked, this, &MainWindow::eepromStoreSlot);
+    QHBoxLayout *eepromButtons = new QHBoxLayout;
+    eepromButtons->addWidget(eepromReset);
+    eepromButtons->addWidget(eepromStore);
+    ui->right->addLayout(eepromButtons);
+
+
+    // Setup window menu and child windows (views)
+    setupViews();
+
+
+    // Setup slots and signals
+
+    // Device signals
+    connect(dev, &devNano::dataIn, this, &MainWindow::devDataIn);
+    connect(dev, &devNano::error, this, &MainWindow::devError);
+    connect(devThread, &QThread::finished, dev, &QObject::deleteLater);
+    connect(dev, &devNano::finished, devThread, &QThread::quit);
+    connect(ui->devConnect, &QCheckBox::stateChanged, this, &MainWindow::devConnect);
+
+    // Probe signals
+    connect(probe, &Probe::dataIn, this, &MainWindow::probeDataIn);
+    connect(probe, &Probe::error, this, &MainWindow::probeError);
+    connect(probeThread, &QThread::finished, probe, &QObject::deleteLater);
+    connect(probe, &Probe::finished, probeThread, &QThread::quit);
+    connect(ui->probeConnect, &QCheckBox::stateChanged, this, &MainWindow::probeConnect);
+
+    // Probe type
+    ui->probeTA612c->setProperty("probeType", 0x04);
+    connect(ui->probeTA612c, &QRadioButton::toggled, this, &MainWindow::setProbeType);
+    ui->probeArduino->setProperty("probeType", 0x01);
+    connect(ui->probeArduino, &QRadioButton::toggled, this, &MainWindow::setProbeType);
+
+    // Update calibChart from user given coefficients
+    connect(formCTemp, &FormCTemp::CTempChange, this, &MainWindow::calibPolyFill);
+
+    // Timer for general screen updates
+    QTimer *screenUpdates = new QTimer();
+    // Regression charts
+    QObject::connect(screenUpdates, &QTimer::timeout, this, &MainWindow::updateScreenData);
+
+    screenUpdates->start(100);
+
+
+    // Communication threads
+
+    // Dispatch device object to its thread
+    dev->moveToThread(devThread);
+    // Setup device pulling interval
+    int interval = refreshInterval;
+    QMetaObject::invokeMethod(dev, "setInterval", Qt::QueuedConnection, Q_ARG(int, interval));
+    devThread->start();
+
+    // Dispatch probe object to its thread
+    probe->moveToThread(probeThread);
+    // Setup probe pulling interval
+    QMetaObject::invokeMethod(probe, "setInterval", Qt::QueuedConnection, Q_ARG(int, interval));
+    probeThread->start();
+
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::restore()
+{
+    settings.beginGroup("Geometry");
+    if (settings.contains("MainWindow"))
+        restoreGeometry(settings.value("MainWindow").toByteArray());
+    settings.endGroup();
+
+    for (const auto& [name, view] : views) {
+        view->restore();
+    }
+}
+
+
+void MainWindow::setupViews()
+{
+    // Configure charts and set initial values
+    setupCharts();
+
+    QAction *menu = ui->Output_and_target_temperatures;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(tempChartA.chartView);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    menu = ui->Pre_and_probe_temperatures;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(tempChartB.chartView);
+    views[menu->objectName()]->layout->addWidget(formPID);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    menu = ui->Stability;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(derivChart.chartView);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    menu = ui->Blower;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(formFan);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    // Calibration
+    menu = ui->Calibration;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(calibChart.chartView);
+    views[menu->objectName()]->layout->addWidget(formCalib);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    // Create the action buttons for calibration
+    calibSwitch = new QPushButton(tr("Run calibration"));
+    calibSwitch->setCheckable(true);
+    connect(calibSwitch, &QPushButton::toggled, this, &MainWindow::calibSwitchSlot);
+    calibUpCoefs = new QPushButton(tr("Send to device"));
+    connect(calibUpCoefs, &QPushButton::clicked, this, &MainWindow::calibUpCoefsSlot);
+    QHBoxLayout *calibButtons = new QHBoxLayout;
+    calibButtons->addWidget(calibSwitch);
+    calibButtons->addWidget(calibUpCoefs);
+    views[menu->objectName()]->layout->addLayout(calibButtons);
+
+    // Coefficients from calibration
+    menu = ui->Temperature_coefficients;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(formCTemp);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    // Heating
+    menu = ui->Heating;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(heatChart.chartView);
+    // Heat load form  (PID enable, load)
+    views[menu->objectName()]->layout->addWidget(formHeat);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    // Auto Stop
+    menu = ui->Auto_stop;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(autostopChart.chartView);
+    // Form for autostop coefficients
+    views[menu->objectName()]->layout->addWidget(formCStop);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+}
+
+void MainWindow::setupCharts()
+{
     tempChartA.chart = new QChart();
-    tempChartA.chart->setTitle(tr("Output and target temperatures"));
 
     tempChartA.series[0] = new QLineSeries();
     tempChartA.series[0]->setName(tr("Output"));
@@ -107,10 +267,8 @@ MainWindow::MainWindow(QWidget *parent)
         tempChartA.series[1]->append((float)(-(chartPastSize-1)+j)/(1000.0/(float)refreshInterval), 0.0);
     }
 
-    ui->left->addWidget(tempChartA.chartView);
 
     tempChartB.chart = new QChart();
-    tempChartB.chart->setTitle(tr("Pre and probe temperatures"));
 
     tempChartB.series[0] = new QLineSeries();
     tempChartB.series[0]->setName(tr("Pre"));
@@ -156,12 +314,6 @@ MainWindow::MainWindow(QWidget *parent)
         tempChartB.series[1]->append((float)(-(chartPastSize-1)+j)/(1000.0/(float)refreshInterval), 0.0);
     }
 
-    ui->left->addWidget(tempChartB.chartView);
-
-    ui->left->addWidget(formPID);
-
-
-
     // Bar set for derivChart
     derivChart.barset = new QBarSet(tr("Stable if close to zero"));
     *(derivChart.barset) << 0 << 0 << 0;
@@ -173,7 +325,6 @@ MainWindow::MainWindow(QWidget *parent)
     // Create the chart and add the bar series
     derivChart.chart = new QChart();
     derivChart.chart->addSeries(derivChart.series);
-    derivChart.chart->setTitle(tr("Stability"));
     derivChart.chart->setAnimationOptions(QChart::NoAnimation);
     derivChart.chart->setBackgroundVisible(false);
 
@@ -196,15 +347,8 @@ MainWindow::MainWindow(QWidget *parent)
     derivChart.chartView->setRenderHint(QPainter::Antialiasing);
     derivChart.chartView->setMinimumHeight(220);
 
-    ui->left->addWidget(derivChart.chartView);
 
-
-    // Fan control
-    QLabel *fanHeader = new QLabel(tr("Blower"));
-    fanHeader->setAlignment(Qt::AlignCenter);
-    fanHeader->setStyleSheet("margin-top: 24px;");
-    ui->middle->addWidget(fanHeader);
-    ui->middle->addWidget(formFan);
+    // Calibration
 
     // Calibration points
     calibChart.size = 8;
@@ -230,7 +374,6 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     calibChart.chart = new QChart();
-    calibChart.chart->setTitle(tr("Calibration"));
     // Reduce top and bottom margins
     QMargins calibChartMargins = calibChart.chart->margins();
     calibChartMargins.setTop(0);
@@ -300,36 +443,14 @@ MainWindow::MainWindow(QWidget *parent)
     calibChart.chartView->setRenderHint(QPainter::Antialiasing);
     calibChart.chartView->setMinimumHeight(220);
 
-    ui->middle->addWidget(calibChart.chartView);
     // Form with every calib point in calibChart
     formCalib->updatePoints();
-    ui->middle->addWidget(formCalib);
 
-    // Create the action buttons for calibration
-    calibSwitch = new QPushButton(tr("Run calibration"));
-    calibSwitch->setCheckable(true);
-    connect(calibSwitch, &QPushButton::toggled, this, &MainWindow::calibSwitchSlot);
-    calibUpCoefs = new QPushButton(tr("Send to device"));
-    connect(calibUpCoefs, &QPushButton::clicked, this, &MainWindow::calibUpCoefsSlot);
-    QHBoxLayout *calibButtons = new QHBoxLayout;
-    calibButtons->addWidget(calibSwitch);
-    calibButtons->addWidget(calibUpCoefs);
-    ui->middle->addLayout(calibButtons);
-
-    // Coefficients from calibration
-    QLabel *cTempHeader = new QLabel(tr("Temperature coefficients"));
-    cTempHeader->setAlignment(Qt::AlignCenter);
-    cTempHeader->setStyleSheet("margin-top: 24px;");
-    ui->middle->addWidget(cTempHeader);
-    ui->middle->addWidget(formCTemp);
     // Generate coefficients from initial points
     calibFitPoints();
 
-
     // Heating element load chart
     heatChart.chart = new QChart();
-
-    heatChart.chart->setTitle(tr("Heating"));
 
     heatChart.series = new QLineSeries();
     heatChart.series->setName(tr("Load"));
@@ -364,14 +485,8 @@ MainWindow::MainWindow(QWidget *parent)
         heatChart.series->append((float)(-(chartPastSize-1)+j)/(1000.0/(float)refreshInterval), 0.0);
     }
 
-    ui->right->addWidget(heatChart.chartView);
 
-    // Heat load form  (PID enable, load)
-    ui->right->addWidget(formHeat);
-
-
-    ui->right->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
-
+    // Auto Stop
 
     // Bar set for autostopChart
     autostopChart.barset[0] = new QBarSet(tr("Linear coefficients over time"));
@@ -407,7 +522,7 @@ MainWindow::MainWindow(QWidget *parent)
     autostopChart.chart->setAnimationOptions(QChart::NoAnimation);
     autostopChart.chart->setBackgroundVisible(false);
 
-    // Create categories for the X-axis (only one category)
+    // Create categories for the X-axis
     autostopChart.categories << "Temperature" << "Heating";
     autostopChart.axisX = new QBarCategoryAxis();
     autostopChart.axisX->append(autostopChart.categories);
@@ -426,91 +541,38 @@ MainWindow::MainWindow(QWidget *parent)
     autostopChart.chartView->setRenderHint(QPainter::Antialiasing);
     autostopChart.chartView->setMinimumHeight(220);
 
-    ui->right->addWidget(autostopChart.chartView);
-
-    // Form for autostop coefficients
-    ui->right->addWidget(formCStop);
-
-    ui->right->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
-
-
-    // Preferences autostop, tempstep, screensaver
-    QLabel *prefHeader = new QLabel(tr("Preferences"));
-    prefHeader->setAlignment(Qt::AlignCenter);
-    prefHeader->setStyleSheet("margin-top: 24px;");
-    ui->right->addWidget(prefHeader);
-    ui->right->addWidget(formPrefs);
-
-    ui->right->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
-
-
-    // Create the buttons for eeprom actions
-    eepromReset = new QPushButton(tr("Reset EEPROM"));
-    connect(eepromReset, &QPushButton::clicked, this, &MainWindow::eepromResetSlot);
-    eepromStore = new QPushButton(tr("Store on EEPROM"));
-    connect(eepromStore, &QPushButton::clicked, this, &MainWindow::eepromStoreSlot);
-    QHBoxLayout *eepromButtons = new QHBoxLayout;
-    eepromButtons->addWidget(eepromReset);
-    eepromButtons->addWidget(eepromStore);
-    ui->right->addLayout(eepromButtons);
-
-
-
-    // Slots and signals
-
-    // Device signals
-    connect(dev, &devNano::dataIn, this, &MainWindow::devDataIn);
-    connect(dev, &devNano::error, this, &MainWindow::devError);
-    connect(devThread, &QThread::finished, dev, &QObject::deleteLater);
-    connect(dev, &devNano::finished, devThread, &QThread::quit);
-    connect(ui->devConnect, &QCheckBox::stateChanged, this, &MainWindow::devConnect);
-
-    // Probe signals
-    connect(probe, &Probe::dataIn, this, &MainWindow::probeDataIn);
-    connect(probe, &Probe::error, this, &MainWindow::probeError);
-    connect(probeThread, &QThread::finished, probe, &QObject::deleteLater);
-    connect(probe, &Probe::finished, probeThread, &QThread::quit);
-    connect(ui->probeConnect, &QCheckBox::stateChanged, this, &MainWindow::probeConnect);
-
-    // Probe type
-    ui->probeTA612c->setProperty("probeType", 0x04);
-    connect(ui->probeTA612c, &QRadioButton::toggled, this, &MainWindow::setProbeType);
-    ui->probeArduino->setProperty("probeType", 0x01);
-    connect(ui->probeArduino, &QRadioButton::toggled, this, &MainWindow::setProbeType);
-
-    // Update calibChart from user given coefficients
-    connect(formCTemp, &FormCTemp::CTempChange, this, &MainWindow::calibPolyFill);
-
-    // Timer for general screen updates
-    QTimer *screenUpdates = new QTimer();
-    // Regression charts
-    QObject::connect(screenUpdates, &QTimer::timeout, this, &MainWindow::updateScreenData);
-
-    screenUpdates->start(100);
-
-
-    // Communication threads
-
-    // Dispatch device object to its thread
-    dev->moveToThread(devThread);
-    // Setup device pulling interval
-    int interval = refreshInterval;
-    QMetaObject::invokeMethod(dev, "setInterval", Qt::QueuedConnection, Q_ARG(int, interval));
-    devThread->start();
-
-    // Dispatch probe object to its thread
-    probe->moveToThread(probeThread);
-    // Setup probe pulling interval
-    QMetaObject::invokeMethod(probe, "setInterval", Qt::QueuedConnection, Q_ARG(int, interval));
-    probeThread->start();
-
 }
 
-MainWindow::~MainWindow()
+void MainWindow::triggerView()
 {
+    if(QAction *action = qobject_cast<QAction*>(sender())) {
+
+        auto it = views.find(action->objectName());
+        if (it != views.end()) {
+            View* view = it->second;
+            if ( action->isChecked() ){
+                view->show();
+            }
+            else {
+                view->close();
+            }
+        }
+
+    }
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    settings.beginGroup("Geometry");
+    settings.setValue("MainWindow", saveGeometry());
+    settings.endGroup();
+
+    for (const auto& [name, view] : views) {
+        view->store();
+    }
+
     QMetaObject::invokeMethod(dev, "stopReading", Qt::QueuedConnection);
 
-    // Hardcoded probe
     QMetaObject::invokeMethod(probe, "stopReading", Qt::QueuedConnection);
 
     devThread->quit();
@@ -519,7 +581,8 @@ MainWindow::~MainWindow()
     probeThread->quit();
     probeThread->wait();
 
-    delete ui;
+    QMainWindow::closeEvent(event);
+    qApp->quit();
 }
 
 void MainWindow::devConnect(int state)

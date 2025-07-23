@@ -10,19 +10,19 @@ FormCTemp::FormCTemp(QWidget *parent, devNano *d) :
 
     ui->cTemp0->setProperty("changed", false);
     connect(ui->cTemp0, &QDoubleSpinBox::valueChanged, this, &FormCTemp::CTemp0Change);
-    connect(ui->cTemp0, &QDoubleSpinBox::editingFinished, this, &FormCTemp::CTemp0Save);
+//    connect(ui->cTemp0, &QDoubleSpinBox::editingFinished, this, &FormCTemp::CTemp0Save);
 
     ui->cTemp1->setProperty("changed", false);
     connect(ui->cTemp1, &QDoubleSpinBox::valueChanged, this, &FormCTemp::CTemp1Change);
-    connect(ui->cTemp1, &QDoubleSpinBox::editingFinished, this, &FormCTemp::CTemp1Save);
+//    connect(ui->cTemp1, &QDoubleSpinBox::editingFinished, this, &FormCTemp::CTemp1Save);
 
     ui->cTemp2->setProperty("changed", false);
     connect(ui->cTemp2, &QDoubleSpinBox::valueChanged, this, &FormCTemp::CTemp2Change);
-    connect(ui->cTemp2, &QDoubleSpinBox::editingFinished, this, &FormCTemp::CTemp2Save);
+//    connect(ui->cTemp2, &QDoubleSpinBox::editingFinished, this, &FormCTemp::CTemp2Save);
 
     ui->cTemp3->setProperty("changed", false);
     connect(ui->cTemp3, &QDoubleSpinBox::valueChanged, this, &FormCTemp::CTemp3Change);
-    connect(ui->cTemp3, &QDoubleSpinBox::editingFinished, this, &FormCTemp::CTemp3Save);
+//    connect(ui->cTemp3, &QDoubleSpinBox::editingFinished, this, &FormCTemp::CTemp3Save);
 }
 
 FormCTemp::~FormCTemp()

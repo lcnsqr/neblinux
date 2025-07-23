@@ -13,7 +13,7 @@ FormHeat::FormHeat(QWidget *parent, devNano *d) :
 
     ui->heatLoad->setProperty("changed", false);
     connect(ui->heatLoad, &QSpinBox::valueChanged, this, &FormHeat::heatLoadChange);
-    connect(ui->heatLoad, &QSpinBox::editingFinished, this, &FormHeat::heatLoadSave);
+//    connect(ui->heatLoad, &QSpinBox::editingFinished, this, &FormHeat::heatLoadSave);
 
 }
 

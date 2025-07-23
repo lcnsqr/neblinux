@@ -13,7 +13,7 @@ FormPrefs::FormPrefs(QWidget *parent, devNano *d) :
 
     ui->tempstep->setProperty("changed", false);
     connect(ui->tempstep, &QSpinBox::valueChanged, this, &FormPrefs::tempstepChange);
-    connect(ui->tempstep, &QSpinBox::editingFinished, this, &FormPrefs::tempstepSave);
+//    connect(ui->tempstep, &QSpinBox::editingFinished, this, &FormPrefs::tempstepSave);
 
     ui->screensaver->setProperty("changedAt", QDateTime::currentDateTime().toString());
     connect(ui->screensaver, &QCheckBox::stateChanged, this, &FormPrefs::screensaverChange);

@@ -18,6 +18,7 @@ SOURCES += \
     FormHeat.cpp \
     FormPID.cpp \
     FormPrefs.cpp \
+    View.cpp \
     devNano.cpp \
     main.cpp \
     MainWindow.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     FormPID.h \
     FormPrefs.h \
     MainWindow.h \
+    View.h \
     devNano.h \
     probe.h \
     state.h

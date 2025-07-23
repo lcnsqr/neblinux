@@ -13,7 +13,7 @@ FormFan::FormFan(QWidget *parent, devNano *d) :
 
     ui->fanLoad->setProperty("changed", false);
     connect(ui->fanLoad, &QSpinBox::valueChanged, this, &FormFan::fanLoadChange);
-    connect(ui->fanLoad, &QSpinBox::editingFinished, this, &FormFan::fanLoadSave);
+//    connect(ui->fanLoad, &QSpinBox::editingFinished, this, &FormFan::fanLoadSave);
 }
 
 FormFan::~FormFan()

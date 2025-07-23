@@ -12,17 +12,17 @@ FormPID::FormPID(QWidget *parent, devNano *d) :
 
     ui->target->setProperty("changed", false);
     connect(ui->target, &QSpinBox::valueChanged, this, &FormPID::targetChange);
-    connect(ui->target, &QSpinBox::editingFinished, this, &FormPID::targetSave);
+//    connect(ui->target, &QSpinBox::editingFinished, this, &FormPID::targetSave);
 
     ui->cPID0->setProperty("changed", false);
     connect(ui->cPID0, &QDoubleSpinBox::valueChanged, this, &FormPID::cPID0Change);
-    connect(ui->cPID0, &QDoubleSpinBox::editingFinished, this, &FormPID::cPID0Save);
+//    connect(ui->cPID0, &QDoubleSpinBox::editingFinished, this, &FormPID::cPID0Save);
     ui->cPID1->setProperty("changed", false);
     connect(ui->cPID1, &QDoubleSpinBox::valueChanged, this, &FormPID::cPID1Change);
-    connect(ui->cPID1, &QDoubleSpinBox::editingFinished, this, &FormPID::cPID1Save);
+//    connect(ui->cPID1, &QDoubleSpinBox::editingFinished, this, &FormPID::cPID1Save);
     ui->cPID2->setProperty("changed", false);
     connect(ui->cPID2, &QDoubleSpinBox::valueChanged, this, &FormPID::cPID2Change);
-    connect(ui->cPID2, &QDoubleSpinBox::editingFinished, this, &FormPID::cPID2Save);
+//    connect(ui->cPID2, &QDoubleSpinBox::editingFinished, this, &FormPID::cPID2Save);
 
 }
 

@@ -10,10 +10,10 @@ FormCStop::FormCStop(QWidget *parent, devNano *d) :
 
     ui->cStop0->setProperty("changed", false);
     connect(ui->cStop0, &QDoubleSpinBox::valueChanged, this, &FormCStop::cStop0Change);
-    connect(ui->cStop0, &QDoubleSpinBox::editingFinished, this, &FormCStop::cStop0Save);
+//    connect(ui->cStop0, &QDoubleSpinBox::editingFinished, this, &FormCStop::cStop0Save);
     ui->cStop1->setProperty("changed", false);
     connect(ui->cStop1, &QDoubleSpinBox::valueChanged, this, &FormCStop::cStop1Change);
-    connect(ui->cStop1, &QDoubleSpinBox::editingFinished, this, &FormCStop::cStop1Save);
+//    connect(ui->cStop1, &QDoubleSpinBox::editingFinished, this, &FormCStop::cStop1Save);
 }
 
 FormCStop::~FormCStop()

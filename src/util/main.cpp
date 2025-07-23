@@ -7,6 +7,8 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    a.setOrganizationName("Neblinux");
+    a.setApplicationName("Util");
 
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
@@ -19,5 +21,6 @@ int main(int argc, char *argv[])
     }
     MainWindow w;
     w.show();
+    w.restore();
     return a.exec();
 }
