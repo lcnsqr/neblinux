@@ -29,6 +29,8 @@
 
 #include <QDebug>
 
+#include <QToolTip>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -207,7 +209,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Calibration points
     calibChart.size = 8;
     calibChart.min = 10;
-    calibChart.max = 176;
+    calibChart.max = 105;
     // Domain for the density function (tan)
     calibChart.from = -1.0;
     calibChart.to = 0.7;
@@ -276,7 +278,7 @@ MainWindow::MainWindow(QWidget *parent)
     calibChart.chart->legend()->markers(calibChart.scatter[1]).first()->setVisible(false);
 
     calibChart.axisX = new QValueAxis();
-    calibChart.axisX->setRange(10, 176);
+    calibChart.axisX->setRange(calibChart.min, calibChart.max);
     calibChart.axisX->setTickCount(2);
     calibChart.axisX->setLabelFormat("%d");
     calibChart.chart->addAxis(calibChart.axisX, Qt::AlignBottom);
@@ -372,12 +374,31 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     // Bar set for autostopChart
-    autostopChart.barset = new QBarSet(tr("Linear coefficients over time"));
-    *(autostopChart.barset) << 0 << 0;
+    autostopChart.barset[0] = new QBarSet(tr("Linear coefficients over time"));
+    *(autostopChart.barset[0]) << 0 << 0;
+
+    autostopChart.barset[1] = new QBarSet(tr("Maximum"));
+    *(autostopChart.barset[1]) << 0 << 0;
 
     // Create a bar series and add the single bar set
     autostopChart.series = new QBarSeries();
-    autostopChart.series->append(autostopChart.barset);
+    autostopChart.series->append(autostopChart.barset[0]);
+    autostopChart.series->append(autostopChart.barset[1]);
+
+    // Show tooltip when pointer hovers
+    QObject::connect(autostopChart.series, &QBarSeries::hovered, [&](bool status, int index, QBarSet *barSet) {
+        if (status) {  // When the pointer hovers over the bar
+            // Get the value of the bar
+            qreal value = barSet->at(index);
+
+            // Get the global position of the mouse cursor and display the tooltip
+            QPoint globalPos = QCursor::pos();
+            QToolTip::showText(globalPos, QString::number(value));
+        } else {
+            // Hide the tooltip when the pointer leaves the bar
+            QToolTip::hideText();
+        }
+    });
 
     // Create the chart and add the bar series
     autostopChart.chart = new QChart();
@@ -450,6 +471,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(probeThread, &QThread::finished, probe, &QObject::deleteLater);
     connect(probe, &Probe::finished, probeThread, &QThread::quit);
     connect(ui->probeConnect, &QCheckBox::stateChanged, this, &MainWindow::probeConnect);
+
+    // Probe type
+    ui->probeTA612c->setProperty("probeType", 0x04);
+    connect(ui->probeTA612c, &QRadioButton::toggled, this, &MainWindow::setProbeType);
+    ui->probeArduino->setProperty("probeType", 0x01);
+    connect(ui->probeArduino, &QRadioButton::toggled, this, &MainWindow::setProbeType);
 
     // Update calibChart from user given coefficients
     connect(formCTemp, &FormCTemp::CTempChange, this, &MainWindow::calibPolyFill);
@@ -546,6 +573,8 @@ void MainWindow::probeConnect(int state)
         QMetaObject::invokeMethod(probe, "setPortName", Qt::QueuedConnection, Q_ARG(QString, probePortName));
 
         ui->probeLocation->setDisabled(true);
+        ui->probeTA612c->setDisabled(true);
+        ui->probeArduino->setDisabled(true);
 
         QMetaObject::invokeMethod(probe, "startReading", Qt::QueuedConnection);
 
@@ -553,6 +582,8 @@ void MainWindow::probeConnect(int state)
     else {
         QMetaObject::invokeMethod(probe, "stopReading", Qt::QueuedConnection);
         ui->probeLocation->setDisabled(false);
+        ui->probeTA612c->setDisabled(false);
+        ui->probeArduino->setDisabled(false);
     }
 }
 
@@ -569,12 +600,17 @@ void MainWindow::devDataIn(const struct State& state)
         heatChart.series->replace(j, heatChart.series->at(j).x(), heatChart.series->at(j+1).y());
     }
 
-    tempChartA.series[0]->replace(chartPastSize - 1, tempChartA.series[0]->at(chartPastSize - 1).x(), state.tempEx);
+    tempChartA.series[1]->setName(tr("Target: ")+QString::number(static_cast<int>(state.tempTarget))+"°C");
     tempChartA.series[1]->replace(chartPastSize - 1, tempChartA.series[1]->at(chartPastSize - 1).x(), state.tempTarget);
 
-    tempChartA.series[0]->setName(tr("Output: ")+QString::number(static_cast<int>(state.tempEx))+"°C");
-    tempChartA.series[1]->setName(tr("Target: ")+QString::number(static_cast<int>(state.tempTarget))+"°C");
-
+    if ( static_cast<bool>(state.on) && static_cast<int>(state.PID[4]) > 0 ){
+        tempChartA.series[0]->setName(tr("Output: ")+QString::number(static_cast<int>(state.tempEx))+"°C");
+        tempChartA.series[0]->replace(chartPastSize - 1, tempChartA.series[0]->at(chartPastSize - 1).x(), state.tempEx);
+    }
+    else {
+        tempChartA.series[0]->setName(tr("Output: ")+QString::number(static_cast<int>(state.tempCore))+"°C");
+        tempChartA.series[0]->replace(chartPastSize - 1, tempChartA.series[0]->at(chartPastSize - 1).x(), state.tempCore);
+    }
     tempChartB.series[0]->replace(chartPastSize - 1, tempChartB.series[0]->at(chartPastSize - 1).x(), state.tempCore);
     tempChartB.series[0]->setName(tr("Pre: ")+QString::number(static_cast<int>(state.tempCore))+"°C");
 
@@ -650,8 +686,15 @@ void MainWindow::devDataIn(const struct State& state)
     }
 
     // autostopChart
-    autostopChart.barset->replace(0, state.sStop[0]);
-    autostopChart.barset->replace(1, state.sStop[1]);
+    autostopChart.barset[0]->replace(0, state.sStop[0]);
+    autostopChart.barset[0]->replace(1, state.sStop[1]);
+    // Max values
+    if ( static_cast<bool>(state.on) && state.elapsed > 60 ){
+        if ( autostopChart.barset[1]->at(0) < state.sStop[0] )
+            autostopChart.barset[1]->replace(0, state.sStop[0]);
+        if ( autostopChart.barset[1]->at(1) > state.sStop[1] )
+            autostopChart.barset[1]->replace(1, state.sStop[1]);
+    }
     // auto stop coefficients
     if ( ! formCStop->getCStop0()->property("changed").toBool() ){
         formCStop->getCStop0()->setValue( static_cast<float>(state.cStop[0]) );
@@ -700,6 +743,18 @@ void MainWindow::probeDataIn(const float reading)
 void MainWindow::probeError(const QString &error)
 {
     ui->statusbar->showMessage(error);
+}
+
+void MainWindow::setProbeType(bool checked)
+{
+    if (checked) {
+        QRadioButton *button = qobject_cast<QRadioButton*>(sender());
+        if (button) {
+            char pt = (char)button->property("probeType").toInt();
+            qDebug() << "probeType" << QString::number(pt);
+            QMetaObject::invokeMethod(probe, "setProbeType", Qt::QueuedConnection, Q_ARG(char, pt));
+        }
+    }
 }
 
 void MainWindow::calibSwitchSlot(bool pressed)
@@ -772,8 +827,13 @@ void MainWindow::calibFitPoints()
 void MainWindow::calibUpCoefsSlot()
 {
     qDebug() << "Upload new coefficients to device";
-    calibFitPoints();
-    QMetaObject::invokeMethod(dev, "setCTempAll", Qt::QueuedConnection, Q_ARG(QList<float>, cTempCoeffs));
+
+    QList<float> c;
+    for (int i = 0; i < 4; ++i)
+        c.append(static_cast<float>(formCTemp->getCTemp(i)->value()));
+
+    QMetaObject::invokeMethod(dev, "setCTempAll", Qt::QueuedConnection, Q_ARG(QList<float>, c));
+
     formCTemp->getCTemp0()->setProperty("changed", false);
     formCTemp->getCTemp1()->setProperty("changed", false);
     formCTemp->getCTemp2()->setProperty("changed", false);
@@ -843,14 +903,20 @@ void MainWindow::updateScreenData(){
     if ( ui->probeLocation->count() == 0 ){
         ui->probeLocation->setDisabled(true);
         ui->probeConnect->setDisabled(true);
+        ui->probeTA612c->setDisabled(true);
+        ui->probeArduino->setDisabled(true);
     }
     else {
         if ( ui->probeConnect->isChecked() ){
             ui->probeLocation->setDisabled(true);
+            ui->probeTA612c->setDisabled(true);
+            ui->probeArduino->setDisabled(true);
         }
         else {
             ui->probeLocation->setDisabled(false);
             ui->probeConnect->setDisabled(false);
+            ui->probeTA612c->setDisabled(false);
+            ui->probeArduino->setDisabled(false);
         }
     }
 

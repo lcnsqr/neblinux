@@ -133,7 +133,7 @@ private:
 
     // autostopChart
     struct {
-        QBarSet *barset;
+        QBarSet *barset[2];
         QBarSeries *series;
         QChart *chart;
         QStringList categories;
@@ -168,6 +168,8 @@ public slots:
     void probeConnect(int);
     void probeDataIn(const float reading);
     void probeError(const QString& error);
+
+    void setProbeType(bool checked);
 
     void calibSwitchSlot(bool pressed);
     void calibUpCoefsSlot();

@@ -3,10 +3,6 @@
 
 #include <stdint.h>
 
-// Máximos para normalização dos domínios de temperatura e carga
-#define TEMP_MAX 400.0
-#define HEAT_MAX 255.0
-
 // Marcação para checagem de transmissão serial
 #define SERIAL_TAG 0x0f1e2d3c
 // Comandos recebíveis via porta serial (char)

@@ -10,6 +10,7 @@
 #include <QString>
 
 #include <array>
+#include "state.h"
 
 class Probe: public QObject {
     Q_OBJECT
@@ -22,6 +23,7 @@ public slots:
     void setPortName(QString path);
     void setBaudRate(qint32 baud);
     void setInterval(int msecs);
+    void setProbeType(char t);
 
     void startReading();
     void stopReading();
@@ -36,6 +38,13 @@ signals:
 private:
     // When the connection begun
     QDateTime connectTime;
+
+    // Probe type
+    char probeType;
+
+    // Pull functions for each type
+    float pullTA612c();
+    float pullArduino();
 
     // Serial communication
     QSerialPort* serial;

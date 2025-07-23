@@ -13,6 +13,11 @@ public:
 
   static const int pts = 4;
 
+
+  // Máximos para normalização dos domínios de temperatura e carga
+  static const float tempMax = 400.0;
+  static const float heatMax = 255.0;
+
   // Elementos da matriz A' * A, onde A = [1 0; 1 0.25; 1 0.5; 1 0.75]
   static const float a0 = 4.0;
   static const float a1 = 1.5;
@@ -36,13 +41,17 @@ public:
   float s[2];
 
   // Mínimo tempo decorrido
-  static const int minSec = 40;
-
-  // Constante de decaimento dos limiares de parada
-  float decay;
+  static const int minSec = 60;
 
   // Mínimo tempo decorrido após última mudança no target
   static const int targetMinSec = 10;
+
+  // Em qual momento aplicar coeficientes integrais
+  static const float mark = 120.0;
+  // Em qual momento atingir a redução especificada
+  static const float over = 240.0;
+  // Redução especificada
+  static const float decay = log(1.0/3.0);
 
 private:
   Session *session;
