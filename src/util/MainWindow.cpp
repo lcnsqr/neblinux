@@ -220,6 +220,10 @@ void MainWindow::setupViews()
 
 void MainWindow::setupCharts()
 {
+
+    // Size of the time series
+    chartPastSize = chartPastTime / refreshInterval + 1;
+
     tempChartA.chart = new QChart();
 
     tempChartA.series[0] = new QLineSeries();

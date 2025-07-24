@@ -80,8 +80,11 @@ private:
     Probe* probe;
     QString probePortName;
 
-    static const int refreshInterval = 100;
-    static const int chartPastSize = 201;
+    static const int refreshInterval = 200;
+    // chartPastTime / 1000 must be integer multiple of refreshInterval
+    static const int chartPastTime = 125 * refreshInterval;
+    // Size of the time series
+    int chartPastSize;
 
     // tempChartA
     struct {
