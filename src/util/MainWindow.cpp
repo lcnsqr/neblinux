@@ -681,13 +681,25 @@ void MainWindow::devDataIn(const struct State& state)
     heatChart.series->setName(tr("Load: ")+QString::number(static_cast<int>(state.PID[4])));
 
     // PID form fields
-    if ( ! formPID->getTarget()->property("changed").toBool() ){
+    if ( formPID->getTarget()->property("changed").toBool() ){
+        // Set unchanged if device data and field value do not differ
+        if ( static_cast<int>(state.tempTarget) == static_cast<int>(formPID->getTarget()->value()) )
+            formPID->getTarget()->setProperty("changed", false);
+    }
+    else {
+        // No new value from user, update with device data
         formPID->getTarget()->setValue( static_cast<int>(state.tempTarget) );
         formPID->getTarget()->setProperty("changed", false);
     }
 
     for (int i = 0; i < 3; ++i)
-        if ( ! formPID->getCPID(i)->property("changed").toBool() ){
+        if ( formPID->getCPID(i)->property("changed").toBool() ){
+            // Set unchanged if device data and field value do not differ
+            if ( static_cast<float>(state.cPID[i]) == static_cast<float>(formPID->getCPID(i)->value()) )
+                formPID->getCPID(i)->setProperty("changed", false);
+        }
+        else {
+            // No new value from user, update with device data
             formPID->getCPID(i)->setValue( static_cast<float>(state.cPID[i]) );
             formPID->getCPID(i)->setProperty("changed", false);
         }
@@ -983,6 +995,21 @@ void MainWindow::updateScreenData(){
         }
     }
 
+
+    // Enable/disable FormPID action buttons
+    if ( formPID->getTarget()->property("changed").toBool()
+        || formPID->getCPID(0)->property("changed").toBool()
+        || formPID->getCPID(1)->property("changed").toBool()
+        || formPID->getCPID(2)->property("changed").toBool() )
+    {
+        formPID->getcPIDrestore()->setEnabled(true);
+        formPID->getcPIDapply()->setEnabled(true);
+    }
+    else
+    {
+        formPID->getcPIDrestore()->setDisabled(true);
+        formPID->getcPIDapply()->setDisabled(true);
+    }
 
     // Update derivative charts
     regressions();
