@@ -146,6 +146,8 @@
     <property name="title">
      <string>Setup</string>
     </property>
+    <addaction name="PID"/>
+    <addaction name="separator"/>
     <addaction name="Calibration"/>
     <addaction name="Temperature_coefficients"/>
     <addaction name="separator"/>
@@ -216,6 +218,14 @@
    </property>
    <property name="text">
     <string>Auto Stop</string>
+   </property>
+  </action>
+  <action name="PID">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>PID</string>
    </property>
   </action>
  </widget>

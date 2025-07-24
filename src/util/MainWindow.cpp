@@ -39,7 +39,6 @@ MainWindow::MainWindow(QWidget *parent)
     , probeThread(new QThread(this))
     , probe(new Probe())
     , formPID(new FormPID(this, dev))
-    , formHeat(new FormHeat(this, dev))
     , formFan(new FormFan(this, dev))
     , formCStop(new FormCStop(this, dev))
     , formCTemp(new FormCTemp(this, dev))
@@ -163,6 +162,10 @@ void MainWindow::setupViews()
     menu = ui->Pre_and_probe_temperatures;
     views[menu->objectName()] = new View(nullptr, menu);
     views[menu->objectName()]->layout->addWidget(tempChartB.chartView);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    menu = ui->PID;
+    views[menu->objectName()] = new View(nullptr, menu);
     views[menu->objectName()]->layout->addWidget(formPID);
     connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
 
@@ -204,8 +207,6 @@ void MainWindow::setupViews()
     menu = ui->Heating;
     views[menu->objectName()] = new View(nullptr, menu);
     views[menu->objectName()]->layout->addWidget(heatChart.chartView);
-    // Heat load form  (PID enable, load)
-    views[menu->objectName()]->layout->addWidget(formHeat);
     connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
 
     // Auto Stop
@@ -597,13 +598,11 @@ void MainWindow::devConnect(int state)
     if (state == Qt::Checked) {
 
         // Reset changed state of all input fields
-        formPID->getTarget()->setProperty("changed", false);
         for (int i = 0; i < 3; ++i)
             formPID->getCPID(i)->setProperty("changed", false);
         formFan->getFanLoad()->setProperty("changed", false);
         for (int i = 0; i < 4; ++i)
             formCTemp->getCTemp(i)->setProperty("changed", false);
-        formHeat->getHeatLoad()->setProperty("changed", false);
         formCStop->getCStop0()->setProperty("changed", false);
         formCStop->getCStop1()->setProperty("changed", false);
         formPrefs->getTempstep()->setProperty("changed", false);
@@ -685,16 +684,16 @@ void MainWindow::devDataIn(const struct State& state)
     heatChart.series->setName(tr("Load: ")+QString::number(static_cast<int>(state.PID[4])));
 
     // PID form fields
-    if ( formPID->getTarget()->property("changed").toBool() ){
-        // Set unchanged if device data and field value do not differ
-        if ( static_cast<int>(state.tempTarget) == static_cast<int>(formPID->getTarget()->value()) )
-            formPID->getTarget()->setProperty("changed", false);
-    }
-    else {
-        // No new value from user, update with device data
-        formPID->getTarget()->setValue( static_cast<int>(state.tempTarget) );
-        formPID->getTarget()->setProperty("changed", false);
-    }
+//    if ( formPID->getTarget()->property("changed").toBool() ){
+//        // Set unchanged if device data and field value do not differ
+//        if ( static_cast<int>(state.tempTarget) == static_cast<int>(formPID->getTarget()->value()) )
+//            formPID->getTarget()->setProperty("changed", false);
+//    }
+//    else {
+//        // No new value from user, update with device data
+//        formPID->getTarget()->setValue( static_cast<int>(state.tempTarget) );
+//        formPID->getTarget()->setProperty("changed", false);
+//    }
 
     for (int i = 0; i < 3; ++i)
         if ( formPID->getCPID(i)->property("changed").toBool() ){
@@ -749,20 +748,6 @@ void MainWindow::devDataIn(const struct State& state)
         calibChart.scatter[0]->replace(calibIndex, calibChart.scatter[0]->at(calibIndex).x(), state.tempCore);
     }
 
-
-    // Heat form fields
-    if ( QDateTime::fromString(formHeat->getPidEnabled()->property("changedAt").toString()).msecsTo(QDateTime::currentDateTime()) > 1000 )
-        formHeat->getPidEnabled()->setChecked(static_cast<bool>(state.PID_enabled));
-
-    if ( static_cast<bool>(state.PID_enabled) ){
-        // Disable user input for the heat load
-        formHeat->getHeatLoad()->setDisabled(true);
-        formHeat->getHeatLoad()->setValue( static_cast<int>(state.PID[4]) );
-    }
-    else {
-        // Enable user input for the heat load
-        formHeat->getHeatLoad()->setDisabled(false);
-    }
 
     // autostopChart
     autostopChart.barset[0]->replace(0, state.sStop[0]);
@@ -1001,8 +986,7 @@ void MainWindow::updateScreenData(){
 
 
     // Enable/disable FormPID action buttons
-    if ( formPID->getTarget()->property("changed").toBool()
-        || formPID->getCPID(0)->property("changed").toBool()
+    if ( formPID->getCPID(0)->property("changed").toBool()
         || formPID->getCPID(1)->property("changed").toBool()
         || formPID->getCPID(2)->property("changed").toBool() )
     {
@@ -1019,7 +1003,7 @@ void MainWindow::updateScreenData(){
     regressions();
 
     // Enable/disable calibration
-    if ( formFan->getFanControl()->isChecked() && ! formHeat->getPidEnabled()->isChecked() ){
+    if ( formFan->getFanControl()->isChecked() ){
         calibSwitch->setDisabled(false);
     }
     else {

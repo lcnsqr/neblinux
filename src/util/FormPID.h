@@ -20,9 +20,6 @@ public:
     explicit FormPID(QWidget *parent = nullptr, devNano *d = nullptr);
     ~FormPID();
 
-    // Provide access to the target field
-    QSpinBox* getTarget();
-
     // Provide access to PID coefs
     QDoubleSpinBox* getCPID(int i);
 
@@ -34,7 +31,6 @@ public slots:
     void apply();
     void restore();
 
-    void targetChange();
     void cPID0Change();
     void cPID1Change();
     void cPID2Change();

@@ -10,9 +10,6 @@ FormPID::FormPID(QWidget *parent, devNano *d) :
 {
     ui->setupUi(this);
 
-    ui->target->setProperty("changed", false);
-    connect(ui->target, &QSpinBox::valueChanged, this, &FormPID::targetChange);
-
     ui->cPID0->setProperty("changed", false);
     connect(ui->cPID0, &QDoubleSpinBox::valueChanged, this, &FormPID::cPID0Change);
     ui->cPID1->setProperty("changed", false);
@@ -29,11 +26,6 @@ FormPID::FormPID(QWidget *parent, devNano *d) :
 FormPID::~FormPID()
 {
     delete ui;
-}
-
-QSpinBox *FormPID::getTarget()
-{
-    return ui->target;
 }
 
 QDoubleSpinBox *FormPID::getCPID(int i)
@@ -62,9 +54,6 @@ QPushButton *FormPID::getcPIDapply()
 
 void FormPID::apply()
 {
-    if ( ui->target->property("changed").toBool() )
-        QMetaObject::invokeMethod(dev, "setTempTarget", Qt::QueuedConnection, Q_ARG(float, (float)(ui->target->value())));
-
     if ( ui->cPID0->property("changed").toBool() )
         QMetaObject::invokeMethod(dev, "setCPID0", Qt::QueuedConnection, Q_ARG(float, (float)(ui->cPID0->value())));
 
@@ -77,15 +66,9 @@ void FormPID::apply()
 
 void FormPID::restore()
 {
-    ui->target->setProperty("changed", false);
     ui->cPID0->setProperty("changed", false);
     ui->cPID1->setProperty("changed", false);
     ui->cPID2->setProperty("changed", false);
-}
-
-void FormPID::targetChange()
-{
-    ui->target->setProperty("changed", true);
 }
 
 void FormPID::cPID0Change()

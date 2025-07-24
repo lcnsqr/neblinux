@@ -109,10 +109,6 @@ private:
     // PID fields
     FormPID* formPID;
 
-    // Heat fields (PID enabled
-    // checkbox and manual value)
-    FormHeat* formHeat;
-
     // Fan fields (Fan control
     // fan load and last duration)
     FormFan* formFan;
