@@ -598,13 +598,14 @@ void MainWindow::devConnect(int state)
     if (state == Qt::Checked) {
 
         // Reset changed state of all input fields
-        for (int i = 0; i < 3; ++i)
-            formPID->getCPID(i)->setProperty("changed", false);
+        formPID->reset();
+
         formFan->getFanLoad()->setProperty("changed", false);
         for (int i = 0; i < 4; ++i)
             formCTemp->getCTemp(i)->setProperty("changed", false);
-        formCStop->getCStop0()->setProperty("changed", false);
-        formCStop->getCStop1()->setProperty("changed", false);
+
+        formCStop->reset();
+
         formPrefs->getTempstep()->setProperty("changed", false);
 
         // Get the selected item from the combo box
@@ -655,7 +656,7 @@ void MainWindow::probeConnect(int state)
 
 void MainWindow::devDataIn(const struct State& state)
 {
-    // Temp & heating charts
+    // Update charts and forms with data from device
 
     for (int j = 0; j < chartPastSize - 1; ++j){
         tempChartA.series[0]->replace(j, tempChartA.series[0]->at(j).x(), tempChartA.series[0]->at(j+1).y());
@@ -683,29 +684,9 @@ void MainWindow::devDataIn(const struct State& state)
     heatChart.series->replace(chartPastSize - 1, heatChart.series->at(chartPastSize - 1).x(), state.PID[4]);
     heatChart.series->setName(tr("Load: ")+QString::number(static_cast<int>(state.PID[4])));
 
-    // PID form fields
-//    if ( formPID->getTarget()->property("changed").toBool() ){
-//        // Set unchanged if device data and field value do not differ
-//        if ( static_cast<int>(state.tempTarget) == static_cast<int>(formPID->getTarget()->value()) )
-//            formPID->getTarget()->setProperty("changed", false);
-//    }
-//    else {
-//        // No new value from user, update with device data
-//        formPID->getTarget()->setValue( static_cast<int>(state.tempTarget) );
-//        formPID->getTarget()->setProperty("changed", false);
-//    }
 
-    for (int i = 0; i < 3; ++i)
-        if ( formPID->getCPID(i)->property("changed").toBool() ){
-            // Set unchanged if device data and field value do not differ
-            if ( static_cast<float>(state.cPID[i]) == static_cast<float>(formPID->getCPID(i)->value()) )
-                formPID->getCPID(i)->setProperty("changed", false);
-        }
-        else {
-            // No new value from user, update with device data
-            formPID->getCPID(i)->setValue( static_cast<float>(state.cPID[i]) );
-            formPID->getCPID(i)->setProperty("changed", false);
-        }
+    // PID form fields
+    formPID->devDataIn(state);
 
 
     // Fan form fields
@@ -760,14 +741,8 @@ void MainWindow::devDataIn(const struct State& state)
             autostopChart.barset[1]->replace(1, state.sStop[1]);
     }
     // auto stop coefficients
-    if ( ! formCStop->getCStop0()->property("changed").toBool() ){
-        formCStop->getCStop0()->setValue( static_cast<float>(state.cStop[0]) );
-        formCStop->getCStop0()->setProperty("changed", false);
-    }
-    if ( ! formCStop->getCStop1()->property("changed").toBool() ){
-        formCStop->getCStop1()->setValue( static_cast<float>(state.cStop[1]) );
-        formCStop->getCStop1()->setProperty("changed", false);
-    }
+    formCStop->devDataIn(state);
+
 
     // Preferences form fields
     if ( QDateTime::fromString(formPrefs->getAutostop()->property("changedAt").toString()).msecsTo(QDateTime::currentDateTime()) > 1000 )
@@ -986,18 +961,12 @@ void MainWindow::updateScreenData(){
 
 
     // Enable/disable FormPID action buttons
-    if ( formPID->getCPID(0)->property("changed").toBool()
-        || formPID->getCPID(1)->property("changed").toBool()
-        || formPID->getCPID(2)->property("changed").toBool() )
-    {
-        formPID->getcPIDrestore()->setEnabled(true);
-        formPID->getcPIDapply()->setEnabled(true);
-    }
-    else
-    {
-        formPID->getcPIDrestore()->setDisabled(true);
-        formPID->getcPIDapply()->setDisabled(true);
-    }
+    formPID->updateScreenData();
+
+    
+    // Enable/disable CStop action buttons
+    formCStop->updateScreenData();
+
 
     // Update derivative charts
     regressions();

@@ -28,28 +28,65 @@ FormPID::~FormPID()
     delete ui;
 }
 
-QDoubleSpinBox *FormPID::getCPID(int i)
+void FormPID::updateScreenData()
 {
-
-    QDoubleSpinBox *cPID = nullptr;
-    if ( i == 0 )
-        cPID = ui->cPID0;
-    else if ( i == 1 )
-        cPID = ui->cPID1;
-    else if ( i == 2 )
-        cPID = ui->cPID2;
-    return cPID;
+    // Enable/disable FormPID action buttons
+    if ( ui->cPID0->property("changed").toBool()
+        || ui->cPID1->property("changed").toBool()
+        || ui->cPID2->property("changed").toBool() )
+    {
+        ui->cPIDrestore->setEnabled(true);
+        ui->cPIDapply->setEnabled(true);
+    }
+    else
+    {
+        ui->cPIDrestore->setDisabled(true);
+        ui->cPIDapply->setDisabled(true);
+    }
 
 }
 
-QPushButton *FormPID::getcPIDrestore()
+void FormPID::devDataIn(const State &state)
 {
-    return ui->cPIDrestore;
+    if ( ui->cPID0->property("changed").toBool() ){
+        // Set unchanged if device data and field value do not differ
+        if ( static_cast<float>(state.cPID[0]) == static_cast<float>(ui->cPID0->value()) )
+            ui->cPID0->setProperty("changed", false);
+    }
+    else {
+        // No new value from user, update with device data
+        ui->cPID0->setValue( static_cast<float>(state.cPID[0]) );
+        ui->cPID0->setProperty("changed", false);
+    }
+
+    if ( ui->cPID1->property("changed").toBool() ){
+        // Set unchanged if device data and field value do not differ
+        if ( static_cast<float>(state.cPID[1]) == static_cast<float>(ui->cPID1->value()) )
+            ui->cPID1->setProperty("changed", false);
+    }
+    else {
+        // No new value from user, update with device data
+        ui->cPID1->setValue( static_cast<float>(state.cPID[1]) );
+        ui->cPID1->setProperty("changed", false);
+    }
+
+    if ( ui->cPID2->property("changed").toBool() ){
+        // Set unchanged if device data and field value do not differ
+        if ( static_cast<float>(state.cPID[2]) == static_cast<float>(ui->cPID2->value()) )
+            ui->cPID2->setProperty("changed", false);
+    }
+    else {
+        // No new value from user, update with device data
+        ui->cPID2->setValue( static_cast<float>(state.cPID[2]) );
+        ui->cPID2->setProperty("changed", false);
+    }
 }
 
-QPushButton *FormPID::getcPIDapply()
+void FormPID::reset()
 {
-    return ui->cPIDapply;
+    ui->cPID0->setProperty("changed", false);
+    ui->cPID1->setProperty("changed", false);
+    ui->cPID2->setProperty("changed", false);
 }
 
 void FormPID::apply()

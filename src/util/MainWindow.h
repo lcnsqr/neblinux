@@ -27,8 +27,6 @@
 #include <QtCharts/QBarSet>
 #include <QtCharts/QBarCategoryAxis>
 
-#include "FormHeat.h"
-
 #include "FormFan.h"
 
 #include <QtCharts/QScatterSeries>

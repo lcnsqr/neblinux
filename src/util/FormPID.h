@@ -2,9 +2,6 @@
 #define FORMPID_H
 
 #include <QWidget>
-#include <QSpinBox>
-#include <QDoubleSpinBox>
-#include <QPushButton>
 
 #include "devNano.h"
 
@@ -20,12 +17,9 @@ public:
     explicit FormPID(QWidget *parent = nullptr, devNano *d = nullptr);
     ~FormPID();
 
-    // Provide access to PID coefs
-    QDoubleSpinBox* getCPID(int i);
-
-    // Access to action buttons
-    QPushButton *getcPIDrestore();
-    QPushButton *getcPIDapply();
+    void updateScreenData();
+    void devDataIn(const struct State& state);
+    void reset();
 
 public slots:
     void apply();
