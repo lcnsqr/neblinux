@@ -8,7 +8,13 @@ CONFIG += c++17
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += /usr/include/eigen3
+win32 {
+    INCLUDEPATH += C:/eigen-3.4.0
+}
+
+unix {
+    INCLUDEPATH += /usr/include/eigen3
+}
 
 SOURCES += \
     FormCStop.cpp \
