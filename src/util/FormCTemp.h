@@ -2,7 +2,6 @@
 #define FORMCTEMP_H
 
 #include <QWidget>
-#include <QDoubleSpinBox>
 
 #include "devNano.h"
 
@@ -18,22 +17,24 @@ public:
     explicit FormCTemp(QWidget *parent = nullptr, devNano *d = nullptr);
     ~FormCTemp();
 
-    // Provide access to cTemp coefs
-    QDoubleSpinBox* getCTemp0();
-    QDoubleSpinBox* getCTemp1();
-    QDoubleSpinBox* getCTemp2();
-    QDoubleSpinBox* getCTemp3();
-    QDoubleSpinBox* getCTemp(int i);
+    void updateScreenData();
+    void devDataIn(const struct State& state);
+    void reset();
+
+    void setCTempAll(const QList<float> &values);
+
+    QList<float> getCTempAll();
+
+    void upload();
 
 public slots:
+    void apply();
+    void restore();
+
     void CTemp0Change();
-    void CTemp0Save();
     void CTemp1Change();
-    void CTemp1Save();
     void CTemp2Change();
-    void CTemp2Save();
     void CTemp3Change();
-    void CTemp3Save();
 
 
 signals:

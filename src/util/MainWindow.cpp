@@ -601,8 +601,8 @@ void MainWindow::devConnect(int state)
         formPID->reset();
 
         formFan->getFanLoad()->setProperty("changed", false);
-        for (int i = 0; i < 4; ++i)
-            formCTemp->getCTemp(i)->setProperty("changed", false);
+
+        formCTemp->reset();
 
         formCStop->reset();
 
@@ -703,24 +703,6 @@ void MainWindow::devDataIn(const struct State& state)
     int seconds = state.elapsed % 60;
     formFan->getElapsed()->setText(QString("%1m%2s").arg(minutes, 1, 10, QChar('0')).arg(seconds, 1, 10, QChar('0')));
 
-    // Temperature Coefficents
-    if ( ! formCTemp->getCTemp0()->property("changed").toBool() ){
-        formCTemp->getCTemp0()->setValue( static_cast<float>(state.cTemp[0]) );
-        formCTemp->getCTemp0()->setProperty("changed", false);
-    }
-    if ( ! formCTemp->getCTemp1()->property("changed").toBool() ){
-        formCTemp->getCTemp1()->setValue( static_cast<float>(state.cTemp[1]) );
-        formCTemp->getCTemp1()->setProperty("changed", false);
-    }
-    if ( ! formCTemp->getCTemp2()->property("changed").toBool() ){
-        formCTemp->getCTemp2()->setValue( static_cast<float>(state.cTemp[2]) );
-        formCTemp->getCTemp2()->setProperty("changed", false);
-    }
-    if ( ! formCTemp->getCTemp3()->property("changed").toBool() ){
-        formCTemp->getCTemp3()->setValue( static_cast<float>(state.cTemp[3]) );
-        formCTemp->getCTemp3()->setProperty("changed", false);
-    }
-
 
     // Calibration chart
     if ( formCalib->getCalibRunning() ){
@@ -728,6 +710,9 @@ void MainWindow::devDataIn(const struct State& state)
         calibChart.series[0]->replace(calibIndex, calibChart.series[0]->at(calibIndex).x(), state.tempCore);
         calibChart.scatter[0]->replace(calibIndex, calibChart.scatter[0]->at(calibIndex).x(), state.tempCore);
     }
+
+    // Temperature profile coefficents
+    formCTemp->devDataIn(state);
 
 
     // autostopChart
@@ -852,31 +837,18 @@ void MainWindow::calibFitPoints()
     Eigen::VectorXd coeffs = A.colPivHouseholderQr().solve(b);
 
     // Update cTemp values
-    formCTemp->getCTemp0()->setValue(coeffs(0));
-    formCTemp->getCTemp1()->setValue(coeffs(1));
-    formCTemp->getCTemp2()->setValue(coeffs(2));
-    formCTemp->getCTemp3()->setValue(coeffs(3));
-
     cTempCoeffs.clear();
     for (int i = 0; i < coeffs.size(); ++i) {
         cTempCoeffs.append(static_cast<float>(coeffs(i)));
     }
+    formCTemp->setCTempAll(cTempCoeffs);
 }
 
 void MainWindow::calibUpCoefsSlot()
 {
     qDebug() << "Upload new coefficients to device";
 
-    QList<float> c;
-    for (int i = 0; i < 4; ++i)
-        c.append(static_cast<float>(formCTemp->getCTemp(i)->value()));
-
-    QMetaObject::invokeMethod(dev, "setCTempAll", Qt::QueuedConnection, Q_ARG(QList<float>, c));
-
-    formCTemp->getCTemp0()->setProperty("changed", false);
-    formCTemp->getCTemp1()->setProperty("changed", false);
-    formCTemp->getCTemp2()->setProperty("changed", false);
-    formCTemp->getCTemp3()->setProperty("changed", false);
+    formCTemp->upload();
 }
 
 void MainWindow::calibPolyFill()
@@ -886,9 +858,7 @@ void MainWindow::calibPolyFill()
     if ( formCalib->getCalibRunning() )
         return;
 
-    QList<float> c;
-    for (int i = 0; i < 4; ++i)
-        c.append(static_cast<float>(formCTemp->getCTemp(i)->value()));
+    QList<float> c = formCTemp->getCTempAll();
 
     for (int i = 0; i < calibChart.size; ++i) {
         float x = calibChart.series[0]->at(i).y();
@@ -963,10 +933,11 @@ void MainWindow::updateScreenData(){
     // Enable/disable FormPID action buttons
     formPID->updateScreenData();
 
-    
     // Enable/disable CStop action buttons
     formCStop->updateScreenData();
 
+    // Enable/disable CTemp action buttons
+    formCTemp->updateScreenData();
 
     // Update derivative charts
     regressions();

@@ -103,9 +103,7 @@ void FormPID::apply()
 
 void FormPID::restore()
 {
-    ui->cPID0->setProperty("changed", false);
-    ui->cPID1->setProperty("changed", false);
-    ui->cPID2->setProperty("changed", false);
+    reset();
 }
 
 void FormPID::cPID0Change()

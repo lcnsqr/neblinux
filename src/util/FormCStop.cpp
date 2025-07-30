@@ -81,8 +81,7 @@ void FormCStop::apply()
 
 void FormCStop::restore()
 {
-    ui->cStop0->setProperty("changed", false);
-    ui->cStop1->setProperty("changed", false);
+    reset();
 }
 
 

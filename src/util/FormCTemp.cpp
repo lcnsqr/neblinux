@@ -10,19 +10,16 @@ FormCTemp::FormCTemp(QWidget *parent, devNano *d) :
 
     ui->cTemp0->setProperty("changed", false);
     connect(ui->cTemp0, &QDoubleSpinBox::valueChanged, this, &FormCTemp::CTemp0Change);
-//    connect(ui->cTemp0, &QDoubleSpinBox::editingFinished, this, &FormCTemp::CTemp0Save);
-
     ui->cTemp1->setProperty("changed", false);
     connect(ui->cTemp1, &QDoubleSpinBox::valueChanged, this, &FormCTemp::CTemp1Change);
-//    connect(ui->cTemp1, &QDoubleSpinBox::editingFinished, this, &FormCTemp::CTemp1Save);
-
     ui->cTemp2->setProperty("changed", false);
     connect(ui->cTemp2, &QDoubleSpinBox::valueChanged, this, &FormCTemp::CTemp2Change);
-//    connect(ui->cTemp2, &QDoubleSpinBox::editingFinished, this, &FormCTemp::CTemp2Save);
-
     ui->cTemp3->setProperty("changed", false);
     connect(ui->cTemp3, &QDoubleSpinBox::valueChanged, this, &FormCTemp::CTemp3Change);
-//    connect(ui->cTemp3, &QDoubleSpinBox::editingFinished, this, &FormCTemp::CTemp3Save);
+
+    // Buttons
+    connect(ui->cTempRestore, &QPushButton::clicked, this, &FormCTemp::restore);
+    connect(ui->cTempApply, &QPushButton::clicked, this, &FormCTemp::apply);
 }
 
 FormCTemp::~FormCTemp()
@@ -30,38 +27,115 @@ FormCTemp::~FormCTemp()
     delete ui;
 }
 
-QDoubleSpinBox *FormCTemp::getCTemp0()
+void FormCTemp::updateScreenData()
 {
-    return ui->cTemp0;
+    // Enable/disable cTemp action buttons
+    if ( ui->cTemp0->property("changed").toBool()
+        || ui->cTemp1->property("changed").toBool() 
+        || ui->cTemp2->property("changed").toBool() 
+        || ui->cTemp3->property("changed").toBool() )
+    {
+        ui->cTempRestore->setEnabled(true);
+        ui->cTempApply->setEnabled(true);
+    }
+    else
+    {
+        ui->cTempRestore->setDisabled(true);
+        ui->cTempApply->setDisabled(true);
+    }
 }
 
-QDoubleSpinBox *FormCTemp::getCTemp1()
+QList<float> FormCTemp::getCTempAll()
 {
-    return ui->cTemp1;
+    QList<float> c;
+    c.append(static_cast<float>(ui->cTemp0->value()));
+    c.append(static_cast<float>(ui->cTemp1->value()));
+    c.append(static_cast<float>(ui->cTemp2->value()));
+    c.append(static_cast<float>(ui->cTemp3->value()));
+
+    return c;
 }
 
-QDoubleSpinBox *FormCTemp::getCTemp2()
+void FormCTemp::setCTempAll(const QList<float> &values)
 {
-    return ui->cTemp2;
+    ui->cTemp0->setValue( values.at(0) );
+    ui->cTemp1->setValue( values.at(1) );
+    ui->cTemp2->setValue( values.at(2) );
+    ui->cTemp3->setValue( values.at(3) );
 }
 
-QDoubleSpinBox *FormCTemp::getCTemp3()
+void FormCTemp::devDataIn(const State &state)
 {
-    return ui->cTemp3;
+    // Temperature profile coefficients
+    if ( ui->cTemp0->property("changed").toBool() ){
+        // Set unchanged if device data and field value do not differ
+        if ( static_cast<float>(state.cTemp[0]) == static_cast<float>(ui->cTemp0->value()) )
+            ui->cTemp0->setProperty("changed", false);
+    }
+    else {
+        // No new value from user, update with device data
+        ui->cTemp0->setValue( static_cast<float>(state.cTemp[0]) );
+        ui->cTemp0->setProperty("changed", false);
+    }
+
+    if ( ui->cTemp1->property("changed").toBool() ){
+        if ( static_cast<float>(state.cTemp[1]) == static_cast<float>(ui->cTemp1->value()) )
+            ui->cTemp1->setProperty("changed", false);
+    }
+    else {
+        ui->cTemp1->setValue( static_cast<float>(state.cTemp[1]) );
+        ui->cTemp1->setProperty("changed", false);
+    }
+
+    if ( ui->cTemp2->property("changed").toBool() ){
+        if ( static_cast<float>(state.cTemp[2]) == static_cast<float>(ui->cTemp2->value()) )
+            ui->cTemp2->setProperty("changed", false);
+    }
+    else {
+        ui->cTemp2->setValue( static_cast<float>(state.cTemp[2]) );
+        ui->cTemp2->setProperty("changed", false);
+    }
+
+    if ( ui->cTemp3->property("changed").toBool() ){
+        if ( static_cast<float>(state.cTemp[3]) == static_cast<float>(ui->cTemp3->value()) )
+            ui->cTemp3->setProperty("changed", false);
+    }
+    else {
+        ui->cTemp3->setValue( static_cast<float>(state.cTemp[3]) );
+        ui->cTemp3->setProperty("changed", false);
+    }
 }
 
-QDoubleSpinBox *FormCTemp::getCTemp(int i)
+void FormCTemp::reset()
 {
-    QDoubleSpinBox *cTemp = nullptr;
-    if ( i == 0 )
-        cTemp = ui->cTemp0;
-    else if ( i == 1 )
-        cTemp = ui->cTemp1;
-    else if ( i == 2 )
-        cTemp = ui->cTemp2;
-    else if ( i == 3 )
-        cTemp = ui->cTemp3;
-    return cTemp;
+    ui->cTemp0->setProperty("changed", false);
+    ui->cTemp1->setProperty("changed", false);
+    ui->cTemp2->setProperty("changed", false);
+    ui->cTemp3->setProperty("changed", false);
+}
+
+void FormCTemp::upload(){
+    if ( ui->cTemp0->property("changed").toBool() ||
+         ui->cTemp1->property("changed").toBool() ||
+         ui->cTemp2->property("changed").toBool() ||
+         ui->cTemp3->property("changed").toBool() ){
+
+        QList<float> c = getCTempAll();
+
+        QMetaObject::invokeMethod(dev, "setCTempAll", Qt::QueuedConnection, Q_ARG(QList<float>, c));
+
+        reset();
+    }
+}
+
+void FormCTemp::apply()
+{
+    upload();
+}
+
+void FormCTemp::restore()
+{
+    reset();
 }
 
 void FormCTemp::CTemp0Change()
@@ -70,26 +144,10 @@ void FormCTemp::CTemp0Change()
     emit CTempChange();
 }
 
-void FormCTemp::CTemp0Save()
-{
-    if ( ! ui->cTemp0->property("changed").toBool() )
-        return;
-
-    QMetaObject::invokeMethod(dev, "setCTemp0", Qt::QueuedConnection, Q_ARG(float, (float)(ui->cTemp0->value())));
-}
-
 void FormCTemp::CTemp1Change()
 {
     ui->cTemp1->setProperty("changed", true);
     emit CTempChange();
-}
-
-void FormCTemp::CTemp1Save()
-{
-    if ( ! ui->cTemp1->property("changed").toBool() )
-        return;
-
-    QMetaObject::invokeMethod(dev, "setCTemp1", Qt::QueuedConnection, Q_ARG(float, (float)(ui->cTemp1->value())));
 }
 
 void FormCTemp::CTemp2Change()
@@ -98,24 +156,8 @@ void FormCTemp::CTemp2Change()
     emit CTempChange();
 }
 
-void FormCTemp::CTemp2Save()
-{
-    if ( ! ui->cTemp2->property("changed").toBool() )
-        return;
-
-    QMetaObject::invokeMethod(dev, "setCTemp2", Qt::QueuedConnection, Q_ARG(float, (float)(ui->cTemp2->value())));
-}
-
 void FormCTemp::CTemp3Change()
 {
     ui->cTemp3->setProperty("changed", true);
     emit CTempChange();
-}
-
-void FormCTemp::CTemp3Save()
-{
-    if ( ! ui->cTemp3->property("changed").toBool() )
-        return;
-
-    QMetaObject::invokeMethod(dev, "setCTemp3", Qt::QueuedConnection, Q_ARG(float, (float)(ui->cTemp3->value())));
 }
