@@ -41,7 +41,6 @@ MainWindow::MainWindow(QWidget *parent)
     , formPID(new FormPID(this, dev))
     , formFan(new FormFan(this, dev))
     , formCStop(new FormCStop(this, dev))
-    , formCTemp(new FormCTemp(this, dev))
     , formCalib(new FormCalib(this, &calibChart, dev))
     , formPrefs(new FormPrefs(this, dev))
 {
@@ -103,8 +102,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->probeArduino->setProperty("probeType", 0x01);
     connect(ui->probeArduino, &QRadioButton::toggled, this, &MainWindow::setProbeType);
 
-    // Update calibChart from user given coefficients
-    connect(formCTemp, &FormCTemp::CTempChange, this, &MainWindow::calibPolyFill);
 
     // Timer for general screen updates
     QTimer *screenUpdates = new QTimer();
@@ -182,26 +179,16 @@ void MainWindow::setupViews()
     // Calibration
     menu = ui->Calibration;
     views[menu->objectName()] = new View(nullptr, menu);
-    views[menu->objectName()]->layout->addWidget(calibChart.chartView);
+    //views[menu->objectName()]->layout->addWidget(calibChart.chartView);
     views[menu->objectName()]->layout->addWidget(formCalib);
     connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
 
-    // Create the action buttons for calibration
-    calibSwitch = new QPushButton(tr("Run calibration"));
-    calibSwitch->setCheckable(true);
-    connect(calibSwitch, &QPushButton::toggled, this, &MainWindow::calibSwitchSlot);
-    calibUpCoefs = new QPushButton(tr("Send to device"));
-    connect(calibUpCoefs, &QPushButton::clicked, this, &MainWindow::calibUpCoefsSlot);
-    QHBoxLayout *calibButtons = new QHBoxLayout;
-    calibButtons->addWidget(calibSwitch);
-    calibButtons->addWidget(calibUpCoefs);
-    views[menu->objectName()]->layout->addLayout(calibButtons);
 
     // Coefficients from calibration
-    menu = ui->Temperature_coefficients;
-    views[menu->objectName()] = new View(nullptr, menu);
-    views[menu->objectName()]->layout->addWidget(formCTemp);
-    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+//    menu = ui->Temperature_coefficients;
+//    views[menu->objectName()] = new View(nullptr, menu);
+//    views[menu->objectName()]->layout->addWidget(formCTemp);
+//    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
 
     // Heating
     menu = ui->Heating;
@@ -451,9 +438,6 @@ void MainWindow::setupCharts()
     // Form with every calib point in calibChart
     formCalib->updatePoints();
 
-    // Generate coefficients from initial points
-    calibFitPoints();
-
     // Heating element load chart
     heatChart.chart = new QChart();
 
@@ -602,7 +586,7 @@ void MainWindow::devConnect(int state)
 
         formFan->getFanLoad()->setProperty("changed", false);
 
-        formCTemp->reset();
+        formCalib->reset();
 
         formCStop->reset();
 
@@ -710,9 +694,8 @@ void MainWindow::devDataIn(const struct State& state)
         calibChart.series[0]->replace(calibIndex, calibChart.series[0]->at(calibIndex).x(), state.tempCore);
         calibChart.scatter[0]->replace(calibIndex, calibChart.scatter[0]->at(calibIndex).x(), state.tempCore);
     }
-
-    // Temperature profile coefficents
-    formCTemp->devDataIn(state);
+    // Coefficents of temperature profiles
+    formCalib->devDataIn(state);
 
 
     // autostopChart
@@ -781,93 +764,7 @@ void MainWindow::setProbeType(bool checked)
     }
 }
 
-void MainWindow::calibSwitchSlot(bool pressed)
-{
-    if ( pressed ){
-        qDebug() << "Switch calibration on";
-        formCalib->setCalibRunning(true);
-        qDebug() << "setHeatLoad" << formCalib->currentLoad();
-        QMetaObject::invokeMethod(dev, "setHeatLoad", Qt::QueuedConnection, Q_ARG(float, (float)(formCalib->currentLoad())));
-    }
-    else {
-        qDebug() << "Switch calibration off";
-        formCalib->setCalibRunning(false);
-        qDebug() << "setHeatLoad" << 0;
-        QMetaObject::invokeMethod(dev, "setHeatLoad", Qt::QueuedConnection, Q_ARG(float, 0));
-    }
-}
 
-void MainWindow::calibFitPoints()
-{
-    qDebug() << "Generate coefficients from calibration";
-
-    std::vector<QPointF> points;
-
-    // Add the initial fixed point (20, 20)
-    points.emplace_back(20.0, 20.0);
-
-    // Get the points from the series (y values from series[0] as x, y values from series[1] as y)
-    for (int i = 0; i < calibChart.size; ++i) {
-        float x = calibChart.series[0]->at(i).y();
-        float y = calibChart.series[1]->at(i).y();
-        points.emplace_back(x, y);
-    }
-
-    // Number of points
-    int n = points.size();
-
-    // Construct the A matrix and b vector
-    Eigen::MatrixXd A(n, 4);  // n rows, 4 columns (for x^0, x^1, x^2, x^3)
-    Eigen::VectorXd b(n);     // n rows (for y values)
-
-    for (int i = 0; i < n; ++i) {
-        float x = points[i].x();
-        float y = points[i].y();
-
-        qDebug() << x << y ;
-
-        A(i, 0) = 1;
-        A(i, 1) = x;
-        A(i, 2) = x * x;
-        A(i, 3) = x * x * x;
-        b(i) = y;
-    }
-
-    // Solve for the coefficients using least squares (normal equation: A^T A c = A^T b)
-    Eigen::VectorXd coeffs = A.colPivHouseholderQr().solve(b);
-
-    // Update cTemp values
-    cTempCoeffs.clear();
-    for (int i = 0; i < coeffs.size(); ++i) {
-        cTempCoeffs.append(static_cast<float>(coeffs(i)));
-    }
-    formCTemp->setCTempAll(cTempCoeffs);
-}
-
-void MainWindow::calibUpCoefsSlot()
-{
-    qDebug() << "Upload new coefficients to device";
-
-    formCTemp->upload();
-}
-
-void MainWindow::calibPolyFill()
-{
-    // Compute calibration probe points from polynomial coefficients
-
-    if ( formCalib->getCalibRunning() )
-        return;
-
-    QList<float> c = formCTemp->getCTempAll();
-
-    for (int i = 0; i < calibChart.size; ++i) {
-        float x = calibChart.series[0]->at(i).y();
-        float y = c.at(0) + c.at(1) * x + c.at(2) * x*x + c.at(3) * x*x*x;
-        calibChart.series[1]->replace(i, calibChart.series[1]->at(i).x(), y);
-        calibChart.scatter[1]->replace(i, calibChart.scatter[1]->at(i).x(), y);
-    }
-
-}
 
 void MainWindow::eepromResetSlot()
 {
@@ -936,25 +833,10 @@ void MainWindow::updateScreenData(){
     // Enable/disable CStop action buttons
     formCStop->updateScreenData();
 
-    // Enable/disable CTemp action buttons
-    formCTemp->updateScreenData();
+    formCalib->updateScreenData();
 
     // Update derivative charts
     regressions();
-
-    // Enable/disable calibration
-    if ( formFan->getFanControl()->isChecked() ){
-        calibSwitch->setDisabled(false);
-    }
-    else {
-        calibSwitch->setDisabled(true);
-        calibSwitch->setChecked(false);
-    }
-
-    if ( formCalib->getCalibRunning() ){
-        // Compute coefficients on the fly
-        calibFitPoints();
-    }
 }
 
 void MainWindow::regressions(){

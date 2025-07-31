@@ -160,7 +160,6 @@
     <addaction name="PID"/>
     <addaction name="separator"/>
     <addaction name="Calibration"/>
-    <addaction name="Temperature_coefficients"/>
     <addaction name="separator"/>
     <addaction name="Auto_stop"/>
    </widget>

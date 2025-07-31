@@ -34,8 +34,6 @@
 
 #include "FormCalib.h"
 
-#include "FormCTemp.h"
-
 #include "FormCStop.h"
 
 #include "FormPrefs.h"
@@ -55,7 +53,6 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
 
     // calibChart should be public
     struct CalibChart calibChart;
@@ -114,9 +111,6 @@ private:
     // cStop fields
     FormCStop* formCStop;
 
-    // cTemp fields
-    FormCTemp* formCTemp;
-
     // Calibration fields
     FormCalib* formCalib;
 
@@ -155,13 +149,6 @@ private:
     // Preferences (autostop, tempstep and screensaver)
     FormPrefs* formPrefs;
 
-    // Calibration managing buttons
-    QPushButton *calibSwitch = nullptr;
-    QPushButton *calibUpCoefs = nullptr;
-
-    // Third degree polynomial to fit calibration points
-    QList<float> cTempCoeffs;
-    void calibFitPoints();
 
     // EEPROM action buttons
     QPushButton *eepromReset = nullptr;
@@ -188,9 +175,6 @@ public slots:
 
     void setProbeType(bool checked);
 
-    void calibSwitchSlot(bool pressed);
-    void calibUpCoefsSlot();
-    void calibPolyFill();
 
     void eepromResetSlot();
     void eepromStoreSlot();

@@ -6,7 +6,11 @@
 #include <QSpinBox>
 #include <QRadioButton>
 
+#include <QPushButton>
+
 #include "devNano.h"
+
+#include "FormCTemp.h"
 
 #include <QLineSeries>
 #include <QScatterSeries>
@@ -50,6 +54,10 @@ public:
     explicit FormCalib(QWidget *parent = nullptr, CalibChart *calibChartRef = nullptr, devNano *d = nullptr);
     ~FormCalib();
 
+    void updateScreenData();
+    void devDataIn(const struct State& state);
+    void reset();
+
     void updatePoints();
 
     void setManualDisabled(bool value);
@@ -76,14 +84,29 @@ public slots:
 
     void getFormReady();
 
+    void calibSwitchSlot(bool pressed);
+//    void calibUpCoefsSlot();
+    void calibPolyFill();
+
 private:
     Ui::FormCalib *ui;
 
     CalibChart *calibChart;
     devNano *dev;
 
+    // cTemp fields
+    FormCTemp* formCTemp;
+
     bool calibRunning = false;
     bool calibManual = false;
+
+    // Calibration managing buttons
+    QPushButton *calibSwitch = nullptr;
+    QPushButton *calibUpCoefs = nullptr;
+
+    // Third degree polynomial to fit calibration points
+    QList<float> cTempCoeffs;
+    void calibFitPoints();
 };
 
 #endif // FORMCALIB_H
