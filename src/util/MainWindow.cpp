@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent)
     , formPID(new FormPID(this, dev))
     , formFan(new FormFan(this, dev))
     , formCStop(new FormCStop(this, dev))
-    , formCalib(new FormCalib(this, &calibChart, dev))
+    , formCalib(new FormCalib(this, dev))
     , formPrefs(new FormPrefs(this, dev))
 {
     ui->setupUi(this);
@@ -179,16 +179,8 @@ void MainWindow::setupViews()
     // Calibration
     menu = ui->Calibration;
     views[menu->objectName()] = new View(nullptr, menu);
-    //views[menu->objectName()]->layout->addWidget(calibChart.chartView);
     views[menu->objectName()]->layout->addWidget(formCalib);
     connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
-
-
-    // Coefficients from calibration
-//    menu = ui->Temperature_coefficients;
-//    views[menu->objectName()] = new View(nullptr, menu);
-//    views[menu->objectName()]->layout->addWidget(formCTemp);
-//    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
 
     // Heating
     menu = ui->Heating;
@@ -340,103 +332,6 @@ void MainWindow::setupCharts()
     derivChart.chartView->setMinimumHeight(220);
 
 
-    // Calibration
-
-    // Calibration points
-    calibChart.size = 8;
-    calibChart.min = 10;
-    calibChart.max = 105;
-    // Domain for the density function (tan)
-    calibChart.from = -1.0;
-    calibChart.to = 0.7;
-    calibChart.len = calibChart.to - calibChart.from;
-    calibChart.iFrom = qTan(calibChart.from);
-    calibChart.iTo = qTan(calibChart.to);
-    calibChart.iLen = calibChart.iTo - calibChart.iFrom;
-    calibChart.s = 0;
-    calibChart.sd = calibChart.len / (calibChart.size - 1);
-
-    while (calibChart.s <= calibChart.len + 1e-5)
-    {
-        float x = qRound(calibChart.min + (calibChart.max - calibChart.min) * (qTan(calibChart.from + calibChart.s) - calibChart.iFrom) / calibChart.iLen);
-        // Use placeholder values for y
-        calibChart.prePoints.append(QPointF(x, 25 + 51 * calibChart.s));
-        calibChart.probePoints.append(QPointF(x, 50 + 143 * calibChart.s));
-        calibChart.s += calibChart.sd;
-    }
-
-    calibChart.chart = new QChart();
-    // Reduce top and bottom margins
-    QMargins calibChartMargins = calibChart.chart->margins();
-    calibChartMargins.setTop(0);
-    calibChartMargins.setBottom(0);
-    calibChart.chart->setMargins(calibChartMargins);
-
-    calibChart.series[0] = new QLineSeries();
-    calibChart.series[0]->setName(tr("Pre"));
-    calibChart.series[0]->append(calibChart.prePoints);
-    calibChart.pen[0] = new QPen(QColor(78,154,6,128));
-    calibChart.pen[0]->setWidth(2);
-    calibChart.series[0]->setPen(*calibChart.pen[0]);
-
-    calibChart.scatter[0] = new QScatterSeries();
-    calibChart.scatter[0]->append(calibChart.prePoints);
-    calibChart.scatter[0]->setMarkerShape(QScatterSeries::MarkerShapeCircle);
-    calibChart.scatter[0]->setMarkerSize(8.0);
-    calibChart.scatter[0]->setColor(QColor(78,154,6,128));
-    calibChart.scatter[0]->setPen(Qt::NoPen);
-
-    calibChart.series[1] = new QLineSeries();
-    calibChart.series[1]->setName(tr("Probe"));
-    calibChart.series[1]->append(calibChart.probePoints);
-    calibChart.pen[1] = new QPen(QColor(204,0,0,128));
-    calibChart.pen[1]->setWidth(2);
-    calibChart.series[1]->setPen(*calibChart.pen[1]);
-
-    calibChart.scatter[1] = new QScatterSeries();
-    calibChart.scatter[1]->append(calibChart.probePoints);
-    calibChart.scatter[1]->setMarkerShape(QScatterSeries::MarkerShapeCircle);
-    calibChart.scatter[1]->setMarkerSize(8.0);
-    calibChart.scatter[1]->setBrush(QColor(204,0,0,128));
-    calibChart.scatter[1]->setPen(Qt::NoPen);
-
-    calibChart.chart->setBackgroundVisible(false);
-
-    calibChart.chart->addSeries(calibChart.series[0]);
-    calibChart.chart->addSeries(calibChart.scatter[0]);
-    calibChart.chart->addSeries(calibChart.series[1]);
-    calibChart.chart->addSeries(calibChart.scatter[1]);
-
-    calibChart.chart->legend()->markers(calibChart.series[0]).first()->setPen(*calibChart.pen[0]);
-    calibChart.chart->legend()->markers(calibChart.scatter[0]).first()->setVisible(false);
-    calibChart.chart->legend()->markers(calibChart.series[1]).first()->setPen(*calibChart.pen[1]);
-    calibChart.chart->legend()->markers(calibChart.scatter[1]).first()->setVisible(false);
-
-    calibChart.axisX = new QValueAxis();
-    calibChart.axisX->setRange(calibChart.min, calibChart.max);
-    calibChart.axisX->setTickCount(2);
-    calibChart.axisX->setLabelFormat("%d");
-    calibChart.chart->addAxis(calibChart.axisX, Qt::AlignBottom);
-    calibChart.series[0]->attachAxis(calibChart.axisX);
-    calibChart.scatter[0]->attachAxis(calibChart.axisX);
-    calibChart.series[1]->attachAxis(calibChart.axisX);
-    calibChart.scatter[1]->attachAxis(calibChart.axisX);
-
-    calibChart.axisY = new QValueAxis();
-    calibChart.axisY->setRange(0, 400);
-    calibChart.axisY->setLabelFormat("%d");
-    calibChart.chart->addAxis(calibChart.axisY, Qt::AlignRight);
-    calibChart.series[0]->attachAxis(calibChart.axisY);
-    calibChart.scatter[0]->attachAxis(calibChart.axisY);
-    calibChart.series[1]->attachAxis(calibChart.axisY);
-    calibChart.scatter[1]->attachAxis(calibChart.axisY);
-
-    calibChart.chartView = new QChartView(calibChart.chart);
-    calibChart.chartView->setRenderHint(QPainter::Antialiasing);
-    calibChart.chartView->setMinimumHeight(220);
-
-    // Form with every calib point in calibChart
-    formCalib->updatePoints();
 
     // Heating element load chart
     heatChart.chart = new QChart();
@@ -688,12 +583,6 @@ void MainWindow::devDataIn(const struct State& state)
     formFan->getElapsed()->setText(QString("%1m%2s").arg(minutes, 1, 10, QChar('0')).arg(seconds, 1, 10, QChar('0')));
 
 
-    // Calibration chart
-    if ( formCalib->getCalibRunning() ){
-        int calibIndex = formCalib->selectedIndex();
-        calibChart.series[0]->replace(calibIndex, calibChart.series[0]->at(calibIndex).x(), state.tempCore);
-        calibChart.scatter[0]->replace(calibIndex, calibChart.scatter[0]->at(calibIndex).x(), state.tempCore);
-    }
     // Coefficents of temperature profiles
     formCalib->devDataIn(state);
 
@@ -738,13 +627,7 @@ void MainWindow::probeDataIn(const float reading)
     tempChartB.series[1]->replace(chartPastSize - 1, tempChartB.series[1]->at(chartPastSize - 1).x(), reading);
     tempChartB.series[1]->setName(tr("Probe: ")+QString::number(static_cast<int>(reading))+"°C");
 
-    // Calibration chart
-    if ( formCalib->getCalibRunning() && ! formCalib->getCalibManual() ){
-        int calibIndex = formCalib->selectedIndex();
-        calibChart.series[1]->replace(calibIndex, calibChart.series[1]->at(calibIndex).x(), reading);
-        calibChart.scatter[1]->replace(calibIndex, calibChart.scatter[1]->at(calibIndex).x(), reading);
-        formCalib->setManualValue(calibIndex, reading);
-    }
+    formCalib->probeDataIn(reading);
 }
 
 void MainWindow::probeError(const QString &error)

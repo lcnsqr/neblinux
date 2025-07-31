@@ -17,31 +17,6 @@
 #include <QValueAxis>
 #include <QChartView>
 
-// calibChart from mainWindow
-struct CalibChart {
-    // Points distribution stuff
-    int size;
-    float min;
-    float max;
-    float from;
-    float to;
-    float len;
-    float iFrom;
-    float iTo;
-    float iLen;
-    float s;
-    float sd;
-    QList<QPointF> prePoints;
-    QList<QPointF> probePoints;
-    QLineSeries *series[2];
-    QScatterSeries *scatter[2];
-    QPen *pen[2];
-    QChart *chart;
-    QValueAxis *axisX;
-    QValueAxis *axisY;
-    QChartView *chartView;
-};
-
 namespace Ui {
 class FormCalib;
 }
@@ -51,12 +26,14 @@ class FormCalib : public QWidget
     Q_OBJECT
 
 public:
-    explicit FormCalib(QWidget *parent = nullptr, CalibChart *calibChartRef = nullptr, devNano *d = nullptr);
+    explicit FormCalib(QWidget *parent = nullptr, devNano *d = nullptr);
     ~FormCalib();
 
     void updateScreenData();
     void devDataIn(const struct State& state);
     void reset();
+
+    void probeDataIn(const float reading);
 
     void updatePoints();
 
@@ -91,8 +68,32 @@ public slots:
 private:
     Ui::FormCalib *ui;
 
-    CalibChart *calibChart;
     devNano *dev;
+
+    // Chart attributes
+    struct {
+        // Points distribution stuff
+        int size;
+        float min;
+        float max;
+        float from;
+        float to;
+        float len;
+        float iFrom;
+        float iTo;
+        float iLen;
+        float s;
+        float sd;
+        QList<QPointF> prePoints;
+        QList<QPointF> probePoints;
+        QLineSeries *series[2];
+        QScatterSeries *scatter[2];
+        QPen *pen[2];
+        QChart *chart;
+        QValueAxis *axisX;
+        QValueAxis *axisY;
+        QChartView *chartView;
+    } calibChart;
 
     // cTemp fields
     FormCTemp* formCTemp;

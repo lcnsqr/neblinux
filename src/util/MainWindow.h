@@ -54,9 +54,6 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    // calibChart should be public
-    struct CalibChart calibChart;
-
     // Restore window geometry
     void restore();
 
