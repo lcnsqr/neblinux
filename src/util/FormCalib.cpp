@@ -16,8 +16,6 @@ FormCalib::FormCalib(QWidget *parent, devNano *d) :
 {
     ui->setupUi(this);
 
-    connect(ui->calibManualToggle, &QCheckBox::stateChanged, this, &FormCalib::tempManualToggle);
-
     // Setup calibration chart
 
     // Calibration points
@@ -114,70 +112,26 @@ FormCalib::FormCalib(QWidget *parent, devNano *d) :
     calibChart.chartView->setRenderHint(QPainter::Antialiasing);
     calibChart.chartView->setMinimumHeight(220);
 
-    // Form with every calib point in calibChart
-    updatePoints();
-
+    ui->right->addWidget(calibChart.chartView);
 
     // Update calibChart from user given coefficients
     connect(formCTemp, &FormCTemp::CTempChange, this, &FormCalib::calibPolyFill);
-}
+    ui->right->addWidget(formCTemp);
 
-FormCalib::~FormCalib()
-{
-    delete ui;
-}
 
-void FormCalib::updateScreenData()
-{
-    if ( getCalibRunning() ){
-        // Compute coefficients on the fly
-        calibFitPoints();
-    }
+    // Create the action buttons for calibration
+    calibSwitch = new QPushButton(tr("Run calibration"));
+    calibSwitch->setCheckable(true);
+    connect(calibSwitch, &QPushButton::toggled, this, &FormCalib::calibSwitchSlot);
 
-    formCTemp->updateScreenData();
-}
+    QHBoxLayout *calibButtons = new QHBoxLayout;
+//    calibButtons->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    calibButtons->addWidget(calibSwitch);
+//    calibButtons->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
-void FormCalib::devDataIn(const State &state)
-{
-    // Enable/disable calibration
-    if ( static_cast<bool>(state.on) ){
-        calibSwitch->setDisabled(false);
-    }
-    else {
-        calibSwitch->setDisabled(true);
-        calibSwitch->setChecked(false);
-    }
+    ui->left->insertLayout(0, calibButtons);
 
-    // Calibration chart
-    if ( getCalibRunning() ){
-        int calibIndex = selectedIndex();
-        calibChart.series[0]->replace(calibIndex, calibChart.series[0]->at(calibIndex).x(), state.tempCore);
-        calibChart.scatter[0]->replace(calibIndex, calibChart.scatter[0]->at(calibIndex).x(), state.tempCore);
-    }
-
-    // Update temperature profile coefficients
-    formCTemp->devDataIn(state);
-}
-
-void FormCalib::reset()
-{
-    formCTemp->reset();
-}
-
-void FormCalib::probeDataIn(const float reading)
-{
-    // Calibration chart
-    if ( getCalibRunning() && ! getCalibManual() ){
-        int calibIndex = selectedIndex();
-        calibChart.series[1]->replace(calibIndex, calibChart.series[1]->at(calibIndex).x(), reading);
-        calibChart.scatter[1]->replace(calibIndex, calibChart.scatter[1]->at(calibIndex).x(), reading);
-        setManualValue(calibIndex, reading);
-    }
-
-}
-
-void FormCalib::updatePoints()
-{
+    // Form with every calib point in calibChart
     for (int i = 0; i < calibChart.prePoints.size(); ++i){
         QRadioButton* selector = new QRadioButton();
         selector->setObjectName("radioCalib" + QString::number(i));
@@ -206,7 +160,68 @@ void FormCalib::updatePoints()
         connect(manual, &QSpinBox::editingFinished, this, &FormCalib::tempManualInput);
         ui->manual->insertWidget(0, manual, 0, Qt::AlignHCenter);
     }
-    QTimer::singleShot(250, this, &FormCalib::getFormReady);
+
+    // Disable manual temperature input fields
+    setManualDisabled(true);
+    connect(ui->calibManualToggle, &QCheckBox::stateChanged, this, &FormCalib::tempManualToggle);
+
+    // Generate coefficients for points in chart
+    calibFitPoints();
+
+}
+
+FormCalib::~FormCalib()
+{
+    delete ui;
+}
+
+void FormCalib::updateScreenData()
+{
+    if ( calibRunning ){
+        // Compute coefficients on the fly
+        calibFitPoints();
+    }
+
+    formCTemp->updateScreenData();
+}
+
+void FormCalib::devDataIn(const State &state)
+{
+    // Enable/disable calibration
+    if ( static_cast<bool>(state.on) ){
+        calibSwitch->setDisabled(false);
+    }
+    else {
+        calibSwitch->setDisabled(true);
+        calibSwitch->setChecked(false);
+    }
+
+    // Calibration chart
+    if ( calibRunning ){
+        int calibIndex = selectedIndex();
+        calibChart.series[0]->replace(calibIndex, calibChart.series[0]->at(calibIndex).x(), state.tempCore);
+        calibChart.scatter[0]->replace(calibIndex, calibChart.scatter[0]->at(calibIndex).x(), state.tempCore);
+    }
+
+    // Update temperature profile coefficients
+    formCTemp->devDataIn(state);
+}
+
+void FormCalib::reset()
+{
+    formCTemp->reset();
+}
+
+void FormCalib::probeDataIn(const float reading)
+{
+    // Calibration chart
+    if ( calibRunning && ! calibManual ){
+        int calibIndex = selectedIndex();
+        calibChart.series[1]->replace(calibIndex, calibChart.series[1]->at(calibIndex).x(), reading);
+        calibChart.scatter[1]->replace(calibIndex, calibChart.scatter[1]->at(calibIndex).x(), reading);
+        setManualValue(calibIndex, reading);
+    }
+
 }
 
 
@@ -290,7 +305,7 @@ void FormCalib::calibPointSelect(bool checked)
 {
     if (checked) {
         QRadioButton *button = qobject_cast<QRadioButton*>(sender());
-        if (button && getCalibRunning()) {
+        if (button && calibRunning) {
             int index = button->property("index").toInt();
             qDebug() << "setHeatLoad" << loadByIndex(index);
             QMetaObject::invokeMethod(dev, "setHeatLoad", Qt::QueuedConnection, Q_ARG(float, (float)(loadByIndex(index))));
@@ -341,39 +356,14 @@ void FormCalib::tempManualInput()
 void FormCalib::tempManualToggle(int state)
 {
     if (state == Qt::Checked) {
-        setCalibManual(true);
+        calibManual = true;
         setManualDisabled(false);
 
     }
     else {
-        setCalibManual(false);
+        calibManual = false;
         setManualDisabled(true);
     }
-}
-
-void FormCalib::getFormReady()
-{
-    setManualDisabled(true);
-
-    // Create the action buttons for calibration
-    calibSwitch = new QPushButton(tr("Run calibration"));
-    calibSwitch->setCheckable(true);
-    connect(calibSwitch, &QPushButton::toggled, this, &FormCalib::calibSwitchSlot);
-
-//    calibUpCoefs = new QPushButton(tr("Send to device"));
-//    connect(calibUpCoefs, &QPushButton::clicked, this, &FormCalib::calibUpCoefsSlot);
-
-    QHBoxLayout *calibButtons = new QHBoxLayout;
-    calibButtons->addWidget(calibSwitch);
-//    calibButtons->addWidget(calibUpCoefs);
-    ui->left->addLayout(calibButtons);
-
-    ui->right->addWidget(calibChart.chartView);
-
-    ui->right->addWidget(formCTemp);
-
-    // Generate coefficients from initial points
-    calibFitPoints();
 }
 
 int FormCalib::selectedIndex()
@@ -405,42 +395,23 @@ int FormCalib::loadByIndex(int targetIndex)
     return 0;
 }
 
-bool FormCalib::getCalibManual() const
-{
-    return calibManual;
-}
-
-void FormCalib::setCalibManual(bool newCalibManual)
-{
-    calibManual = newCalibManual;
-}
 
 int FormCalib::currentLoad()
 {
     return loadByIndex(selectedIndex());
 }
 
-bool FormCalib::getCalibRunning() const
-{
-    return calibRunning;
-}
-
-void FormCalib::setCalibRunning(bool newCalibRunning)
-{
-    calibRunning = newCalibRunning;
-}
-
 void FormCalib::calibSwitchSlot(bool pressed)
 {
     if ( pressed ){
         qDebug() << "Switch calibration on";
-        setCalibRunning(true);
+        calibRunning = true;
         qDebug() << "setHeatLoad" << currentLoad();
         QMetaObject::invokeMethod(dev, "setHeatLoad", Qt::QueuedConnection, Q_ARG(float, (float)(currentLoad())));
     }
     else {
         qDebug() << "Switch calibration off";
-        setCalibRunning(false);
+        calibRunning = false;
         qDebug() << "setHeatLoad" << 0;
         QMetaObject::invokeMethod(dev, "setHeatLoad", Qt::QueuedConnection, Q_ARG(float, 0));
     }
@@ -457,7 +428,7 @@ void FormCalib::calibPolyFill()
 {
     // Compute calibration probe points from polynomial coefficients
 
-    if ( getCalibRunning() )
+    if ( calibRunning )
         return;
 
     QList<float> c = formCTemp->getCTempAll();

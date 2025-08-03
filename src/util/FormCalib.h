@@ -35,17 +35,6 @@ public:
 
     void probeDataIn(const float reading);
 
-    void updatePoints();
-
-    void setManualDisabled(bool value);
-    void setManualValue(int targetIndex, int value);
-
-    bool getCalibRunning() const;
-    void setCalibRunning(bool newCalibRunning);
-
-    bool getCalibManual() const;
-    void setCalibManual(bool newCalibManual);
-
     int currentLoad();
     int selectedIndex();
     int loadByIndex(int targetIndex);
@@ -59,10 +48,8 @@ public slots:
 
     void tempManualToggle(int state);
 
-    void getFormReady();
-
     void calibSwitchSlot(bool pressed);
-//    void calibUpCoefsSlot();
+
     void calibPolyFill();
 
 private:
@@ -98,12 +85,14 @@ private:
     // cTemp fields
     FormCTemp* formCTemp;
 
+    void setManualDisabled(bool value);
+    void setManualValue(int targetIndex, int value);
+
     bool calibRunning = false;
     bool calibManual = false;
 
     // Calibration managing buttons
     QPushButton *calibSwitch = nullptr;
-    QPushButton *calibUpCoefs = nullptr;
 
     // Third degree polynomial to fit calibration points
     QList<float> cTempCoeffs;

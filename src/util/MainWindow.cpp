@@ -56,24 +56,24 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     // Preferences autostop, tempstep, screensaver
-    QLabel *prefHeader = new QLabel(tr("Preferences"));
-    prefHeader->setAlignment(Qt::AlignCenter);
-    prefHeader->setStyleSheet("margin-top: 24px;");
-    ui->right->addWidget(prefHeader);
-    ui->right->addWidget(formPrefs);
+//    QLabel *prefHeader = new QLabel(tr("Preferences"));
+//    prefHeader->setAlignment(Qt::AlignCenter);
+//    prefHeader->setStyleSheet("margin-top: 24px;");
+//    ui->right->addWidget(prefHeader);
+//    ui->right->addWidget(formPrefs);
 
-    ui->right->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
+//    ui->right->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
 
 
     // Create the buttons for eeprom actions
-    eepromReset = new QPushButton(tr("Reset EEPROM"));
-    connect(eepromReset, &QPushButton::clicked, this, &MainWindow::eepromResetSlot);
-    eepromStore = new QPushButton(tr("Store on EEPROM"));
-    connect(eepromStore, &QPushButton::clicked, this, &MainWindow::eepromStoreSlot);
-    QHBoxLayout *eepromButtons = new QHBoxLayout;
-    eepromButtons->addWidget(eepromReset);
-    eepromButtons->addWidget(eepromStore);
-    ui->right->addLayout(eepromButtons);
+//    eepromReset = new QPushButton(tr("Reset EEPROM"));
+//    connect(eepromReset, &QPushButton::clicked, this, &MainWindow::eepromResetSlot);
+//    eepromStore = new QPushButton(tr("Store on EEPROM"));
+//    connect(eepromStore, &QPushButton::clicked, this, &MainWindow::eepromStoreSlot);
+//    QHBoxLayout *eepromButtons = new QHBoxLayout;
+//    eepromButtons->addWidget(eepromReset);
+//    eepromButtons->addWidget(eepromStore);
+//    ui->right->addLayout(eepromButtons);
 
 
     // Setup window menu and child windows (views)
@@ -174,6 +174,12 @@ void MainWindow::setupViews()
     menu = ui->Blower;
     views[menu->objectName()] = new View(nullptr, menu);
     views[menu->objectName()]->layout->addWidget(formFan);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    // Preferences
+    menu = ui->Preferences;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(formPrefs);
     connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
 
     // Calibration
@@ -485,7 +491,7 @@ void MainWindow::devConnect(int state)
 
         formCStop->reset();
 
-        formPrefs->getTempstep()->setProperty("changed", false);
+        formPrefs->reset();
 
         // Get the selected item from the combo box
         devPortName = ui->devLocation->currentText();
@@ -597,21 +603,10 @@ void MainWindow::devDataIn(const struct State& state)
         if ( autostopChart.barset[1]->at(1) > state.sStop[1] )
             autostopChart.barset[1]->replace(1, state.sStop[1]);
     }
-    // auto stop coefficients
+    // auto stop coefficients and derivatives
     formCStop->devDataIn(state);
 
-
-    // Preferences form fields
-    if ( QDateTime::fromString(formPrefs->getAutostop()->property("changedAt").toString()).msecsTo(QDateTime::currentDateTime()) > 1000 )
-        formPrefs->getAutostop()->setChecked(static_cast<bool>(state.autostop));
-
-    if ( ! formPrefs->getTempstep()->property("changed").toBool() ){
-        formPrefs->getTempstep()->setValue( static_cast<int>(state.tempStep) );
-        formPrefs->getTempstep()->setProperty("changed", false);
-    }
-
-    if ( QDateTime::fromString(formPrefs->getScreensaver()->property("changedAt").toString()).msecsTo(QDateTime::currentDateTime()) > 1000 )
-        formPrefs->getScreensaver()->setChecked(static_cast<bool>(state.screensaver));
+    formPrefs->devDataIn(state);
 }
 
 void MainWindow::devError(const QString& error) {
@@ -717,6 +712,8 @@ void MainWindow::updateScreenData(){
     formCStop->updateScreenData();
 
     formCalib->updateScreenData();
+
+    formPrefs->updateScreenData();
 
     // Update derivative charts
     regressions();
