@@ -31,6 +31,8 @@
 
 #include <QToolTip>
 
+#include <QMessageBox>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -39,11 +41,8 @@ MainWindow::MainWindow(QWidget *parent)
     , probeThread(new QThread(this))
     , probe(new Probe())
     , formPID(new FormPID(this, dev))
-    , formHeat(new FormHeat(this, dev))
-    , formFan(new FormFan(this, dev))
     , formCStop(new FormCStop(this, dev))
-    , formCTemp(new FormCTemp(this, dev))
-    , formCalib(new FormCalib(this, &calibChart, dev))
+    , formCalib(new FormCalib(this, dev))
     , formPrefs(new FormPrefs(this, dev))
 {
     ui->setupUi(this);
@@ -56,11 +55,144 @@ MainWindow::MainWindow(QWidget *parent)
     QShortcut *shortcutCtrlQ = new QShortcut(QKeySequence("Ctrl+Q"), this);
     connect(shortcutCtrlQ, &QShortcut::activated, this, &QWidget::close);
 
+    // Exit menu
+    connect(ui->actionExit, &QAction::triggered, this, &QWidget::close);
 
-    // Setup charts
+    // EEPROM actions menu
+    connect(ui->Reset_EEPROM, &QAction::triggered, this, &MainWindow::eepromResetSlot);
+    connect(ui->Save_settings_to_EEPROM, &QAction::triggered, this, &MainWindow::eepromStoreSlot);
+
+
+    // Setup window menu and child windows (views)
+    setupViews();
+
+
+    // Setup slots and signals
+
+    // Device signals
+    connect(dev, &devNano::dataIn, this, &MainWindow::devDataIn);
+    connect(dev, &devNano::error, this, &MainWindow::devError);
+    connect(devThread, &QThread::finished, dev, &QObject::deleteLater);
+    connect(dev, &devNano::finished, devThread, &QThread::quit);
+    connect(ui->devConnect, &QCheckBox::stateChanged, this, &MainWindow::devConnect);
+
+    // Probe signals
+    connect(probe, &Probe::dataIn, this, &MainWindow::probeDataIn);
+    connect(probe, &Probe::error, this, &MainWindow::probeError);
+    connect(probeThread, &QThread::finished, probe, &QObject::deleteLater);
+    connect(probe, &Probe::finished, probeThread, &QThread::quit);
+    connect(ui->probeConnect, &QCheckBox::stateChanged, this, &MainWindow::probeConnect);
+
+    // Probe type
+    ui->probeTA612c->setProperty("probeType", 0x04);
+    connect(ui->probeTA612c, &QRadioButton::toggled, this, &MainWindow::setProbeType);
+    ui->probeArduino->setProperty("probeType", 0x01);
+    connect(ui->probeArduino, &QRadioButton::toggled, this, &MainWindow::setProbeType);
+
+
+    // Timer for general screen updates
+    QTimer *screenUpdates = new QTimer();
+    // Regression charts
+    QObject::connect(screenUpdates, &QTimer::timeout, this, &MainWindow::updateScreenData);
+
+    screenUpdates->start(100);
+
+
+    // Communication threads
+
+    // Dispatch device object to its thread
+    dev->moveToThread(devThread);
+    // Setup device pulling interval
+    int interval = refreshInterval;
+    QMetaObject::invokeMethod(dev, "setInterval", Qt::QueuedConnection, Q_ARG(int, interval));
+    devThread->start();
+
+    // Dispatch probe object to its thread
+    probe->moveToThread(probeThread);
+    // Setup probe pulling interval
+    QMetaObject::invokeMethod(probe, "setInterval", Qt::QueuedConnection, Q_ARG(int, interval));
+    probeThread->start();
+
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::restore()
+{
+    settings.beginGroup("Geometry");
+    if (settings.contains("MainWindow"))
+        restoreGeometry(settings.value("MainWindow").toByteArray());
+    settings.endGroup();
+
+    for (const auto& [name, view] : views) {
+        view->restore();
+    }
+}
+
+
+void MainWindow::setupViews()
+{
+    // Configure charts and set initial values
+    setupCharts();
+
+    QAction *menu = ui->Output_and_target_temperatures;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(tempChartA.chartView);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    menu = ui->Pre_and_probe_temperatures;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(tempChartB.chartView);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    menu = ui->PID;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(formPID);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    menu = ui->Stability;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(derivChart.chartView);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    // Preferences
+    menu = ui->Preferences;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(formPrefs);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    // Calibration
+    menu = ui->Calibration;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(formCalib);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    // Heating
+    menu = ui->Heating;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(heatChart.chartView);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    // Auto Stop
+    menu = ui->Auto_stop;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(autostopChart.chartView);
+    // Form for autostop coefficients
+    views[menu->objectName()]->layout->addWidget(formCStop);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+}
+
+void MainWindow::setupCharts()
+{
+
+    // Size of the time series
+    chartPastSize = chartPastTime / refreshInterval + 1;
 
     tempChartA.chart = new QChart();
-    tempChartA.chart->setTitle(tr("Output and target temperatures"));
 
     tempChartA.series[0] = new QLineSeries();
     tempChartA.series[0]->setName(tr("Output"));
@@ -107,10 +239,8 @@ MainWindow::MainWindow(QWidget *parent)
         tempChartA.series[1]->append((float)(-(chartPastSize-1)+j)/(1000.0/(float)refreshInterval), 0.0);
     }
 
-    ui->left->addWidget(tempChartA.chartView);
 
     tempChartB.chart = new QChart();
-    tempChartB.chart->setTitle(tr("Pre and probe temperatures"));
 
     tempChartB.series[0] = new QLineSeries();
     tempChartB.series[0]->setName(tr("Pre"));
@@ -156,12 +286,6 @@ MainWindow::MainWindow(QWidget *parent)
         tempChartB.series[1]->append((float)(-(chartPastSize-1)+j)/(1000.0/(float)refreshInterval), 0.0);
     }
 
-    ui->left->addWidget(tempChartB.chartView);
-
-    ui->left->addWidget(formPID);
-
-
-
     // Bar set for derivChart
     derivChart.barset = new QBarSet(tr("Stable if close to zero"));
     *(derivChart.barset) << 0 << 0 << 0;
@@ -173,7 +297,6 @@ MainWindow::MainWindow(QWidget *parent)
     // Create the chart and add the bar series
     derivChart.chart = new QChart();
     derivChart.chart->addSeries(derivChart.series);
-    derivChart.chart->setTitle(tr("Stability"));
     derivChart.chart->setAnimationOptions(QChart::NoAnimation);
     derivChart.chart->setBackgroundVisible(false);
 
@@ -196,140 +319,10 @@ MainWindow::MainWindow(QWidget *parent)
     derivChart.chartView->setRenderHint(QPainter::Antialiasing);
     derivChart.chartView->setMinimumHeight(220);
 
-    ui->left->addWidget(derivChart.chartView);
-
-
-    // Fan control
-    QLabel *fanHeader = new QLabel(tr("Blower"));
-    fanHeader->setAlignment(Qt::AlignCenter);
-    fanHeader->setStyleSheet("margin-top: 24px;");
-    ui->middle->addWidget(fanHeader);
-    ui->middle->addWidget(formFan);
-
-    // Calibration points
-    calibChart.size = 8;
-    calibChart.min = 10;
-    calibChart.max = 105;
-    // Domain for the density function (tan)
-    calibChart.from = -1.0;
-    calibChart.to = 0.7;
-    calibChart.len = calibChart.to - calibChart.from;
-    calibChart.iFrom = qTan(calibChart.from);
-    calibChart.iTo = qTan(calibChart.to);
-    calibChart.iLen = calibChart.iTo - calibChart.iFrom;
-    calibChart.s = 0;
-    calibChart.sd = calibChart.len / (calibChart.size - 1);
-
-    while (calibChart.s <= calibChart.len + 1e-5)
-    {
-        float x = qRound(calibChart.min + (calibChart.max - calibChart.min) * (qTan(calibChart.from + calibChart.s) - calibChart.iFrom) / calibChart.iLen);
-        // Use placeholder values for y
-        calibChart.prePoints.append(QPointF(x, 25 + 51 * calibChart.s));
-        calibChart.probePoints.append(QPointF(x, 50 + 143 * calibChart.s));
-        calibChart.s += calibChart.sd;
-    }
-
-    calibChart.chart = new QChart();
-    calibChart.chart->setTitle(tr("Calibration"));
-    // Reduce top and bottom margins
-    QMargins calibChartMargins = calibChart.chart->margins();
-    calibChartMargins.setTop(0);
-    calibChartMargins.setBottom(0);
-    calibChart.chart->setMargins(calibChartMargins);
-
-    calibChart.series[0] = new QLineSeries();
-    calibChart.series[0]->setName(tr("Pre"));
-    calibChart.series[0]->append(calibChart.prePoints);
-    calibChart.pen[0] = new QPen(QColor(78,154,6,128));
-    calibChart.pen[0]->setWidth(2);
-    calibChart.series[0]->setPen(*calibChart.pen[0]);
-
-    calibChart.scatter[0] = new QScatterSeries();
-    calibChart.scatter[0]->append(calibChart.prePoints);
-    calibChart.scatter[0]->setMarkerShape(QScatterSeries::MarkerShapeCircle);
-    calibChart.scatter[0]->setMarkerSize(8.0);
-    calibChart.scatter[0]->setColor(QColor(78,154,6,128));
-    calibChart.scatter[0]->setPen(Qt::NoPen);
-
-    calibChart.series[1] = new QLineSeries();
-    calibChart.series[1]->setName(tr("Probe"));
-    calibChart.series[1]->append(calibChart.probePoints);
-    calibChart.pen[1] = new QPen(QColor(204,0,0,128));
-    calibChart.pen[1]->setWidth(2);
-    calibChart.series[1]->setPen(*calibChart.pen[1]);
-
-    calibChart.scatter[1] = new QScatterSeries();
-    calibChart.scatter[1]->append(calibChart.probePoints);
-    calibChart.scatter[1]->setMarkerShape(QScatterSeries::MarkerShapeCircle);
-    calibChart.scatter[1]->setMarkerSize(8.0);
-    calibChart.scatter[1]->setBrush(QColor(204,0,0,128));
-    calibChart.scatter[1]->setPen(Qt::NoPen);
-
-    calibChart.chart->setBackgroundVisible(false);
-
-    calibChart.chart->addSeries(calibChart.series[0]);
-    calibChart.chart->addSeries(calibChart.scatter[0]);
-    calibChart.chart->addSeries(calibChart.series[1]);
-    calibChart.chart->addSeries(calibChart.scatter[1]);
-
-    calibChart.chart->legend()->markers(calibChart.series[0]).first()->setPen(*calibChart.pen[0]);
-    calibChart.chart->legend()->markers(calibChart.scatter[0]).first()->setVisible(false);
-    calibChart.chart->legend()->markers(calibChart.series[1]).first()->setPen(*calibChart.pen[1]);
-    calibChart.chart->legend()->markers(calibChart.scatter[1]).first()->setVisible(false);
-
-    calibChart.axisX = new QValueAxis();
-    calibChart.axisX->setRange(calibChart.min, calibChart.max);
-    calibChart.axisX->setTickCount(2);
-    calibChart.axisX->setLabelFormat("%d");
-    calibChart.chart->addAxis(calibChart.axisX, Qt::AlignBottom);
-    calibChart.series[0]->attachAxis(calibChart.axisX);
-    calibChart.scatter[0]->attachAxis(calibChart.axisX);
-    calibChart.series[1]->attachAxis(calibChart.axisX);
-    calibChart.scatter[1]->attachAxis(calibChart.axisX);
-
-    calibChart.axisY = new QValueAxis();
-    calibChart.axisY->setRange(0, 400);
-    calibChart.axisY->setLabelFormat("%d");
-    calibChart.chart->addAxis(calibChart.axisY, Qt::AlignRight);
-    calibChart.series[0]->attachAxis(calibChart.axisY);
-    calibChart.scatter[0]->attachAxis(calibChart.axisY);
-    calibChart.series[1]->attachAxis(calibChart.axisY);
-    calibChart.scatter[1]->attachAxis(calibChart.axisY);
-
-    calibChart.chartView = new QChartView(calibChart.chart);
-    calibChart.chartView->setRenderHint(QPainter::Antialiasing);
-    calibChart.chartView->setMinimumHeight(220);
-
-    ui->middle->addWidget(calibChart.chartView);
-    // Form with every calib point in calibChart
-    formCalib->updatePoints();
-    ui->middle->addWidget(formCalib);
-
-    // Create the action buttons for calibration
-    calibSwitch = new QPushButton(tr("Run calibration"));
-    calibSwitch->setCheckable(true);
-    connect(calibSwitch, &QPushButton::toggled, this, &MainWindow::calibSwitchSlot);
-    calibUpCoefs = new QPushButton(tr("Send to device"));
-    connect(calibUpCoefs, &QPushButton::clicked, this, &MainWindow::calibUpCoefsSlot);
-    QHBoxLayout *calibButtons = new QHBoxLayout;
-    calibButtons->addWidget(calibSwitch);
-    calibButtons->addWidget(calibUpCoefs);
-    ui->middle->addLayout(calibButtons);
-
-    // Coefficients from calibration
-    QLabel *cTempHeader = new QLabel(tr("Temperature coefficients"));
-    cTempHeader->setAlignment(Qt::AlignCenter);
-    cTempHeader->setStyleSheet("margin-top: 24px;");
-    ui->middle->addWidget(cTempHeader);
-    ui->middle->addWidget(formCTemp);
-    // Generate coefficients from initial points
-    calibFitPoints();
 
 
     // Heating element load chart
     heatChart.chart = new QChart();
-
-    heatChart.chart->setTitle(tr("Heating"));
 
     heatChart.series = new QLineSeries();
     heatChart.series->setName(tr("Load"));
@@ -364,14 +357,8 @@ MainWindow::MainWindow(QWidget *parent)
         heatChart.series->append((float)(-(chartPastSize-1)+j)/(1000.0/(float)refreshInterval), 0.0);
     }
 
-    ui->right->addWidget(heatChart.chartView);
 
-    // Heat load form  (PID enable, load)
-    ui->right->addWidget(formHeat);
-
-
-    ui->right->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
-
+    // Auto Stop
 
     // Bar set for autostopChart
     autostopChart.barset[0] = new QBarSet(tr("Linear coefficients over time"));
@@ -407,7 +394,7 @@ MainWindow::MainWindow(QWidget *parent)
     autostopChart.chart->setAnimationOptions(QChart::NoAnimation);
     autostopChart.chart->setBackgroundVisible(false);
 
-    // Create categories for the X-axis (only one category)
+    // Create categories for the X-axis
     autostopChart.categories << "Temperature" << "Heating";
     autostopChart.axisX = new QBarCategoryAxis();
     autostopChart.axisX->append(autostopChart.categories);
@@ -426,91 +413,38 @@ MainWindow::MainWindow(QWidget *parent)
     autostopChart.chartView->setRenderHint(QPainter::Antialiasing);
     autostopChart.chartView->setMinimumHeight(220);
 
-    ui->right->addWidget(autostopChart.chartView);
-
-    // Form for autostop coefficients
-    ui->right->addWidget(formCStop);
-
-    ui->right->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
-
-
-    // Preferences autostop, tempstep, screensaver
-    QLabel *prefHeader = new QLabel(tr("Preferences"));
-    prefHeader->setAlignment(Qt::AlignCenter);
-    prefHeader->setStyleSheet("margin-top: 24px;");
-    ui->right->addWidget(prefHeader);
-    ui->right->addWidget(formPrefs);
-
-    ui->right->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
-
-
-    // Create the buttons for eeprom actions
-    eepromReset = new QPushButton(tr("Reset EEPROM"));
-    connect(eepromReset, &QPushButton::clicked, this, &MainWindow::eepromResetSlot);
-    eepromStore = new QPushButton(tr("Store on EEPROM"));
-    connect(eepromStore, &QPushButton::clicked, this, &MainWindow::eepromStoreSlot);
-    QHBoxLayout *eepromButtons = new QHBoxLayout;
-    eepromButtons->addWidget(eepromReset);
-    eepromButtons->addWidget(eepromStore);
-    ui->right->addLayout(eepromButtons);
-
-
-
-    // Slots and signals
-
-    // Device signals
-    connect(dev, &devNano::dataIn, this, &MainWindow::devDataIn);
-    connect(dev, &devNano::error, this, &MainWindow::devError);
-    connect(devThread, &QThread::finished, dev, &QObject::deleteLater);
-    connect(dev, &devNano::finished, devThread, &QThread::quit);
-    connect(ui->devConnect, &QCheckBox::stateChanged, this, &MainWindow::devConnect);
-
-    // Probe signals
-    connect(probe, &Probe::dataIn, this, &MainWindow::probeDataIn);
-    connect(probe, &Probe::error, this, &MainWindow::probeError);
-    connect(probeThread, &QThread::finished, probe, &QObject::deleteLater);
-    connect(probe, &Probe::finished, probeThread, &QThread::quit);
-    connect(ui->probeConnect, &QCheckBox::stateChanged, this, &MainWindow::probeConnect);
-
-    // Probe type
-    ui->probeTA612c->setProperty("probeType", 0x04);
-    connect(ui->probeTA612c, &QRadioButton::toggled, this, &MainWindow::setProbeType);
-    ui->probeArduino->setProperty("probeType", 0x01);
-    connect(ui->probeArduino, &QRadioButton::toggled, this, &MainWindow::setProbeType);
-
-    // Update calibChart from user given coefficients
-    connect(formCTemp, &FormCTemp::CTempChange, this, &MainWindow::calibPolyFill);
-
-    // Timer for general screen updates
-    QTimer *screenUpdates = new QTimer();
-    // Regression charts
-    QObject::connect(screenUpdates, &QTimer::timeout, this, &MainWindow::updateScreenData);
-
-    screenUpdates->start(100);
-
-
-    // Communication threads
-
-    // Dispatch device object to its thread
-    dev->moveToThread(devThread);
-    // Setup device pulling interval
-    int interval = refreshInterval;
-    QMetaObject::invokeMethod(dev, "setInterval", Qt::QueuedConnection, Q_ARG(int, interval));
-    devThread->start();
-
-    // Dispatch probe object to its thread
-    probe->moveToThread(probeThread);
-    // Setup probe pulling interval
-    QMetaObject::invokeMethod(probe, "setInterval", Qt::QueuedConnection, Q_ARG(int, interval));
-    probeThread->start();
-
 }
 
-MainWindow::~MainWindow()
+void MainWindow::triggerView()
 {
+    if(QAction *action = qobject_cast<QAction*>(sender())) {
+
+        auto it = views.find(action->objectName());
+        if (it != views.end()) {
+            View* view = it->second;
+            if ( action->isChecked() ){
+                view->show();
+            }
+            else {
+                view->close();
+            }
+        }
+
+    }
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    settings.beginGroup("Geometry");
+    settings.setValue("MainWindow", saveGeometry());
+    settings.endGroup();
+
+    for (const auto& [name, view] : views) {
+        view->store();
+    }
+
     QMetaObject::invokeMethod(dev, "stopReading", Qt::QueuedConnection);
 
-    // Hardcoded probe
     QMetaObject::invokeMethod(probe, "stopReading", Qt::QueuedConnection);
 
     devThread->quit();
@@ -519,7 +453,8 @@ MainWindow::~MainWindow()
     probeThread->quit();
     probeThread->wait();
 
-    delete ui;
+    QMainWindow::closeEvent(event);
+    qApp->quit();
 }
 
 void MainWindow::devConnect(int state)
@@ -530,16 +465,13 @@ void MainWindow::devConnect(int state)
     if (state == Qt::Checked) {
 
         // Reset changed state of all input fields
-        formPID->getTarget()->setProperty("changed", false);
-        for (int i = 0; i < 3; ++i)
-            formPID->getCPID(i)->setProperty("changed", false);
-        formFan->getFanLoad()->setProperty("changed", false);
-        for (int i = 0; i < 4; ++i)
-            formCTemp->getCTemp(i)->setProperty("changed", false);
-        formHeat->getHeatLoad()->setProperty("changed", false);
-        formCStop->getCStop0()->setProperty("changed", false);
-        formCStop->getCStop1()->setProperty("changed", false);
-        formPrefs->getTempstep()->setProperty("changed", false);
+        formPID->reset();
+
+        formCalib->reset();
+
+        formCStop->reset();
+
+        formPrefs->reset();
 
         // Get the selected item from the combo box
         devPortName = ui->devLocation->currentText();
@@ -589,7 +521,7 @@ void MainWindow::probeConnect(int state)
 
 void MainWindow::devDataIn(const struct State& state)
 {
-    // Temp & heating charts
+    // Update charts and forms with data from device
 
     for (int j = 0; j < chartPastSize - 1; ++j){
         tempChartA.series[0]->replace(j, tempChartA.series[0]->at(j).x(), tempChartA.series[0]->at(j+1).y());
@@ -617,73 +549,29 @@ void MainWindow::devDataIn(const struct State& state)
     heatChart.series->replace(chartPastSize - 1, heatChart.series->at(chartPastSize - 1).x(), state.PID[4]);
     heatChart.series->setName(tr("Load: ")+QString::number(static_cast<int>(state.PID[4])));
 
+
     // PID form fields
-    if ( ! formPID->getTarget()->property("changed").toBool() ){
-        formPID->getTarget()->setValue( static_cast<int>(state.tempTarget) );
-        formPID->getTarget()->setProperty("changed", false);
-    }
-
-    for (int i = 0; i < 3; ++i)
-        if ( ! formPID->getCPID(i)->property("changed").toBool() ){
-            formPID->getCPID(i)->setValue( static_cast<float>(state.cPID[i]) );
-            formPID->getCPID(i)->setProperty("changed", false);
-        }
+    formPID->devDataIn(state);
 
 
-    // Fan form fields
-    if ( QDateTime::fromString(formFan->getFanControl()->property("changedAt").toString()).msecsTo(QDateTime::currentDateTime()) > 1000 )
-        formFan->getFanControl()->setChecked(static_cast<bool>(state.on));
+//    // Fan form fields
+//    if ( QDateTime::fromString(formFan->getFanControl()->property("changedAt").toString()).msecsTo(QDateTime::currentDateTime()) > 1000 )
+//        formFan->getFanControl()->setChecked(static_cast<bool>(state.on));
 
-    if ( ! formFan->getFanLoad()->property("changed").toBool() ){
-        formFan->getFanLoad()->setValue( static_cast<int>(state.fan) );
-        formFan->getFanLoad()->setProperty("changed", false);
-    }
+//    if ( ! formFan->getFanLoad()->property("changed").toBool() ){
+//        formFan->getFanLoad()->setValue( static_cast<int>(state.fan) );
+//        formFan->getFanLoad()->setProperty("changed", false);
+//    }
 
-    // Elapsed running time
-    int minutes = state.elapsed / 60;
-    int seconds = state.elapsed % 60;
-    formFan->getElapsed()->setText(QString("%1m%2s").arg(minutes, 1, 10, QChar('0')).arg(seconds, 1, 10, QChar('0')));
-
-    // Temperature Coefficents
-    if ( ! formCTemp->getCTemp0()->property("changed").toBool() ){
-        formCTemp->getCTemp0()->setValue( static_cast<float>(state.cTemp[0]) );
-        formCTemp->getCTemp0()->setProperty("changed", false);
-    }
-    if ( ! formCTemp->getCTemp1()->property("changed").toBool() ){
-        formCTemp->getCTemp1()->setValue( static_cast<float>(state.cTemp[1]) );
-        formCTemp->getCTemp1()->setProperty("changed", false);
-    }
-    if ( ! formCTemp->getCTemp2()->property("changed").toBool() ){
-        formCTemp->getCTemp2()->setValue( static_cast<float>(state.cTemp[2]) );
-        formCTemp->getCTemp2()->setProperty("changed", false);
-    }
-    if ( ! formCTemp->getCTemp3()->property("changed").toBool() ){
-        formCTemp->getCTemp3()->setValue( static_cast<float>(state.cTemp[3]) );
-        formCTemp->getCTemp3()->setProperty("changed", false);
-    }
+//    // Elapsed running time
+//    int minutes = state.elapsed / 60;
+//    int seconds = state.elapsed % 60;
+//    formFan->getElapsed()->setText(QString("%1m%2s").arg(minutes, 1, 10, QChar('0')).arg(seconds, 1, 10, QChar('0')));
 
 
-    // Calibration chart
-    if ( formCalib->getCalibRunning() ){
-        int calibIndex = formCalib->selectedIndex();
-        calibChart.series[0]->replace(calibIndex, calibChart.series[0]->at(calibIndex).x(), state.tempCore);
-        calibChart.scatter[0]->replace(calibIndex, calibChart.scatter[0]->at(calibIndex).x(), state.tempCore);
-    }
+    // Coefficents of temperature profiles
+    formCalib->devDataIn(state);
 
-
-    // Heat form fields
-    if ( QDateTime::fromString(formHeat->getPidEnabled()->property("changedAt").toString()).msecsTo(QDateTime::currentDateTime()) > 1000 )
-        formHeat->getPidEnabled()->setChecked(static_cast<bool>(state.PID_enabled));
-
-    if ( static_cast<bool>(state.PID_enabled) ){
-        // Disable user input for the heat load
-        formHeat->getHeatLoad()->setDisabled(true);
-        formHeat->getHeatLoad()->setValue( static_cast<int>(state.PID[4]) );
-    }
-    else {
-        // Enable user input for the heat load
-        formHeat->getHeatLoad()->setDisabled(false);
-    }
 
     // autostopChart
     autostopChart.barset[0]->replace(0, state.sStop[0]);
@@ -695,27 +583,10 @@ void MainWindow::devDataIn(const struct State& state)
         if ( autostopChart.barset[1]->at(1) > state.sStop[1] )
             autostopChart.barset[1]->replace(1, state.sStop[1]);
     }
-    // auto stop coefficients
-    if ( ! formCStop->getCStop0()->property("changed").toBool() ){
-        formCStop->getCStop0()->setValue( static_cast<float>(state.cStop[0]) );
-        formCStop->getCStop0()->setProperty("changed", false);
-    }
-    if ( ! formCStop->getCStop1()->property("changed").toBool() ){
-        formCStop->getCStop1()->setValue( static_cast<float>(state.cStop[1]) );
-        formCStop->getCStop1()->setProperty("changed", false);
-    }
+    // auto stop coefficients and derivatives
+    formCStop->devDataIn(state);
 
-    // Preferences form fields
-    if ( QDateTime::fromString(formPrefs->getAutostop()->property("changedAt").toString()).msecsTo(QDateTime::currentDateTime()) > 1000 )
-        formPrefs->getAutostop()->setChecked(static_cast<bool>(state.autostop));
-
-    if ( ! formPrefs->getTempstep()->property("changed").toBool() ){
-        formPrefs->getTempstep()->setValue( static_cast<int>(state.tempStep) );
-        formPrefs->getTempstep()->setProperty("changed", false);
-    }
-
-    if ( QDateTime::fromString(formPrefs->getScreensaver()->property("changedAt").toString()).msecsTo(QDateTime::currentDateTime()) > 1000 )
-        formPrefs->getScreensaver()->setChecked(static_cast<bool>(state.screensaver));
+    formPrefs->devDataIn(state);
 }
 
 void MainWindow::devError(const QString& error) {
@@ -731,13 +602,7 @@ void MainWindow::probeDataIn(const float reading)
     tempChartB.series[1]->replace(chartPastSize - 1, tempChartB.series[1]->at(chartPastSize - 1).x(), reading);
     tempChartB.series[1]->setName(tr("Probe: ")+QString::number(static_cast<int>(reading))+"°C");
 
-    // Calibration chart
-    if ( formCalib->getCalibRunning() && ! formCalib->getCalibManual() ){
-        int calibIndex = formCalib->selectedIndex();
-        calibChart.series[1]->replace(calibIndex, calibChart.series[1]->at(calibIndex).x(), reading);
-        calibChart.scatter[1]->replace(calibIndex, calibChart.scatter[1]->at(calibIndex).x(), reading);
-        formCalib->setManualValue(calibIndex, reading);
-    }
+    formCalib->probeDataIn(reading);
 }
 
 void MainWindow::probeError(const QString &error)
@@ -757,117 +622,39 @@ void MainWindow::setProbeType(bool checked)
     }
 }
 
-void MainWindow::calibSwitchSlot(bool pressed)
-{
-    if ( pressed ){
-        qDebug() << "Switch calibration on";
-        formCalib->setCalibRunning(true);
-        qDebug() << "setHeatLoad" << formCalib->currentLoad();
-        QMetaObject::invokeMethod(dev, "setHeatLoad", Qt::QueuedConnection, Q_ARG(float, (float)(formCalib->currentLoad())));
-    }
-    else {
-        qDebug() << "Switch calibration off";
-        formCalib->setCalibRunning(false);
-        qDebug() << "setHeatLoad" << 0;
-        QMetaObject::invokeMethod(dev, "setHeatLoad", Qt::QueuedConnection, Q_ARG(float, 0));
-    }
-}
 
-void MainWindow::calibFitPoints()
-{
-    qDebug() << "Generate coefficients from calibration";
-
-    std::vector<QPointF> points;
-
-    // Add the initial fixed point (20, 20)
-    points.emplace_back(20.0, 20.0);
-
-    // Get the points from the series (y values from series[0] as x, y values from series[1] as y)
-    for (int i = 0; i < calibChart.size; ++i) {
-        float x = calibChart.series[0]->at(i).y();
-        float y = calibChart.series[1]->at(i).y();
-        points.emplace_back(x, y);
-    }
-
-    // Number of points
-    int n = points.size();
-
-    // Construct the A matrix and b vector
-    Eigen::MatrixXd A(n, 4);  // n rows, 4 columns (for x^0, x^1, x^2, x^3)
-    Eigen::VectorXd b(n);     // n rows (for y values)
-
-    for (int i = 0; i < n; ++i) {
-        float x = points[i].x();
-        float y = points[i].y();
-
-        qDebug() << x << y ;
-
-        A(i, 0) = 1;
-        A(i, 1) = x;
-        A(i, 2) = x * x;
-        A(i, 3) = x * x * x;
-        b(i) = y;
-    }
-
-    // Solve for the coefficients using least squares (normal equation: A^T A c = A^T b)
-    Eigen::VectorXd coeffs = A.colPivHouseholderQr().solve(b);
-
-    // Update cTemp values
-    formCTemp->getCTemp0()->setValue(coeffs(0));
-    formCTemp->getCTemp1()->setValue(coeffs(1));
-    formCTemp->getCTemp2()->setValue(coeffs(2));
-    formCTemp->getCTemp3()->setValue(coeffs(3));
-
-    cTempCoeffs.clear();
-    for (int i = 0; i < coeffs.size(); ++i) {
-        cTempCoeffs.append(static_cast<float>(coeffs(i)));
-    }
-}
-
-void MainWindow::calibUpCoefsSlot()
-{
-    qDebug() << "Upload new coefficients to device";
-
-    QList<float> c;
-    for (int i = 0; i < 4; ++i)
-        c.append(static_cast<float>(formCTemp->getCTemp(i)->value()));
-
-    QMetaObject::invokeMethod(dev, "setCTempAll", Qt::QueuedConnection, Q_ARG(QList<float>, c));
-
-    formCTemp->getCTemp0()->setProperty("changed", false);
-    formCTemp->getCTemp1()->setProperty("changed", false);
-    formCTemp->getCTemp2()->setProperty("changed", false);
-    formCTemp->getCTemp3()->setProperty("changed", false);
-}
-
-void MainWindow::calibPolyFill()
-{
-    // Compute calibration probe points from polynomial coefficients
-
-    if ( formCalib->getCalibRunning() )
-        return;
-
-    QList<float> c;
-    for (int i = 0; i < 4; ++i)
-        c.append(static_cast<float>(formCTemp->getCTemp(i)->value()));
-
-    for (int i = 0; i < calibChart.size; ++i) {
-        float x = calibChart.series[0]->at(i).y();
-        float y = c.at(0) + c.at(1) * x + c.at(2) * x*x + c.at(3) * x*x*x;
-        calibChart.series[1]->replace(i, calibChart.series[1]->at(i).x(), y);
-        calibChart.scatter[1]->replace(i, calibChart.scatter[1]->at(i).x(), y);
-    }
-
-}
 
 void MainWindow::eepromResetSlot()
 {
-    QMetaObject::invokeMethod(dev, "eepromReset", Qt::QueuedConnection);
+    QMessageBox msgBox;
+    msgBox.setWindowTitle(tr("EEPROM"));
+    msgBox.setText(tr("Erase EEPROM settings? It will be necessary to calibrate."));
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::No);
+
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::Yes) {
+        QMetaObject::invokeMethod(dev, "eepromReset", Qt::QueuedConnection);
+        ui->statusbar->showMessage(tr("EEPROM erased"));
+    }
+
 }
 
 void MainWindow::eepromStoreSlot()
 {
-    QMetaObject::invokeMethod(dev, "eepromStore", Qt::QueuedConnection);
+    QMessageBox msgBox;
+    msgBox.setWindowTitle(tr("EEPROM"));
+    msgBox.setText(tr("Save current settings to EEPROM?"));
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::No);
+
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::Yes) {
+        QMetaObject::invokeMethod(dev, "eepromStore", Qt::QueuedConnection);
+        ui->statusbar->showMessage(tr("Settings saved to EEPROM"));
+    }
 }
 
 void MainWindow::updateScreenData(){
@@ -886,17 +673,21 @@ void MainWindow::updateScreenData(){
         ui->probeLocation->setCurrentText(probePortName);
     }
 
+    // Disable actions if no ports detected or not connected
     if ( ui->devLocation->count() == 0 ){
         ui->devLocation->setDisabled(true);
         ui->devConnect->setDisabled(true);
+        ui->menubar->setDisabled(true);
     }
     else {
         if ( ui->devConnect->isChecked() ){
             ui->devLocation->setDisabled(true);
+            ui->menubar->setDisabled(false);
         }
         else {
             ui->devLocation->setDisabled(false);
             ui->devConnect->setDisabled(false);
+            ui->menubar->setDisabled(true);
         }
     }
 
@@ -921,22 +712,18 @@ void MainWindow::updateScreenData(){
     }
 
 
+    // Enable/disable FormPID action buttons
+    formPID->updateScreenData();
+
+    // Enable/disable CStop action buttons
+    formCStop->updateScreenData();
+
+    formCalib->updateScreenData();
+
+    formPrefs->updateScreenData();
+
     // Update derivative charts
     regressions();
-
-    // Enable/disable calibration
-    if ( formFan->getFanControl()->isChecked() && ! formHeat->getPidEnabled()->isChecked() ){
-        calibSwitch->setDisabled(false);
-    }
-    else {
-        calibSwitch->setDisabled(true);
-        calibSwitch->setChecked(false);
-    }
-
-    if ( formCalib->getCalibRunning() ){
-        // Compute coefficients on the fly
-        calibFitPoints();
-    }
 }
 
 void MainWindow::regressions(){

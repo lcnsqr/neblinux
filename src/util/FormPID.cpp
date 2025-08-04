@@ -10,19 +10,16 @@ FormPID::FormPID(QWidget *parent, devNano *d) :
 {
     ui->setupUi(this);
 
-    ui->target->setProperty("changed", false);
-    connect(ui->target, &QSpinBox::valueChanged, this, &FormPID::targetChange);
-    connect(ui->target, &QSpinBox::editingFinished, this, &FormPID::targetSave);
-
     ui->cPID0->setProperty("changed", false);
     connect(ui->cPID0, &QDoubleSpinBox::valueChanged, this, &FormPID::cPID0Change);
-    connect(ui->cPID0, &QDoubleSpinBox::editingFinished, this, &FormPID::cPID0Save);
     ui->cPID1->setProperty("changed", false);
     connect(ui->cPID1, &QDoubleSpinBox::valueChanged, this, &FormPID::cPID1Change);
-    connect(ui->cPID1, &QDoubleSpinBox::editingFinished, this, &FormPID::cPID1Save);
     ui->cPID2->setProperty("changed", false);
     connect(ui->cPID2, &QDoubleSpinBox::valueChanged, this, &FormPID::cPID2Change);
-    connect(ui->cPID2, &QDoubleSpinBox::editingFinished, this, &FormPID::cPID2Save);
+
+    // Buttons
+    connect(ui->cPIDrestore, &QPushButton::clicked, this, &FormPID::restore);
+    connect(ui->cPIDapply, &QPushButton::clicked, this, &FormPID::apply);
 
 }
 
@@ -31,36 +28,82 @@ FormPID::~FormPID()
     delete ui;
 }
 
-QSpinBox *FormPID::getTarget()
+void FormPID::updateScreenData()
 {
-    return ui->target;
+    // Enable/disable FormPID action buttons
+    if ( ui->cPID0->property("changed").toBool()
+        || ui->cPID1->property("changed").toBool()
+        || ui->cPID2->property("changed").toBool() )
+    {
+        ui->cPIDrestore->setEnabled(true);
+        ui->cPIDapply->setEnabled(true);
+    }
+    else
+    {
+        ui->cPIDrestore->setDisabled(true);
+        ui->cPIDapply->setDisabled(true);
+    }
+
 }
 
-QDoubleSpinBox *FormPID::getCPID(int i)
+void FormPID::devDataIn(const State &state)
 {
+    if ( ui->cPID0->property("changed").toBool() ){
+        // Set unchanged if device data and field value do not differ
+        if ( static_cast<float>(state.cPID[0]) == static_cast<float>(ui->cPID0->value()) )
+            ui->cPID0->setProperty("changed", false);
+    }
+    else {
+        // No new value from user, update with device data
+        ui->cPID0->setValue( static_cast<float>(state.cPID[0]) );
+        ui->cPID0->setProperty("changed", false);
+    }
 
-    QDoubleSpinBox *cPID = nullptr;
-    if ( i == 0 )
-        cPID = ui->cPID0;
-    else if ( i == 1 )
-        cPID = ui->cPID1;
-    else if ( i == 2 )
-        cPID = ui->cPID2;
-    return cPID;
+    if ( ui->cPID1->property("changed").toBool() ){
+        // Set unchanged if device data and field value do not differ
+        if ( static_cast<float>(state.cPID[1]) == static_cast<float>(ui->cPID1->value()) )
+            ui->cPID1->setProperty("changed", false);
+    }
+    else {
+        // No new value from user, update with device data
+        ui->cPID1->setValue( static_cast<float>(state.cPID[1]) );
+        ui->cPID1->setProperty("changed", false);
+    }
 
+    if ( ui->cPID2->property("changed").toBool() ){
+        // Set unchanged if device data and field value do not differ
+        if ( static_cast<float>(state.cPID[2]) == static_cast<float>(ui->cPID2->value()) )
+            ui->cPID2->setProperty("changed", false);
+    }
+    else {
+        // No new value from user, update with device data
+        ui->cPID2->setValue( static_cast<float>(state.cPID[2]) );
+        ui->cPID2->setProperty("changed", false);
+    }
 }
 
-void FormPID::targetChange()
+void FormPID::reset()
 {
-    ui->target->setProperty("changed", true);
+    ui->cPID0->setProperty("changed", false);
+    ui->cPID1->setProperty("changed", false);
+    ui->cPID2->setProperty("changed", false);
 }
 
-void FormPID::targetSave()
+void FormPID::apply()
 {
-    if ( ! ui->target->property("changed").toBool() )
-        return;
+    if ( ui->cPID0->property("changed").toBool() )
+        QMetaObject::invokeMethod(dev, "setCPID0", Qt::QueuedConnection, Q_ARG(float, (float)(ui->cPID0->value())));
 
-    QMetaObject::invokeMethod(dev, "setTempTarget", Qt::QueuedConnection, Q_ARG(float, (float)(ui->target->value())));
+    if ( ui->cPID1->property("changed").toBool() )
+        QMetaObject::invokeMethod(dev, "setCPID1", Qt::QueuedConnection, Q_ARG(float, (float)(ui->cPID1->value())));
+
+    if ( ui->cPID2->property("changed").toBool() )
+        QMetaObject::invokeMethod(dev, "setCPID2", Qt::QueuedConnection, Q_ARG(float, (float)(ui->cPID2->value())));
+}
+
+void FormPID::restore()
+{
+    reset();
 }
 
 void FormPID::cPID0Change()
@@ -68,36 +111,12 @@ void FormPID::cPID0Change()
     ui->cPID0->setProperty("changed", true);
 }
 
-void FormPID::cPID0Save()
-{
-    if ( ! ui->cPID0->property("changed").toBool() )
-        return;
-
-    QMetaObject::invokeMethod(dev, "setCPID0", Qt::QueuedConnection, Q_ARG(float, (float)(ui->cPID0->value())));
-}
-
 void FormPID::cPID1Change()
 {
     ui->cPID1->setProperty("changed", true);
 }
 
-void FormPID::cPID1Save()
-{
-    if ( ! ui->cPID1->property("changed").toBool() )
-        return;
-
-    QMetaObject::invokeMethod(dev, "setCPID1", Qt::QueuedConnection, Q_ARG(float, (float)(ui->cPID1->value())));
-}
-
 void FormPID::cPID2Change()
 {
     ui->cPID2->setProperty("changed", true);
-}
-
-void FormPID::cPID2Save()
-{
-    if ( ! ui->cPID2->property("changed").toBool() )
-        return;
-
-    QMetaObject::invokeMethod(dev, "setCPID2", Qt::QueuedConnection, Q_ARG(float, (float)(ui->cPID2->value())));
 }

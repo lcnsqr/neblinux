@@ -6,37 +6,16 @@
 #include <QSpinBox>
 #include <QRadioButton>
 
+#include <QPushButton>
+
 #include "devNano.h"
+
+#include "FormCTemp.h"
 
 #include <QLineSeries>
 #include <QScatterSeries>
 #include <QValueAxis>
 #include <QChartView>
-
-// calibChart from mainWindow
-struct CalibChart {
-    // Points distribution stuff
-    int size;
-    float min;
-    float max;
-    float from;
-    float to;
-    float len;
-    float iFrom;
-    float iTo;
-    float iLen;
-    float s;
-    float sd;
-    QList<QPointF> prePoints;
-    QList<QPointF> probePoints;
-    QLineSeries *series[2];
-    QScatterSeries *scatter[2];
-    QPen *pen[2];
-    QChart *chart;
-    QValueAxis *axisX;
-    QValueAxis *axisY;
-    QChartView *chartView;
-};
 
 namespace Ui {
 class FormCalib;
@@ -47,19 +26,14 @@ class FormCalib : public QWidget
     Q_OBJECT
 
 public:
-    explicit FormCalib(QWidget *parent = nullptr, CalibChart *calibChartRef = nullptr, devNano *d = nullptr);
+    explicit FormCalib(QWidget *parent = nullptr, devNano *d = nullptr);
     ~FormCalib();
 
-    void updatePoints();
+    void updateScreenData();
+    void devDataIn(const struct State& state);
+    void reset();
 
-    void setManualDisabled(bool value);
-    void setManualValue(int targetIndex, int value);
-
-    bool getCalibRunning() const;
-    void setCalibRunning(bool newCalibRunning);
-
-    bool getCalibManual() const;
-    void setCalibManual(bool newCalibManual);
+    void probeDataIn(const float reading);
 
     int currentLoad();
     int selectedIndex();
@@ -74,16 +48,55 @@ public slots:
 
     void tempManualToggle(int state);
 
-    void getFormReady();
+    void calibSwitchSlot(bool pressed);
+
+    void calibPolyFill();
 
 private:
     Ui::FormCalib *ui;
 
-    CalibChart *calibChart;
     devNano *dev;
+
+    // Chart attributes
+    struct {
+        // Points distribution stuff
+        int size;
+        float min;
+        float max;
+        float from;
+        float to;
+        float len;
+        float iFrom;
+        float iTo;
+        float iLen;
+        float s;
+        float sd;
+        QList<QPointF> prePoints;
+        QList<QPointF> probePoints;
+        QLineSeries *series[2];
+        QScatterSeries *scatter[2];
+        QPen *pen[2];
+        QChart *chart;
+        QValueAxis *axisX;
+        QValueAxis *axisY;
+        QChartView *chartView;
+    } calibChart;
+
+    // cTemp fields
+    FormCTemp* formCTemp;
+
+    void setManualDisabled(bool value);
+    void setManualValue(int targetIndex, int value);
 
     bool calibRunning = false;
     bool calibManual = false;
+
+    // Calibration managing buttons
+    QPushButton *calibSwitch = nullptr;
+
+    // Third degree polynomial to fit calibration points
+    QList<float> cTempCoeffs;
+    void calibFitPoints();
 };
 
 #endif // FORMCALIB_H

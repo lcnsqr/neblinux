@@ -4,8 +4,14 @@
 #include <QMainWindow>
 #include <QThread>
 
+#include <QApplication>
+#include <QCloseEvent>
+
 #include "devNano.h"
 #include "probe.h"
+
+#include "View.h"
+#include <unordered_map>
 
 #include <QString>
 
@@ -21,22 +27,18 @@
 #include <QtCharts/QBarSet>
 #include <QtCharts/QBarCategoryAxis>
 
-#include "FormHeat.h"
-
-#include "FormFan.h"
-
 #include <QtCharts/QScatterSeries>
 #include <QPen>
 
 #include "FormCalib.h"
-
-#include "FormCTemp.h"
 
 #include "FormCStop.h"
 
 #include "FormPrefs.h"
 
 #include <QPushButton>
+
+#include <QSettings>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -50,12 +52,13 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-
-    // calibChart should be public
-    struct CalibChart calibChart;
+    // Restore window geometry
+    void restore();
 
 private:
     Ui::MainWindow *ui;
+
+    QSettings settings;
 
     // Neblinux device connected to the serial port
     QThread* devThread;
@@ -67,8 +70,11 @@ private:
     Probe* probe;
     QString probePortName;
 
-    static const int refreshInterval = 250;
-    static const int chartPastSize = 201;
+    static const int refreshInterval = 125;
+    // chartPastTime / 1000 must be integer multiple of refreshInterval
+    static const int chartPastTime = 160 * refreshInterval; // 20s
+    // Size of the time series
+    int chartPastSize;
 
     // tempChartA
     struct {
@@ -93,19 +99,8 @@ private:
     // PID fields
     FormPID* formPID;
 
-    // Heat fields (PID enabled
-    // checkbox and manual value)
-    FormHeat* formHeat;
-
-    // Fan fields (Fan control
-    // fan load and last duration)
-    FormFan* formFan;
-
     // cStop fields
     FormCStop* formCStop;
-
-    // cTemp fields
-    FormCTemp* formCTemp;
 
     // Calibration fields
     FormCalib* formCalib;
@@ -145,13 +140,6 @@ private:
     // Preferences (autostop, tempstep and screensaver)
     FormPrefs* formPrefs;
 
-    // Calibration managing buttons
-    QPushButton *calibSwitch = nullptr;
-    QPushButton *calibUpCoefs = nullptr;
-
-    // Third degree polynomial to fit calibration points
-    QList<float> cTempCoeffs;
-    void calibFitPoints();
 
     // EEPROM action buttons
     QPushButton *eepromReset = nullptr;
@@ -159,6 +147,13 @@ private:
 
     // Update derivative charts
     void regressions();
+
+    // Views (child windows)
+    std::unordered_map<QString, View*> views;
+
+    // Setup Main window menu and views
+    void setupViews();
+    void setupCharts();
 
 public slots:
     void devConnect(int);
@@ -171,14 +166,18 @@ public slots:
 
     void setProbeType(bool checked);
 
-    void calibSwitchSlot(bool pressed);
-    void calibUpCoefsSlot();
-    void calibPolyFill();
 
     void eepromResetSlot();
     void eepromStoreSlot();
 
     void updateScreenData();
 
+    // Menu slots
+    void triggerView();
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
 };
+
 #endif // MAINWINDOW_H

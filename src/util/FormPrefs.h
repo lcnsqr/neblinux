@@ -5,8 +5,6 @@
 
 #include "devNano.h"
 
-#include <QCheckBox>
-#include <QSpinBox>
 
 namespace Ui {
 class FormPrefs;
@@ -20,15 +18,18 @@ public:
     explicit FormPrefs(QWidget *parent = nullptr, devNano *d = nullptr);
     ~FormPrefs();
 
-    QCheckBox *getAutostop();
-    QSpinBox *getTempstep();
-    QCheckBox *getScreensaver();
+    void updateScreenData();
+    void devDataIn(const struct State& state);
+    void reset();
 
 public slots:
-    void autostopChange(int state);
+    void apply();
+    void restore();
+
+    void autostopChange();
     void tempstepChange();
-    void tempstepSave();
-    void screensaverChange(int state);
+    void targetChange();
+    void screensaverChange();
 
 private:
     Ui::FormPrefs *ui;

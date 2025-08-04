@@ -6,84 +6,155 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>107</height>
+    <width>442</width>
+    <height>161</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_5">
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item alignment="Qt::AlignHCenter">
-      <widget class="QCheckBox" name="autostop">
-       <property name="maximumSize">
-        <size>
-         <width>23</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">margin-top: 7px;</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item alignment="Qt::AlignHCenter">
+        <widget class="QCheckBox" name="screensaver">
+         <property name="maximumSize">
+          <size>
+           <width>23</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">margin-top: 7px;</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item alignment="Qt::AlignTop">
+        <widget class="QLabel" name="screensaverLabel">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Screen&lt;br/&gt;saver&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
-     <item alignment="Qt::AlignTop">
-      <widget class="QLabel" name="autostopLabel">
-       <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Auto&lt;br/&gt;stop&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>6</number>
        </property>
-      </widget>
+       <item alignment="Qt::AlignHCenter">
+        <widget class="QSpinBox" name="tempstep">
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>29</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item alignment="Qt::AlignTop">
+        <widget class="QLabel" name="tempstepLabel">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Rotary&lt;br/&gt;step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item alignment="Qt::AlignHCenter">
+        <widget class="QSpinBox" name="target">
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>29</height>
+          </size>
+         </property>
+         <property name="minimum">
+          <number>20</number>
+         </property>
+         <property name="maximum">
+          <number>220</number>
+         </property>
+        </widget>
+       </item>
+       <item alignment="Qt::AlignTop">
+        <widget class="QLabel" name="targetLabel">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Target&lt;br/&gt;temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item alignment="Qt::AlignHCenter">
+        <widget class="QCheckBox" name="autostop">
+         <property name="maximumSize">
+          <size>
+           <width>23</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">margin-top: 7px;</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item alignment="Qt::AlignTop">
+        <widget class="QLabel" name="autostopLabel">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Auto&lt;br/&gt;stop&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_2">
-     <item alignment="Qt::AlignHCenter">
-      <widget class="QSpinBox" name="tempstep">
-       <property name="maximumSize">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
         <size>
-         <width>100</width>
-         <height>29</height>
+         <width>40</width>
+         <height>20</height>
         </size>
        </property>
-      </widget>
+      </spacer>
      </item>
-     <item alignment="Qt::AlignTop">
-      <widget class="QLabel" name="tempstepLabel">
+     <item>
+      <widget class="QPushButton" name="prefsRestore">
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Rotary&lt;br/&gt;step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QVBoxLayout" name="verticalLayout_3">
-     <item alignment="Qt::AlignHCenter">
-      <widget class="QCheckBox" name="screensaver">
-       <property name="maximumSize">
-        <size>
-         <width>23</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">margin-top: 7px;</string>
-       </property>
-       <property name="text">
-        <string/>
+        <string>Restore</string>
        </property>
       </widget>
      </item>
-     <item alignment="Qt::AlignTop">
-      <widget class="QLabel" name="screensaverLabel">
+     <item>
+      <widget class="QPushButton" name="prefsApply">
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Screen&lt;br/&gt;saver&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>Apply</string>
        </property>
       </widget>
      </item>

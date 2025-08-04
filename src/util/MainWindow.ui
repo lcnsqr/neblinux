@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1280</width>
-    <height>900</height>
+    <width>703</width>
+    <height>141</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -113,32 +113,146 @@
       </item>
      </layout>
     </item>
-    <item>
-     <layout class="QHBoxLayout" name="dashboard">
-      <item>
-       <layout class="QVBoxLayout" name="left"/>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="middle"/>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="right"/>
-      </item>
-     </layout>
-    </item>
    </layout>
   </widget>
+  <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menubar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1280</width>
+     <width>703</width>
      <height>27</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuMonitoring">
+    <property name="title">
+     <string>Monitoring</string>
+    </property>
+    <addaction name="Output_and_target_temperatures"/>
+    <addaction name="Pre_and_probe_temperatures"/>
+    <addaction name="Stability"/>
+    <addaction name="Heating"/>
+   </widget>
+   <widget class="QMenu" name="menuSetup">
+    <property name="title">
+     <string>Setup</string>
+    </property>
+    <addaction name="Preferences"/>
+    <addaction name="PID"/>
+    <addaction name="Calibration"/>
+    <addaction name="Auto_stop"/>
+   </widget>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="Reset_EEPROM"/>
+    <addaction name="Save_settings_to_EEPROM"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuMonitoring"/>
+   <addaction name="menuSetup"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <action name="Output_and_target_temperatures">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Output and target &amp;temperatures</string>
+   </property>
+  </action>
+  <action name="Pre_and_probe_temperatures">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Pre and probe temperatures</string>
+   </property>
+  </action>
+  <action name="Stability">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Readings Stability</string>
+   </property>
+  </action>
+  <action name="Blower">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Blower</string>
+   </property>
+  </action>
+  <action name="Calibration">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Calibration</string>
+   </property>
+  </action>
+  <action name="Temperature_coefficients">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Temperature coefficients</string>
+   </property>
+  </action>
+  <action name="Heating">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Heating</string>
+   </property>
+  </action>
+  <action name="Auto_stop">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto Stop</string>
+   </property>
+  </action>
+  <action name="PID">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>PID</string>
+   </property>
+  </action>
+  <action name="Preferences">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Preferences</string>
+   </property>
+  </action>
+  <action name="Reset_EEPROM">
+   <property name="text">
+    <string>Reset EEPROM</string>
+   </property>
+  </action>
+  <action name="Save_settings_to_EEPROM">
+   <property name="text">
+    <string>Save settings to EEPROM</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="resources.qrc"/>

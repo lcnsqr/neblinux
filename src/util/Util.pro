@@ -8,16 +8,21 @@ CONFIG += c++17
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += /usr/include/eigen3
+win32 {
+    INCLUDEPATH += C:/eigen-3.4.0
+}
+
+unix {
+    INCLUDEPATH += /usr/include/eigen3
+}
 
 SOURCES += \
     FormCStop.cpp \
     FormCTemp.cpp \
     FormCalib.cpp \
-    FormFan.cpp \
-    FormHeat.cpp \
     FormPID.cpp \
     FormPrefs.cpp \
+    View.cpp \
     devNano.cpp \
     main.cpp \
     MainWindow.cpp \
@@ -27,11 +32,10 @@ HEADERS += \
     FormCStop.h \
     FormCTemp.h \
     FormCalib.h \
-    FormFan.h \
-    FormHeat.h \
     FormPID.h \
     FormPrefs.h \
     MainWindow.h \
+    View.h \
     devNano.h \
     probe.h \
     state.h
@@ -40,8 +44,6 @@ FORMS += \
     FormCStop.ui \
     FormCTemp.ui \
     FormCalib.ui \
-    FormFan.ui \
-    FormHeat.ui \
     FormPID.ui \
     FormPrefs.ui \
     MainWindow.ui
