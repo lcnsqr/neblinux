@@ -27,8 +27,6 @@
 #include <QtCharts/QBarSet>
 #include <QtCharts/QBarCategoryAxis>
 
-#include "FormFan.h"
-
 #include <QtCharts/QScatterSeries>
 #include <QPen>
 
@@ -100,10 +98,6 @@ private:
 
     // PID fields
     FormPID* formPID;
-
-    // Fan fields (Fan control
-    // fan load and last duration)
-    FormFan* formFan;
 
     // cStop fields
     FormCStop* formCStop;

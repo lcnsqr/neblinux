@@ -20,7 +20,6 @@ SOURCES += \
     FormCStop.cpp \
     FormCTemp.cpp \
     FormCalib.cpp \
-    FormFan.cpp \
     FormPID.cpp \
     FormPrefs.cpp \
     View.cpp \
@@ -33,7 +32,6 @@ HEADERS += \
     FormCStop.h \
     FormCTemp.h \
     FormCalib.h \
-    FormFan.h \
     FormPID.h \
     FormPrefs.h \
     MainWindow.h \
@@ -46,7 +44,6 @@ FORMS += \
     FormCStop.ui \
     FormCTemp.ui \
     FormCalib.ui \
-    FormFan.ui \
     FormPID.ui \
     FormPrefs.ui \
     MainWindow.ui

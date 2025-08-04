@@ -132,7 +132,6 @@
     <addaction name="Output_and_target_temperatures"/>
     <addaction name="Pre_and_probe_temperatures"/>
     <addaction name="Stability"/>
-    <addaction name="Blower"/>
     <addaction name="Heating"/>
    </widget>
    <widget class="QMenu" name="menuCalibration">

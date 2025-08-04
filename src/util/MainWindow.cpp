@@ -39,7 +39,6 @@ MainWindow::MainWindow(QWidget *parent)
     , probeThread(new QThread(this))
     , probe(new Probe())
     , formPID(new FormPID(this, dev))
-    , formFan(new FormFan(this, dev))
     , formCStop(new FormCStop(this, dev))
     , formCalib(new FormCalib(this, dev))
     , formPrefs(new FormPrefs(this, dev))
@@ -169,11 +168,6 @@ void MainWindow::setupViews()
     menu = ui->Stability;
     views[menu->objectName()] = new View(nullptr, menu);
     views[menu->objectName()]->layout->addWidget(derivChart.chartView);
-    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
-
-    menu = ui->Blower;
-    views[menu->objectName()] = new View(nullptr, menu);
-    views[menu->objectName()]->layout->addWidget(formFan);
     connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
 
     // Preferences
@@ -485,8 +479,6 @@ void MainWindow::devConnect(int state)
         // Reset changed state of all input fields
         formPID->reset();
 
-        formFan->getFanLoad()->setProperty("changed", false);
-
         formCalib->reset();
 
         formCStop->reset();
@@ -574,19 +566,19 @@ void MainWindow::devDataIn(const struct State& state)
     formPID->devDataIn(state);
 
 
-    // Fan form fields
-    if ( QDateTime::fromString(formFan->getFanControl()->property("changedAt").toString()).msecsTo(QDateTime::currentDateTime()) > 1000 )
-        formFan->getFanControl()->setChecked(static_cast<bool>(state.on));
+//    // Fan form fields
+//    if ( QDateTime::fromString(formFan->getFanControl()->property("changedAt").toString()).msecsTo(QDateTime::currentDateTime()) > 1000 )
+//        formFan->getFanControl()->setChecked(static_cast<bool>(state.on));
 
-    if ( ! formFan->getFanLoad()->property("changed").toBool() ){
-        formFan->getFanLoad()->setValue( static_cast<int>(state.fan) );
-        formFan->getFanLoad()->setProperty("changed", false);
-    }
+//    if ( ! formFan->getFanLoad()->property("changed").toBool() ){
+//        formFan->getFanLoad()->setValue( static_cast<int>(state.fan) );
+//        formFan->getFanLoad()->setProperty("changed", false);
+//    }
 
-    // Elapsed running time
-    int minutes = state.elapsed / 60;
-    int seconds = state.elapsed % 60;
-    formFan->getElapsed()->setText(QString("%1m%2s").arg(minutes, 1, 10, QChar('0')).arg(seconds, 1, 10, QChar('0')));
+//    // Elapsed running time
+//    int minutes = state.elapsed / 60;
+//    int seconds = state.elapsed % 60;
+//    formFan->getElapsed()->setText(QString("%1m%2s").arg(minutes, 1, 10, QChar('0')).arg(seconds, 1, 10, QChar('0')));
 
 
     // Coefficents of temperature profiles
