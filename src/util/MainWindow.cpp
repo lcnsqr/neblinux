@@ -673,17 +673,21 @@ void MainWindow::updateScreenData(){
         ui->probeLocation->setCurrentText(probePortName);
     }
 
+    // Disable actions if no ports detected or not connected
     if ( ui->devLocation->count() == 0 ){
         ui->devLocation->setDisabled(true);
         ui->devConnect->setDisabled(true);
+        ui->menubar->setDisabled(true);
     }
     else {
         if ( ui->devConnect->isChecked() ){
             ui->devLocation->setDisabled(true);
+            ui->menubar->setDisabled(false);
         }
         else {
             ui->devLocation->setDisabled(false);
             ui->devConnect->setDisabled(false);
+            ui->menubar->setDisabled(true);
         }
     }
 

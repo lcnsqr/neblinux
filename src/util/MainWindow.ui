@@ -117,6 +117,9 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menubar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -134,7 +137,7 @@
     <addaction name="Stability"/>
     <addaction name="Heating"/>
    </widget>
-   <widget class="QMenu" name="menuCalibration">
+   <widget class="QMenu" name="menuSetup">
     <property name="title">
      <string>Setup</string>
     </property>
@@ -153,7 +156,7 @@
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuMonitoring"/>
-   <addaction name="menuCalibration"/>
+   <addaction name="menuSetup"/>
   </widget>
   <action name="Output_and_target_temperatures">
    <property name="checkable">
