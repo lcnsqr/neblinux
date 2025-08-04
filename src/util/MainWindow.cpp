@@ -31,6 +31,8 @@
 
 #include <QToolTip>
 
+#include <QMessageBox>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -53,26 +55,12 @@ MainWindow::MainWindow(QWidget *parent)
     QShortcut *shortcutCtrlQ = new QShortcut(QKeySequence("Ctrl+Q"), this);
     connect(shortcutCtrlQ, &QShortcut::activated, this, &QWidget::close);
 
+    // Exit menu
+    connect(ui->actionExit, &QAction::triggered, this, &QWidget::close);
 
-    // Preferences autostop, tempstep, screensaver
-//    QLabel *prefHeader = new QLabel(tr("Preferences"));
-//    prefHeader->setAlignment(Qt::AlignCenter);
-//    prefHeader->setStyleSheet("margin-top: 24px;");
-//    ui->right->addWidget(prefHeader);
-//    ui->right->addWidget(formPrefs);
-
-//    ui->right->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
-
-
-    // Create the buttons for eeprom actions
-//    eepromReset = new QPushButton(tr("Reset EEPROM"));
-//    connect(eepromReset, &QPushButton::clicked, this, &MainWindow::eepromResetSlot);
-//    eepromStore = new QPushButton(tr("Store on EEPROM"));
-//    connect(eepromStore, &QPushButton::clicked, this, &MainWindow::eepromStoreSlot);
-//    QHBoxLayout *eepromButtons = new QHBoxLayout;
-//    eepromButtons->addWidget(eepromReset);
-//    eepromButtons->addWidget(eepromStore);
-//    ui->right->addLayout(eepromButtons);
+    // EEPROM actions menu
+    connect(ui->Reset_EEPROM, &QAction::triggered, this, &MainWindow::eepromResetSlot);
+    connect(ui->Save_settings_to_EEPROM, &QAction::triggered, this, &MainWindow::eepromStoreSlot);
 
 
     // Setup window menu and child windows (views)
@@ -638,12 +626,35 @@ void MainWindow::setProbeType(bool checked)
 
 void MainWindow::eepromResetSlot()
 {
-    QMetaObject::invokeMethod(dev, "eepromReset", Qt::QueuedConnection);
+    QMessageBox msgBox;
+    msgBox.setWindowTitle(tr("EEPROM"));
+    msgBox.setText(tr("Erase EEPROM settings? It will be necessary to calibrate."));
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::No);
+
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::Yes) {
+        QMetaObject::invokeMethod(dev, "eepromReset", Qt::QueuedConnection);
+        ui->statusbar->showMessage(tr("EEPROM erased"));
+    }
+
 }
 
 void MainWindow::eepromStoreSlot()
 {
-    QMetaObject::invokeMethod(dev, "eepromStore", Qt::QueuedConnection);
+    QMessageBox msgBox;
+    msgBox.setWindowTitle(tr("EEPROM"));
+    msgBox.setText(tr("Save current settings to EEPROM?"));
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::No);
+
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::Yes) {
+        QMetaObject::invokeMethod(dev, "eepromStore", Qt::QueuedConnection);
+        ui->statusbar->showMessage(tr("Settings saved to EEPROM"));
+    }
 }
 
 void MainWindow::updateScreenData(){
