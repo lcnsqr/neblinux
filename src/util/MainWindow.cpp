@@ -677,17 +677,26 @@ void MainWindow::updateScreenData(){
     if ( ui->devLocation->count() == 0 ){
         ui->devLocation->setDisabled(true);
         ui->devConnect->setDisabled(true);
-        ui->menubar->setDisabled(true);
+        ui->Reset_EEPROM->setDisabled(true);
+        ui->Save_settings_to_EEPROM->setDisabled(true);
+        ui->menuMonitoring->setDisabled(true);
+        ui->menuSetup->setDisabled(true);
     }
     else {
         if ( ui->devConnect->isChecked() ){
             ui->devLocation->setDisabled(true);
-            ui->menubar->setDisabled(false);
+            ui->Reset_EEPROM->setDisabled(false);
+            ui->Save_settings_to_EEPROM->setDisabled(false);
+            ui->menuMonitoring->setDisabled(false);
+            ui->menuSetup->setDisabled(false);
         }
         else {
             ui->devLocation->setDisabled(false);
             ui->devConnect->setDisabled(false);
-            ui->menubar->setDisabled(true);
+            ui->Reset_EEPROM->setDisabled(true);
+            ui->Save_settings_to_EEPROM->setDisabled(true);
+            ui->menuMonitoring->setDisabled(true);
+            ui->menuSetup->setDisabled(true);
         }
     }
 
