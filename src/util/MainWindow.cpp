@@ -74,20 +74,20 @@ MainWindow::MainWindow(QWidget *parent)
     connect(dev, &devNano::error, this, &MainWindow::devError);
     connect(devThread, &QThread::finished, dev, &QObject::deleteLater);
     connect(dev, &devNano::finished, devThread, &QThread::quit);
-    connect(ui->devConnect, &QCheckBox::stateChanged, this, &MainWindow::devConnect);
+    connect(ui->devConnect, &QPushButton::toggled, this, &MainWindow::devConnect);
 
     // Probe signals
     connect(probe, &Probe::dataIn, this, &MainWindow::probeDataIn);
     connect(probe, &Probe::error, this, &MainWindow::probeError);
     connect(probeThread, &QThread::finished, probe, &QObject::deleteLater);
     connect(probe, &Probe::finished, probeThread, &QThread::quit);
-    connect(ui->probeConnect, &QCheckBox::stateChanged, this, &MainWindow::probeConnect);
-
     // Probe type
     ui->probeTA612c->setProperty("probeType", 0x04);
     connect(ui->probeTA612c, &QRadioButton::toggled, this, &MainWindow::setProbeType);
     ui->probeArduino->setProperty("probeType", 0x01);
     connect(ui->probeArduino, &QRadioButton::toggled, this, &MainWindow::setProbeType);
+
+    connect(ui->probeConnect, &QPushButton::toggled, this, &MainWindow::probeConnect);
 
 
     // Timer for general screen updates
@@ -459,7 +459,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::devConnect(int state)
 {
-    if (ui->devLocation->count() == 0)
+    if (ui->devPort->count() == 0)
         return;
 
     if (state == Qt::Checked) {
@@ -474,48 +474,52 @@ void MainWindow::devConnect(int state)
         formPrefs->reset();
 
         // Get the selected item from the combo box
-        devPortName = ui->devLocation->currentText();
+        devPortName = ui->devPort->currentText();
 
         ui->statusbar->showMessage(tr("Connected to ") + devPortName);
 
         QMetaObject::invokeMethod(dev, "setPortName", Qt::QueuedConnection, Q_ARG(QString, devPortName));
 
-        ui->devLocation->setDisabled(true);
+        ui->devPort->setDisabled(true);
 
         QMetaObject::invokeMethod(dev, "startReading", Qt::QueuedConnection);
+        ui->devConnect->setText(tr("Disconnect"));
     }
     else {
         ui->statusbar->showMessage(tr("Disconnected"));
         QMetaObject::invokeMethod(dev, "stopReading", Qt::QueuedConnection);
-        ui->devLocation->setDisabled(false);
+        ui->devPort->setDisabled(false);
+        ui->devConnect->setText(tr("Connect"));
     }
 }
 
 void MainWindow::probeConnect(int state)
 {
-    if (ui->probeLocation->count() == 0)
+    if (ui->probePort->count() == 0)
         return;
 
     if (state == Qt::Checked) {
         // Get the selected item from the combo box
-        probePortName = ui->probeLocation->currentText();
+        probePortName = ui->probePort->currentText();
 
         ui->statusbar->showMessage(tr("Connected to ") + probePortName);
 
         QMetaObject::invokeMethod(probe, "setPortName", Qt::QueuedConnection, Q_ARG(QString, probePortName));
 
-        ui->probeLocation->setDisabled(true);
+        ui->probePort->setDisabled(true);
         ui->probeTA612c->setDisabled(true);
         ui->probeArduino->setDisabled(true);
 
         QMetaObject::invokeMethod(probe, "startReading", Qt::QueuedConnection);
+        ui->probeConnect->setText(tr("Disconnect"));
 
     }
     else {
         QMetaObject::invokeMethod(probe, "stopReading", Qt::QueuedConnection);
-        ui->probeLocation->setDisabled(false);
+        ui->probePort->setDisabled(false);
         ui->probeTA612c->setDisabled(false);
         ui->probeArduino->setDisabled(false);
+        ui->probeConnect->setText(tr("Connect"));
     }
 }
 
@@ -661,21 +665,21 @@ void MainWindow::updateScreenData(){
 
     // Get a list of all available serial ports
     const QList<QSerialPortInfo> availablePorts = QSerialPortInfo::availablePorts();
-    if ( availablePorts.count() != ui->devLocation->count() ){
+    if ( availablePorts.count() != ui->devPort->count() ){
         // Replace ports list
-        ui->devLocation->clear();
-        ui->probeLocation->clear();
+        ui->devPort->clear();
+        ui->probePort->clear();
         for (const QSerialPortInfo &serialPortInfo : availablePorts) {
-            ui->devLocation->addItem(serialPortInfo.portName());
-            ui->probeLocation->addItem(serialPortInfo.portName());
+            ui->devPort->addItem(serialPortInfo.portName());
+            ui->probePort->addItem(serialPortInfo.portName());
         }
-        ui->devLocation->setCurrentText(devPortName);
-        ui->probeLocation->setCurrentText(probePortName);
+        ui->devPort->setCurrentText(devPortName);
+        ui->probePort->setCurrentText(probePortName);
     }
 
     // Disable actions if no ports detected or not connected
-    if ( ui->devLocation->count() == 0 ){
-        ui->devLocation->setDisabled(true);
+    if ( ui->devPort->count() == 0 ){
+        ui->devPort->setDisabled(true);
         ui->devConnect->setDisabled(true);
         ui->Reset_EEPROM->setDisabled(true);
         ui->Save_settings_to_EEPROM->setDisabled(true);
@@ -684,14 +688,14 @@ void MainWindow::updateScreenData(){
     }
     else {
         if ( ui->devConnect->isChecked() ){
-            ui->devLocation->setDisabled(true);
+            ui->devPort->setDisabled(true);
             ui->Reset_EEPROM->setDisabled(false);
             ui->Save_settings_to_EEPROM->setDisabled(false);
             ui->menuMonitoring->setDisabled(false);
             ui->menuSetup->setDisabled(false);
         }
         else {
-            ui->devLocation->setDisabled(false);
+            ui->devPort->setDisabled(false);
             ui->devConnect->setDisabled(false);
             ui->Reset_EEPROM->setDisabled(true);
             ui->Save_settings_to_EEPROM->setDisabled(true);
@@ -700,20 +704,20 @@ void MainWindow::updateScreenData(){
         }
     }
 
-    if ( ui->probeLocation->count() == 0 ){
-        ui->probeLocation->setDisabled(true);
+    if ( ui->probePort->count() == 0 ){
+        ui->probePort->setDisabled(true);
         ui->probeConnect->setDisabled(true);
         ui->probeTA612c->setDisabled(true);
         ui->probeArduino->setDisabled(true);
     }
     else {
         if ( ui->probeConnect->isChecked() ){
-            ui->probeLocation->setDisabled(true);
+            ui->probePort->setDisabled(true);
             ui->probeTA612c->setDisabled(true);
             ui->probeArduino->setDisabled(true);
         }
         else {
-            ui->probeLocation->setDisabled(false);
+            ui->probePort->setDisabled(false);
             ui->probeConnect->setDisabled(false);
             ui->probeTA612c->setDisabled(false);
             ui->probeArduino->setDisabled(false);
