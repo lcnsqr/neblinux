@@ -462,7 +462,7 @@ void MainWindow::devConnect(int state)
     if (ui->devPort->count() == 0)
         return;
 
-    if (state == Qt::Checked) {
+    if (static_cast<bool>(state)) {
 
         // Reset changed state of all input fields
         formPID->reset();
@@ -498,7 +498,7 @@ void MainWindow::probeConnect(int state)
     if (ui->probePort->count() == 0)
         return;
 
-    if (state == Qt::Checked) {
+    if (static_cast<bool>(state)) {
         // Get the selected item from the combo box
         probePortName = ui->probePort->currentText();
 
