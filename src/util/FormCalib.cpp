@@ -120,7 +120,7 @@ FormCalib::FormCalib(QWidget *parent, devNano *d) :
 
 
     // Create the action buttons for calibration
-    calibSwitch = new QPushButton(tr("Run calibration"));
+    calibSwitch = new QPushButton(tr("Start calibration"));
     calibSwitch->setCheckable(true);
     connect(calibSwitch, &QPushButton::toggled, this, &FormCalib::calibSwitchSlot);
 
@@ -187,14 +187,6 @@ void FormCalib::updateScreenData()
 
 void FormCalib::devDataIn(const State &state)
 {
-    // Enable/disable calibration
-    if ( static_cast<bool>(state.on) ){
-        calibSwitch->setDisabled(false);
-    }
-    else {
-        calibSwitch->setDisabled(true);
-        calibSwitch->setChecked(false);
-    }
 
     // Calibration chart
     if ( calibRunning ){
@@ -403,17 +395,22 @@ int FormCalib::currentLoad()
 
 void FormCalib::calibSwitchSlot(bool pressed)
 {
+
     if ( pressed ){
         qDebug() << "Switch calibration on";
+        QMetaObject::invokeMethod(dev, "prepareCalib", Qt::QueuedConnection);
         calibRunning = true;
         qDebug() << "setHeatLoad" << currentLoad();
         QMetaObject::invokeMethod(dev, "setHeatLoad", Qt::QueuedConnection, Q_ARG(float, (float)(currentLoad())));
+        calibSwitch->setText(tr("Stop calibration"));
     }
     else {
         qDebug() << "Switch calibration off";
+        QMetaObject::invokeMethod(dev, "finishCalib", Qt::QueuedConnection);
         calibRunning = false;
         qDebug() << "setHeatLoad" << 0;
         QMetaObject::invokeMethod(dev, "setHeatLoad", Qt::QueuedConnection, Q_ARG(float, 0));
+        calibSwitch->setText(tr("Start calibration"));
     }
 }
 
