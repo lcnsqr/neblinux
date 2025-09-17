@@ -219,7 +219,7 @@ void FormCalib::probeDataIn(const float reading)
 
 void FormCalib::calibFitPoints()
 {
-    qDebug() << "Generate coefficients from calibration";
+    //qDebug() << "Generate coefficients from calibration";
 
     std::vector<QPointF> points;
 
@@ -244,7 +244,7 @@ void FormCalib::calibFitPoints()
         float x = points[i].x();
         float y = points[i].y();
 
-        qDebug() << x << y ;
+        //qDebug() << x << y ;
 
         A(i, 0) = 1;
         A(i, 1) = x;
