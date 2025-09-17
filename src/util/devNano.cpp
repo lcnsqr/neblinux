@@ -184,6 +184,22 @@ void devNano::push()
 
 }
 
+void devNano::prepareCalib()
+{
+    stateOut.PID_enabled = 0;
+    stateOut.heat = 0;
+    push();
+    deviceCmd(SERIAL_START);
+}
+
+void devNano::finishCalib()
+{
+    deviceCmd(SERIAL_STOP);
+    stateOut.heat = 0;
+    stateOut.PID_enabled = 1;
+    push();
+}
+
 void devNano::setTempTarget(float value) {
     stateOut.tempTarget = value;
     push();

@@ -30,6 +30,9 @@ public slots:
     void pull();
     void push();
 
+    void prepareCalib();
+    void finishCalib();
+
     void setTempTarget(float value);
     void setCPID0(float value);
     void setCPID1(float value);
