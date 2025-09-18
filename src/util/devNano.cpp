@@ -189,12 +189,14 @@ void devNano::prepareCalib()
     stateOut.PID_enabled = 0;
     stateOut.heat = 0;
     push();
+    QThread::usleep(static_cast<qint64>(300e+3));
     deviceCmd(SERIAL_START);
 }
 
 void devNano::finishCalib()
 {
     deviceCmd(SERIAL_STOP);
+    QThread::usleep(static_cast<qint64>(300e+3));
     stateOut.heat = 0;
     stateOut.PID_enabled = 1;
     push();
