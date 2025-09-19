@@ -10,6 +10,8 @@ int main(int argc, char *argv[])
     a.setOrganizationName("Neblinux");
     a.setApplicationName("Util");
 
+    a.setWindowIcon(QIcon(":/icon.png"));
+
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
     for (const QString &locale : uiLanguages) {
