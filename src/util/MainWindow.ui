@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/icon.svg</normaloff>:/icon.svg</iconset>
+    <normaloff>:/icon.png</normaloff>:/icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -276,9 +276,16 @@
     <addaction name="Save_settings_to_EEPROM"/>
     <addaction name="actionExit"/>
    </widget>
+   <widget class="QMenu" name="menuAdvanced">
+    <property name="title">
+     <string>Advanced</string>
+    </property>
+    <addaction name="actionManual_control"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuMonitoring"/>
    <addaction name="menuSetup"/>
+   <addaction name="menuAdvanced"/>
   </widget>
   <action name="Output_and_target_temperatures">
    <property name="checkable">
@@ -373,6 +380,14 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionManual_control">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Manual control</string>
    </property>
   </action>
  </widget>

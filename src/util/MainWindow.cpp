@@ -44,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
     , formCStop(new FormCStop(this, dev))
     , formCalib(new FormCalib(this, dev))
     , formPrefs(new FormPrefs(this, dev))
+    , manualControl(new ManualControl(this, dev))
 {
     ui->setupUi(this);
 
@@ -162,6 +163,12 @@ void MainWindow::setupViews()
     menu = ui->Preferences;
     views[menu->objectName()] = new View(nullptr, menu);
     views[menu->objectName()]->layout->addWidget(formPrefs);
+    connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
+
+    // Advanced manual controls
+    menu = ui->actionManual_control;
+    views[menu->objectName()] = new View(nullptr, menu);
+    views[menu->objectName()]->layout->addWidget(manualControl);
     connect(menu, &QAction::triggered, this, &MainWindow::triggerView);
 
     // Calibration
@@ -473,6 +480,8 @@ void MainWindow::devConnect(int state)
 
         formPrefs->reset();
 
+        manualControl->reset();
+
         // Get the selected item from the combo box
         devPortName = ui->devPort->currentText();
 
@@ -591,6 +600,8 @@ void MainWindow::devDataIn(const struct State& state)
     formCStop->devDataIn(state);
 
     formPrefs->devDataIn(state);
+
+    manualControl->devDataIn(state);
 }
 
 void MainWindow::devError(const QString& error) {
@@ -685,6 +696,7 @@ void MainWindow::updateScreenData(){
         ui->Save_settings_to_EEPROM->setDisabled(true);
         ui->menuMonitoring->setDisabled(true);
         ui->menuSetup->setDisabled(true);
+        ui->menuAdvanced->setDisabled(true);
     }
     else {
         if ( ui->devConnect->isChecked() ){
@@ -693,6 +705,7 @@ void MainWindow::updateScreenData(){
             ui->Save_settings_to_EEPROM->setDisabled(false);
             ui->menuMonitoring->setDisabled(false);
             ui->menuSetup->setDisabled(false);
+            ui->menuAdvanced->setDisabled(false);
         }
         else {
             ui->devPort->setDisabled(false);
@@ -701,6 +714,7 @@ void MainWindow::updateScreenData(){
             ui->Save_settings_to_EEPROM->setDisabled(true);
             ui->menuMonitoring->setDisabled(true);
             ui->menuSetup->setDisabled(true);
+            ui->menuAdvanced->setDisabled(true);
         }
     }
 
@@ -734,6 +748,8 @@ void MainWindow::updateScreenData(){
     formCalib->updateScreenData();
 
     formPrefs->updateScreenData();
+
+    manualControl->updateScreenData();
 
     // Update derivative charts
     regressions();

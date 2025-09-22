@@ -22,6 +22,7 @@ SOURCES += \
     FormCalib.cpp \
     FormPID.cpp \
     FormPrefs.cpp \
+    ManualControl.cpp \
     View.cpp \
     devNano.cpp \
     main.cpp \
@@ -35,6 +36,7 @@ HEADERS += \
     FormPID.h \
     FormPrefs.h \
     MainWindow.h \
+    ManualControl.h \
     View.h \
     devNano.h \
     probe.h \
@@ -46,7 +48,8 @@ FORMS += \
     FormCalib.ui \
     FormPID.ui \
     FormPrefs.ui \
-    MainWindow.ui
+    MainWindow.ui \
+    ManualControl.ui
 
 TRANSLATIONS += \
     Util_pt_BR.ts

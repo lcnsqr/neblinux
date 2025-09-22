@@ -36,6 +36,8 @@
 
 #include "FormPrefs.h"
 
+#include "ManualControl.h"
+
 #include <QPushButton>
 
 #include <QSettings>
@@ -139,6 +141,9 @@ private:
 
     // Preferences (autostop, tempstep and screensaver)
     FormPrefs* formPrefs;
+
+    // Advanced manual controls
+    ManualControl* manualControl;
 
 
     // EEPROM action buttons
