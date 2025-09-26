@@ -76,7 +76,7 @@ private:
 
     // Timer to call pull() on timeout
     QTimer* timer;
-    int updateInterval = 500;
+    int updateInterval = 700;
 
     // Send one byte command to device
     void deviceCmd(const char cmd);
