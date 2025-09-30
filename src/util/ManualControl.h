@@ -24,8 +24,8 @@ public slots:
     void apply();
     void restore();
 
-    void fanChange(Qt::CheckState state);
-    void PIDChange(Qt::CheckState state);
+    void fanChange();
+    void PIDChange();
     void loadChange();
 
 private:

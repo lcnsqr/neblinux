@@ -9,10 +9,10 @@ ManualControl::ManualControl(QWidget *parent, devNano *d)
     ui->setupUi(this);
 
     ui->fan->setProperty("changed", false);
-    connect(ui->fan, &QCheckBox::checkStateChanged, this, &ManualControl::fanChange);
+    connect(ui->fan, &QCheckBox::stateChanged, this, &ManualControl::fanChange);
 
     ui->PID->setProperty("changed", false);
-    connect(ui->PID, &QCheckBox::checkStateChanged, this, &ManualControl::PIDChange);
+    connect(ui->PID, &QCheckBox::stateChanged, this, &ManualControl::PIDChange);
 
     ui->manualLoad->setProperty("changed", false);
     connect(ui->manualLoad, &QSpinBox::valueChanged, this, &ManualControl::loadChange);
@@ -106,18 +106,14 @@ void ManualControl::restore()
     reset();
 }
 
-void ManualControl::fanChange(Qt::CheckState state)
+void ManualControl::fanChange()
 {
-    //if (state == Qt::Checked) {
-        ui->fan->setProperty("changed", true);
-    //}
+    ui->fan->setProperty("changed", true);
 }
 
-void ManualControl::PIDChange(Qt::CheckState state)
+void ManualControl::PIDChange()
 {
-    //if (state == Qt::Checked) {
-        ui->PID->setProperty("changed", true);
-    //}
+    ui->PID->setProperty("changed", true);
 }
 
 void ManualControl::loadChange()
