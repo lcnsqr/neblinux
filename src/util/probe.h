@@ -53,7 +53,7 @@ private:
 
     // Timer to call pull() on timeout
     QTimer* timer;
-    int updateInterval = 250;
+    int updateInterval = 500;
 
     // Data load
     float reading;

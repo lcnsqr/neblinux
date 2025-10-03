@@ -74,7 +74,7 @@ private:
 
     // Timer to refresh window widgets
     QTimer* timer;
-    int refreshInterval = 250;
+    int refreshInterval = 500;
     // chartPastTime / 1000 must be integer multiple of refreshInterval
     int chartPastTime = 160 * refreshInterval; // 20s
     // Size of the time series
