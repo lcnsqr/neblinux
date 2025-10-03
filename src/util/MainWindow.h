@@ -72,9 +72,11 @@ private:
     Probe* probe;
     QString probePortName;
 
-    static const int refreshInterval = 125;
+    // Timer to refresh window widgets
+    QTimer* timer;
+    int refreshInterval = 250;
     // chartPastTime / 1000 must be integer multiple of refreshInterval
-    static const int chartPastTime = 160 * refreshInterval; // 20s
+    int chartPastTime = 160 * refreshInterval; // 20s
     // Size of the time series
     int chartPastSize;
 

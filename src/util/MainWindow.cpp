@@ -36,6 +36,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , timer(new QTimer(this))
     , devThread(new QThread(this))
     , dev(new devNano())
     , probeThread(new QThread(this))
@@ -91,12 +92,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->probeConnect, &QPushButton::toggled, this, &MainWindow::probeConnect);
 
 
-    // Timer for general screen updates
-    QTimer *screenUpdates = new QTimer();
-    // Regression charts
-    QObject::connect(screenUpdates, &QTimer::timeout, this, &MainWindow::updateScreenData);
-
-    screenUpdates->start(100);
+    // Screen updates & regression charts
+    QObject::connect(timer, &QTimer::timeout, this, &MainWindow::updateScreenData);
+    timer->start(refreshInterval);
 
 
     // Communication threads
@@ -104,14 +102,13 @@ MainWindow::MainWindow(QWidget *parent)
     // Dispatch device object to its thread
     dev->moveToThread(devThread);
     // Setup device pulling interval
-    int interval = refreshInterval;
-    QMetaObject::invokeMethod(dev, "setInterval", Qt::QueuedConnection, Q_ARG(int, interval));
+    QMetaObject::invokeMethod(dev, "setInterval", Qt::QueuedConnection, Q_ARG(int, refreshInterval));
     devThread->start();
 
     // Dispatch probe object to its thread
     probe->moveToThread(probeThread);
     // Setup probe pulling interval
-    QMetaObject::invokeMethod(probe, "setInterval", Qt::QueuedConnection, Q_ARG(int, interval));
+    QMetaObject::invokeMethod(probe, "setInterval", Qt::QueuedConnection, Q_ARG(int, refreshInterval));
     probeThread->start();
 
 }
@@ -123,6 +120,15 @@ MainWindow::~MainWindow()
 
 void MainWindow::restore()
 {
+    settings.beginGroup("Preferences");
+    if (settings.contains("refreshInterval")){
+        refreshInterval = settings.value("refreshInterval").toInt();
+        timer->setInterval(refreshInterval);
+        QMetaObject::invokeMethod(dev, "setInterval", Qt::QueuedConnection, Q_ARG(int, refreshInterval));
+        QMetaObject::invokeMethod(probe, "setInterval", Qt::QueuedConnection, Q_ARG(int, refreshInterval));
+    }
+    settings.endGroup();
+
     settings.beginGroup("Geometry");
     if (settings.contains("MainWindow"))
         restoreGeometry(settings.value("MainWindow").toByteArray());

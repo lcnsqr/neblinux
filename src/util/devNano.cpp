@@ -60,7 +60,7 @@ void devNano::startReading()
             // Store when the connection started
             connectTime = QDateTime::currentDateTime();
 
-            // Fetch data every 100 ms (1/10 second)
+            // Fetch data
             timer->start(updateInterval);
         }
 
