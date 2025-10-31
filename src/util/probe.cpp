@@ -4,6 +4,37 @@
 
 #include <iostream>
 
+#include <limits>
+#include <cstdint>
+
+// readFully helper reads only the remaining bytes (min(avail, remaining))
+// and loops until the expected byte count is gathered or the timeout elapses.
+
+static bool readFully(QSerialPort* serial, char* buf, qint64 size, int timeoutMs)
+{
+    qint64 rx_bytes = 0;
+    QDateTime start = QDateTime::currentDateTime();
+
+    while (rx_bytes < size && start.msecsTo(QDateTime::currentDateTime()) < timeoutMs) {
+        if (!serial->waitForReadyRead(100))
+            continue;
+
+        qint64 avail = serial->bytesAvailable();
+        qint64 remaining = size - rx_bytes;
+        qint64 toRead = qMin(avail, remaining);
+        if (toRead <= 0)
+            continue;
+
+        qint64 n = serial->read(buf + rx_bytes, toRead);
+        if (n < 0) {
+            return false;
+        }
+        rx_bytes += n;
+        // small sleep to allow hardware buffer to refill if needed
+        QThread::msleep(1);
+    }
+    return rx_bytes == size;
+}
 
 Probe::Probe(QObject* parent)
     : QObject(parent), serial(new QSerialPort(this)), timer(new QTimer(this))
@@ -149,30 +180,25 @@ float Probe::pullTA612c()
 float Probe::pullArduino()
 {
     const char cmd = SERIAL_READ;
-
-    float reply = 0;
-
-    int rx_bytes = 0;
+    float reply = std::numeric_limits<float>::quiet_NaN();
 
     serial->clear();
     serial->write(&cmd, 1);
 
     serial->waitForBytesWritten(1000);
-    QThread::usleep(static_cast<qint64>(40e+3));
+    // wait 40ms for a response (previous code used usleep(40e+3))
+    QThread::msleep(40);
 
-    // QSerialPort object reads buffer size chunks
-    rx_bytes = 0;
-
-    // Don't dwell in the loop for more than one second
-    QDateTime t = QDateTime::currentDateTime();
-
-    while ( rx_bytes < (int)sizeof(float) && t.msecsTo(QDateTime::currentDateTime()) < 1000 ){
-        if (serial->waitForReadyRead(100)) {
-            rx_bytes += serial->read((char*)&reply + rx_bytes, serial->bytesAvailable());
-            QThread::usleep(static_cast<qint64>(40e+3));
-        }
+    // Read exactly sizeof(float) bytes
+    char buf[sizeof(float)] = {0};
+    if (!readFully(serial, buf, sizeof(buf), 1000)) {
+        // read timeout or error; return NaN so caller can detect it
+        return reply;
     }
 
-    return reply;
+    // Copy raw bytes into float. Keep endianness as original code expects host layout.
+    static_assert(sizeof(float) == 4, "Unexpected float size");
+    memcpy(&reply, buf, sizeof(float));
 
+    return reply;
 }

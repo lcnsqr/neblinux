@@ -4,6 +4,35 @@
 
 #include <iostream>
 
+#include <limits>
+#include <cstdint>
+
+// Helper shared with probe.cpp; kept local copy here to avoid cross-file dependency.
+static bool readFully(QSerialPort* serial, char* buf, qint64 size, int timeoutMs)
+{
+    qint64 rx_bytes = 0;
+    QDateTime start = QDateTime::currentDateTime();
+
+    while (rx_bytes < size && start.msecsTo(QDateTime::currentDateTime()) < timeoutMs) {
+        if (!serial->waitForReadyRead(100))
+            continue;
+
+        qint64 avail = serial->bytesAvailable();
+        qint64 remaining = size - rx_bytes;
+        qint64 toRead = qMin(avail, remaining);
+        if (toRead <= 0)
+            continue;
+
+        qint64 n = serial->read(buf + rx_bytes, toRead);
+        if (n < 0) {
+            return false;
+        }
+        rx_bytes += n;
+        QThread::msleep(1);
+    }
+    return rx_bytes == size;
+}
+
 devNano::devNano(QObject* parent)
     : QObject(parent), serial(new QSerialPort(this)), timer(new QTimer(this))
 {
@@ -105,19 +134,19 @@ void devNano::pull()
         serial->write(&cmd, 1);
 
         serial->waitForBytesWritten(1000);
-        QThread::usleep(static_cast<qint64>(40e+3));
+        QThread::msleep(40);
 
-        // QSerialPort object reads buffer size chunks
-        rx_bytes = 0;
+        // Read exactly sizeof(struct State) bytes with timeout
+        char *buf = reinterpret_cast<char*>(&stateLocal);
+        if (!readFully(serial, buf, static_cast<qint64>(sizeof(struct State)), 1000)) {
+          emit error(tr("Timeout reading device state"));
+          return;
+        }
 
-        // Don't dwell in the loop for more than one second
-        QDateTime t = QDateTime::currentDateTime();
-
-        while ( rx_bytes < (int)sizeof(struct State) && t.msecsTo(QDateTime::currentDateTime()) < 1000 ){
-            if (serial->waitForReadyRead(100)) {
-                rx_bytes += serial->read((char*)&stateLocal + rx_bytes, serial->bytesAvailable());
-                QThread::usleep(static_cast<qint64>(40e+3));
-            }
+        // Validate serialCheck marker (the device is expected to flip the field)
+        if (stateLocal.serialCheck != SERIAL_TAG) {
+          emit error(tr("Serial check mismatch (corrupt/shifted packet)"));
+          return;
         }
 
         if ( stateLocal.serialCheck == SERIAL_TAG ){
