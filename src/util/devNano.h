@@ -47,6 +47,8 @@ public slots:
     void setCTemp3(float value);
     void setCTempAll(const QList<float>& values);
 
+    void setPrefsAll(const QList<int>& values);
+
     void enablePID(int value);
     void setHeatLoad(float value);
 

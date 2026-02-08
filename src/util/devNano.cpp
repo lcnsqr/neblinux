@@ -301,6 +301,15 @@ void devNano::setCTempAll(const QList<float> &values)
     push();
 }
 
+void devNano::setPrefsAll(const QList<int> &values)
+{
+    stateOut.autostop = values.at(0);
+    stateOut.screensaver = values.at(1);
+    stateOut.tempStep = values.at(2);
+    stateOut.tempTarget = static_cast<float>(values.at(3));
+    push();
+}
+
 void devNano::enablePID(int value)
 {
     stateOut.PID_enabled = value;

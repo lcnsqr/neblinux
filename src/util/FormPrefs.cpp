@@ -101,17 +101,18 @@ void FormPrefs::devDataIn(const State &state)
 
 void FormPrefs::apply()
 {
-    if ( ui->autostop->property("changed").toBool() )
-        QMetaObject::invokeMethod(dev, "autostop", Qt::QueuedConnection, Q_ARG(int, static_cast<int>(ui->autostop->isChecked()) ));
 
-    if ( ui->screensaver->property("changed").toBool() )
-        QMetaObject::invokeMethod(dev, "screensaver", Qt::QueuedConnection, Q_ARG(int, static_cast<int>(ui->screensaver->isChecked()) ));
+    QList<int> c;
+    c.append(static_cast<int>(ui->autostop->isChecked()));
+    c.append(static_cast<int>(ui->screensaver->isChecked()));
+    c.append(static_cast<int>(ui->tempstep->value()));
+    c.append(static_cast<int>(ui->target->value()));
 
-    if ( ui->tempstep->property("changed").toBool() )
-        QMetaObject::invokeMethod(dev, "tempstep", Qt::QueuedConnection, Q_ARG(int, static_cast<int>(ui->tempstep->value()) ));
+    QMetaObject::invokeMethod(dev, "setPrefsAll", Qt::QueuedConnection, Q_ARG(QList<int>, c));
 
-    if ( ui->target->property("changed").toBool() )
-        QMetaObject::invokeMethod(dev, "setTempTarget", Qt::QueuedConnection, Q_ARG(float, static_cast<float>(ui->target->value()) ));
+    reset();
+
+
 }
 
 void FormPrefs::reset()
