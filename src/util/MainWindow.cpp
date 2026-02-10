@@ -473,7 +473,7 @@ void MainWindow::importSettings()
         return;
 
     QDataStream in(&file);
-    in.setVersion(QDataStream::Qt_6_8);
+    in.setVersion(QDataStream::Qt_6_2);
 
     quint32 version;
     in >> version;
@@ -511,7 +511,7 @@ void MainWindow::exportSettings()
     }
 
     QDataStream out(&file);
-    out.setVersion(QDataStream::Qt_6_8);
+    out.setVersion(QDataStream::Qt_6_2);
 
     // File format version
     out << quint32(1);
