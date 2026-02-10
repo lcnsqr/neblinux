@@ -274,6 +274,8 @@
     </property>
     <addaction name="Reset_EEPROM"/>
     <addaction name="Save_settings_to_EEPROM"/>
+    <addaction name="Export_settings"/>
+    <addaction name="Import_settings"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuAdvanced">
@@ -388,6 +390,19 @@
    </property>
    <property name="text">
     <string>Manual control</string>
+   </property>
+  </action>
+  <action name="Export_settings">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Export settings</string>
+   </property>
+  </action>
+  <action name="Import_settings">
+   <property name="text">
+    <string>Import settings</string>
    </property>
   </action>
  </widget>

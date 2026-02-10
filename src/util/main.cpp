@@ -21,6 +21,9 @@ int main(int argc, char *argv[])
             break;
         }
     }
+
+    qRegisterMetaType<State>("State");
+
     MainWindow w;
     w.show();
     w.restore();

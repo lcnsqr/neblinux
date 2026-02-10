@@ -364,6 +364,32 @@ void devNano::eepromReset()
     deviceCmd(SERIAL_RESET);
 }
 
+void devNano::backupRestore(const State &data)
+{
+    state = data;
+
+    // Atualizar a estrutura de envio com o estado recebido
+    stateOut.tempTarget = state.tempTarget;
+    stateOut.tempStep = state.tempStep;
+    stateOut.fan = state.fan;
+    stateOut.PID_enabled = state.PID_enabled;
+    stateOut.heat = (state.PID_enabled) ? 0 : state.PID[4];
+    stateOut.cTemp[0] = state.cTemp[0];
+    stateOut.cTemp[1] = state.cTemp[1];
+    stateOut.cTemp[2] = state.cTemp[2];
+    stateOut.cTemp[3] = state.cTemp[3];
+    stateOut.cPID[0] = state.cPID[0];
+    stateOut.cPID[1] = state.cPID[1];
+    stateOut.cPID[2] = state.cPID[2];
+    stateOut.autostop = state.autostop;
+    stateOut.screensaver = state.screensaver;
+    stateOut.splash = state.splash;
+    stateOut.cStop[0] = state.cStop[0];
+    stateOut.cStop[1] = state.cStop[1];
+
+    push();
+}
+
 void devNano::deviceCmd(const char cmd)
 {
     if (!serial->isOpen()){

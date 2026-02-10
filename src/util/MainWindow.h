@@ -42,6 +42,8 @@
 
 #include <QSettings>
 
+#include <QDataStream>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -162,6 +164,10 @@ private:
     void setupViews();
     void setupCharts();
 
+
+    // Config data to import/export
+    struct State stateBackup;
+
 public slots:
     void devConnect(int);
     void devDataIn(const struct State& state);
@@ -182,9 +188,15 @@ public slots:
     // Menu slots
     void triggerView();
 
+    // Import/export settings to filesystem
+    void importSettings();
+    void exportSettings();
 protected:
     void closeEvent(QCloseEvent *event) override;
 
 };
+
+QDataStream &operator<<(QDataStream &out, const State &s);
+QDataStream &operator>>(QDataStream &in, State &s);
 
 #endif // MAINWINDOW_H

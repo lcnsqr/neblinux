@@ -81,6 +81,8 @@ struct State {
 
 };
 
+Q_DECLARE_METATYPE(State)
+
 // Estrutura para alteração de estado via porta serial
 struct StateIO {
   // Temperatura alvo no exaustor

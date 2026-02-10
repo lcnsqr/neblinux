@@ -62,6 +62,8 @@ public slots:
     void eepromStore();
     void eepromReset();
 
+    void backupRestore(const struct State& data);
+
 signals:
     void dataIn(const struct State& data);
     void error(const QString& error);

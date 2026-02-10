@@ -32,15 +32,17 @@
 #include <QToolTip>
 
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , timer(new QTimer(this))
     , devThread(new QThread(this))
     , dev(new devNano())
     , probeThread(new QThread(this))
     , probe(new Probe())
+    , timer(new QTimer(this))
     , formPID(new FormPID(this, dev))
     , formCStop(new FormCStop(this, dev))
     , formCalib(new FormCalib(this, dev))
@@ -63,6 +65,10 @@ MainWindow::MainWindow(QWidget *parent)
     // EEPROM actions menu
     connect(ui->Reset_EEPROM, &QAction::triggered, this, &MainWindow::eepromResetSlot);
     connect(ui->Save_settings_to_EEPROM, &QAction::triggered, this, &MainWindow::eepromStoreSlot);
+
+    // Export/import settings
+    connect(ui->Export_settings, &QAction::triggered, this, &MainWindow::exportSettings);
+    connect(ui->Import_settings, &QAction::triggered, this, &MainWindow::importSettings);
 
 
     // Setup window menu and child windows (views)
@@ -446,6 +452,74 @@ void MainWindow::triggerView()
     }
 }
 
+void MainWindow::importSettings()
+{
+    QString fileName = QFileDialog::getOpenFileName(
+        this,
+        tr("Select a file"),
+        QDir::homePath(),                         // initial directory
+        tr("All Files (*.*);;Text Files (*.txt)") // filter
+        );
+
+    if (fileName.isEmpty())
+    {
+        return;
+    }
+
+    qDebug() << fileName;
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly))
+        return;
+
+    QDataStream in(&file);
+    in.setVersion(QDataStream::Qt_6_8);
+
+    quint32 version;
+    in >> version;
+
+    if (version != 1){
+        qDebug() << "Wrong file version";
+        return;
+    }
+
+    in >> stateBackup;
+    QMetaObject::invokeMethod(dev, "backupRestore", Qt::QueuedConnection, Q_ARG(State, stateBackup));
+}
+
+void MainWindow::exportSettings()
+{
+    QString fileName = QFileDialog::getSaveFileName(
+        this,
+        tr("Create or Select File"),
+        QDir::homePath(),
+        tr("All Files (*.*);;Text Files (*.txt)")
+        );
+
+    if (fileName.isEmpty())
+    {
+        return;
+    }
+
+    qDebug() << fileName;
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly))
+    {
+        qDebug() << "ERROR: Read only file";
+        return;
+    }
+
+    QDataStream out(&file);
+    out.setVersion(QDataStream::Qt_6_8);
+
+    // File format version
+    out << quint32(1);
+
+    out << stateBackup;
+
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     settings.beginGroup("Geometry");
@@ -608,6 +682,9 @@ void MainWindow::devDataIn(const struct State& state)
     formPrefs->devDataIn(state);
 
     manualControl->devDataIn(state);
+
+    // Update backup structure
+    stateBackup = state;
 }
 
 void MainWindow::devError(const QString& error) {
@@ -703,6 +780,8 @@ void MainWindow::updateScreenData(){
         ui->menuMonitoring->setDisabled(true);
         ui->menuSetup->setDisabled(true);
         ui->menuAdvanced->setDisabled(true);
+        ui->Export_settings->setDisabled(true);
+        ui->Import_settings->setDisabled(true);
     }
     else {
         if ( ui->devConnect->isChecked() ){
@@ -712,6 +791,8 @@ void MainWindow::updateScreenData(){
             ui->menuMonitoring->setDisabled(false);
             ui->menuSetup->setDisabled(false);
             ui->menuAdvanced->setDisabled(false);
+            ui->Export_settings->setDisabled(false);
+            ui->Import_settings->setDisabled(false);
         }
         else {
             ui->devPort->setDisabled(false);
@@ -721,6 +802,9 @@ void MainWindow::updateScreenData(){
             ui->menuMonitoring->setDisabled(true);
             ui->menuSetup->setDisabled(true);
             ui->menuAdvanced->setDisabled(true);
+            ui->Export_settings->setDisabled(true);
+            ui->Import_settings->setDisabled(true);
+
         }
     }
 
@@ -839,4 +923,70 @@ void MainWindow::regressions(){
     // Update derivChart for heat load
     derivChart.barset->replace(2, c(1));
 
+}
+
+// Operator to export settings
+QDataStream &operator<<(QDataStream &out, const State &s)
+{
+    out << s.elapsed
+        << s.tempCore
+        << s.tempEx
+        << s.tempTarget
+        << s.analogTherm;
+
+    for (float v : s.cTemp) out << v;
+
+    out << s.autostop;
+
+    for (float v : s.sStop) out << v;
+    for (float v : s.cStop) out << v;
+
+    out << s.on
+        << s.fan;
+
+    for (float v : s.cPID) out << v;
+    for (float v : s.PID) out << v;
+
+    out << s.PID_enabled
+        << s.ts
+        << s.tempStep
+        << s.targetLastChange
+        << s.splash
+        << s.screensaver
+        << s.serialCheck;
+
+    return out;
+}
+
+// Operator to import settings
+QDataStream &operator>>(QDataStream &in, State &s)
+{
+    in >> s.elapsed
+        >> s.tempCore
+        >> s.tempEx
+        >> s.tempTarget
+        >> s.analogTherm;
+
+    for (float &v : s.cTemp) in >> v;
+
+    in >> s.autostop;
+
+    for (float &v : s.sStop) in >> v;
+    for (float &v : s.cStop) in >> v;
+
+    in >> s.on
+        >> s.fan;
+
+    for (float &v : s.cPID) in >> v;
+    for (float &v : s.PID) in >> v;
+
+    in >> s.PID_enabled
+        >> s.ts
+        >> s.tempStep
+        >> s.targetLastChange
+        >> s.splash
+        >> s.screensaver
+        >> s.serialCheck;
+
+    return in;
 }
