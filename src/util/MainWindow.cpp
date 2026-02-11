@@ -457,16 +457,14 @@ void MainWindow::importSettings()
     QString fileName = QFileDialog::getOpenFileName(
         this,
         tr("Select a file"),
-        QDir::homePath(),                         // initial directory
-        tr("All Files (*.*);;Text Files (*.txt)") // filter
+        QDir::homePath(),
+        tr("Bin Files (*.bin);;All Files (*.*)")
         );
 
     if (fileName.isEmpty())
     {
         return;
     }
-
-    qDebug() << fileName;
 
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly))
@@ -479,12 +477,15 @@ void MainWindow::importSettings()
     in >> version;
 
     if (version != 1){
-        qDebug() << "Wrong file version";
+        ui->statusbar->showMessage(tr("File not supported")+" "+fileName);
         return;
     }
 
     in >> stateBackup;
     QMetaObject::invokeMethod(dev, "backupRestore", Qt::QueuedConnection, Q_ARG(State, stateBackup));
+
+    ui->statusbar->showMessage(tr("Settings imported from")+" "+fileName);
+
 }
 
 void MainWindow::exportSettings()
@@ -492,8 +493,8 @@ void MainWindow::exportSettings()
     QString fileName = QFileDialog::getSaveFileName(
         this,
         tr("Create or Select File"),
-        QDir::homePath(),
-        tr("All Files (*.*);;Text Files (*.txt)")
+        QDir::homePath() + "/settings_" + QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss") + ".bin",
+        tr("Bin Files (*.bin);;All Files (*.*)")
         );
 
     if (fileName.isEmpty())
@@ -501,12 +502,10 @@ void MainWindow::exportSettings()
         return;
     }
 
-    qDebug() << fileName;
-
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly))
     {
-        qDebug() << "ERROR: Read only file";
+        ui->statusbar->showMessage(tr("ERROR:")+" "+fileName+" "+tr("read only"));
         return;
     }
 
@@ -518,6 +517,7 @@ void MainWindow::exportSettings()
 
     out << stateBackup;
 
+    ui->statusbar->showMessage(tr("Settings exported to")+" "+fileName);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
