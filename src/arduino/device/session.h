@@ -37,6 +37,9 @@ public:
   static const float tempMin = 20.0;
   static const float tempMax = 320.0;
 
+  // Risco de queima se acima de 180°
+  static const float tempWarn = 180.0;
+
   // Sinalizar mudança na sessão
   bool changed;
 
