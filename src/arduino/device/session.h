@@ -17,7 +17,7 @@ struct Settings {
   uint32_t fan;      // Velocidade do fan (100-255)
 };
 
-// Estado e IPC
+// Estado e comunicação intra tarefas
 class Session {
 public:
   Session();
@@ -35,9 +35,9 @@ public:
 
   // Mínimo e máximo aquecimento na tela
   static const float tempMin = 20.0;
-  static const float tempMax = 320.0;
+  static const float tempMax = 230.0;
 
-  // Risco de queima se acima de 180°
+  // Limiar de aviso para temperaturas muito altas
   static const float tempWarn = 180.0;
 
   // Sinalizar mudança na sessão
@@ -47,7 +47,7 @@ public:
   void start();
   void stop();
 
-  // Ativo?
+  // Fan ativo?
   bool running();
 
   // Requisição via porta serial
