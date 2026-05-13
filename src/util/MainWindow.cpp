@@ -320,7 +320,7 @@ void MainWindow::setupCharts()
     derivChart.chart->setBackgroundVisible(false);
 
     // Create categories for the X-axis (only one category)
-    derivChart.categories << "Pre" << "Probe" << "Load";
+    derivChart.categories << tr("Pre") << tr("Probe") << tr("Load");
     derivChart.axisX = new QBarCategoryAxis();
     derivChart.axisX->append(derivChart.categories);
     derivChart.chart->addAxis(derivChart.axisX, Qt::AlignBottom);
@@ -414,7 +414,7 @@ void MainWindow::setupCharts()
     autostopChart.chart->setBackgroundVisible(false);
 
     // Create categories for the X-axis
-    autostopChart.categories << "Temperature" << "Heating";
+    autostopChart.categories << tr("Temperature") << tr("Heating");
     autostopChart.axisX = new QBarCategoryAxis();
     autostopChart.axisX->append(autostopChart.categories);
     autostopChart.chart->addAxis(autostopChart.axisX, Qt::AlignBottom);

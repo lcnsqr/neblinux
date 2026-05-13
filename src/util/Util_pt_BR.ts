@@ -162,11 +162,6 @@
 <context>
     <name>FormPrefs</name>
     <message>
-        <location filename="FormPrefs.ui" line="14"/>
-        <source>Form</source>
-        <translation></translation>
-    </message>
-    <message>
         <location filename="FormPrefs.ui" line="97"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Target&lt;br/&gt;temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Temperatura&lt;br/&gt;alvo&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
@@ -191,6 +186,12 @@
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Rotary&lt;br/&gt;step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <oldsource>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Rotary&lt;br/&gt;stop&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</oldsource>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Passo&lt;br/&gt;do giro&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <location filename="FormPrefs.ui" line="14"/>
+        <source>Preferences</source>
+        <oldsource>Preferências</oldsource>
+        <translation>Preferências</translation>
     </message>
     <message>
         <location filename="FormPrefs.ui" line="46"/>
@@ -315,6 +316,7 @@
     <message>
         <location filename="MainWindow.ui" line="131"/>
         <location filename="MainWindow.cpp" line="271"/>
+        <location filename="MainWindow.cpp" line="323"/>
         <source>Probe</source>
         <translation>Sonda</translation>
     </message>
@@ -339,6 +341,7 @@
     </message>
     <message>
         <location filename="MainWindow.cpp" line="265"/>
+        <location filename="MainWindow.cpp" line="323"/>
         <source>Pre</source>
         <translation>Prévia</translation>
     </message>
@@ -376,10 +379,12 @@
     </message>
     <message>
         <location filename="MainWindow.ui" line="345"/>
+        <location filename="MainWindow.cpp" line="417"/>
         <source>Heating</source>
         <translation>Aquecimento</translation>
     </message>
     <message>
+        <location filename="MainWindow.cpp" line="323"/>
         <location filename="MainWindow.cpp" line="347"/>
         <source>Load</source>
         <translation>Carga</translation>
@@ -434,6 +439,11 @@
         <location filename="MainWindow.cpp" line="628"/>
         <source>Target: </source>
         <translation>Alvo: </translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="417"/>
+        <source>Temperature</source>
+        <translation>Temperatura</translation>
     </message>
     <message>
         <location filename="MainWindow.cpp" line="459"/>
@@ -528,8 +538,9 @@
     <name>ManualControl</name>
     <message>
         <location filename="ManualControl.ui" line="14"/>
-        <source>Form</source>
-        <translation></translation>
+        <source>Manual Control</source>
+        <oldsource>Controle manual</oldsource>
+        <translation>Controle Manual</translation>
     </message>
     <message>
         <location filename="ManualControl.ui" line="46"/>
