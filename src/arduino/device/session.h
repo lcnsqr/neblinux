@@ -35,7 +35,7 @@ public:
 
   // Mínimo e máximo aquecimento na tela
   static const float tempMin = 20.0;
-  static const float tempMax = 280.0;
+  static const float tempMax = 230.0;
 
   // Limiar de aviso para temperaturas muito altas
   static const float tempWarn = 180.0;
