@@ -136,12 +136,12 @@ void scrMain::show() {
     }
 
     if ( session->state.tempTarget > session->tempWarn ) {
-      // Temperatura de extração
-      display->drawXBMP(96, 46, 12, 16, boil_bits);
+      // Desenho para temperaturas elevadas
+      display->drawXBMP(96, 50, 12, 12, boil_bits);
     }
     else {
-      // Temperatura de flor
-      display->drawXBMP(96, 46, 12, 16, flower_bits);
+      // Desenho para temperaturas moderadas
+      display->drawXBMP(96, 50, 12, 12, flower_bits);
     }
 
     // Status message
